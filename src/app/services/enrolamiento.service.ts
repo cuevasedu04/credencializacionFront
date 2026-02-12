@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../src/environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class EnrolamientoService {
   
-  private apiUrl = '/api/expedientes/';
-  private apiCredencializacionUrl = '/api/credencializacion/';
+  private apiUrl = `http://127.0.0.1:8080/api/expedientes/`;
+  private apiCredencializacionUrl = `http://127.0.0.1:8080/api/credencializacion/`;
 
   constructor(private http: HttpClient) { }
 

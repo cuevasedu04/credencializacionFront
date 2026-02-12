@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { UtilsService } from '../../services/utils.service';
 import { TipoToast } from '../../../api/entidades/enumeraciones';
 import { ModalManagerService } from '../../components/shared/modal-manager.service';
+import { environment } from '../../../environments/environment.prod';
 
 @Component({
   selector: 'app-carga-masiva',
@@ -36,7 +37,7 @@ export class CargaMasivaComponent implements OnInit {
   @ViewChild('modalConfirmacion') modalConfirmacion!: TemplateRef<any>;
   @ViewChild('modalDuplicados') modalDuplicados!: TemplateRef<any>;
   
-  private apiUrl = '/api/empleados-sig/';
+  private apiUrl = `http://127.0.0.1:8080/api/empleados-sig/`;
 
   constructor(
     private http: HttpClient,
