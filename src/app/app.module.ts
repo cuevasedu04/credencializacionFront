@@ -28,6 +28,7 @@ import { PlantillaEnrolamientoComponent } from './content/enrolamiento/plantilla
 import { CredencializacionComponent } from './content/credencializacion/credencializacion.component';
 import { CargaMasivaComponent } from './content/carga-masiva/carga-masiva.component';
 import { ProvisionalComponent } from './content/provisional/provisional.component';
+import { FamiliarComponent } from './content/familiar/familiar.component';
 
 @NgModule({
   declarations: [
@@ -44,7 +45,8 @@ import { ProvisionalComponent } from './content/provisional/provisional.componen
     PlantillaEnrolamientoComponent,
     CredencializacionComponent,
     CargaMasivaComponent,
-    ProvisionalComponent
+    ProvisionalComponent,
+    FamiliarComponent
   ],
   imports: [
     DataTablesModule,

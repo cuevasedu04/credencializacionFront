@@ -48,6 +48,13 @@ export class SidebarComponent implements OnInit {
       rol: [1,2,3,9999],
     },
     {
+      id: 'familiar',
+      label: 'Familiares',      
+      icon: 'fa-solid fa-id-badge',
+      link: '/familiar',
+      rol: [1,2,3,9999],
+    },
+    {
       id: 'busquedaAvanzada',
       label: 'Búsqueda avanzada',      
       icon: 'fas fa-search',

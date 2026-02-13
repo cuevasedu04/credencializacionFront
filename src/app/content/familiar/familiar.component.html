@@ -1,0 +1,426 @@
+<div class="container p-4 h-100 d-flex flex-column animate__animated animate__fadeIn">
+
+<header class="bg-white border-bottom mb-4 rounded shadow-sm">
+		<div class="container py-3 px-4">
+			<div class="d-flex justify-content-between align-items-center">
+				<div class="d-flex align-items-center gap-3">
+					<div class="p-2 bg-primary bg-opacity-10 rounded">
+						<i class="fas fa-search text-white fs-4"></i>
+					</div>
+					<div>
+						<h1 class="fw-bold text-dark mb-1 h4">Carga manual</h1>
+						<p class="text-muted mb-0 small">Generación de credenciales manualmente</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</header>
+
+<!-- Vista Previa de Credencial -->
+<div [class.card]="!isPrintMode" [class.shadow-sm]="!isPrintMode">
+	<div class="card-header bg-white border-bottom" *ngIf="!isPrintMode">
+		<h6 class="mb-0 font-weight-bold">
+			 <i class="fas fa-id-card text-muted"></i> Credencial 
+		</h6>
+	</div>
+	<div [class.card-body]="!isPrintMode">
+		<!-- Mensaje cuando no hay empleado seleccionado -->
+		<div *ngIf="!empleado" class="text-center py-5 text-muted">
+			<i class="fas fa-arrow-left fa-3x mb-3"></i>
+			<p>Inicializando plantilla...</p>
+		</div>
+
+		<!-- Vista de credencial cuando hay empleado -->
+		<div *ngIf="empleado" class="credencial-container">
+            
+			<!-- Toggle Frente/Reverso -->
+			<div class="text-center mb-3" *ngIf="!isPrintMode">
+				<div class="btn-group" role="group">
+					<button type="button" 
+							class="btn btn-outline-danger"
+							[class.active]="vistaCredencial === 'frente'"
+							(click)="vistaCredencial = 'frente'">
+						<i class="fas fa-id-card mr-1"></i> Frente
+					</button>
+					<button type="button" 
+							class="btn btn-outline-danger" 
+							[class.active]="vistaCredencial === 'reverso'"
+							(click)="vistaCredencial = 'reverso'">
+						<i class="fas fa-address-card mr-1"></i> Reverso
+					</button>
+				</div>
+			</div>
+
+			<!-- ======================= FRENTE - CREDENCIAL ADUANAS ======================= -->
+			<div *ngIf="vistaCredencial === 'frente'" 
+				 class="credencial-frente mx-auto"
+				 [class.print-mode]="isPrintMode"
+				 [ngStyle]="isPrintMode ? {'width': '638px', 'height': '1001px', 'border-radius': '0', 'box-shadow': 'none', 'margin': '0'} : {'width': '400px', 'height': '628px', 'border-radius': '10px', 'box-shadow': '0 8px 20px rgba(0,0,0,0.2)'}"
+				 style="position: relative; overflow: hidden;">
+                
+				<!-- Imagen de fondo -->
+				<img src="img/frontalNLFamiliar.jpg" 
+					 alt="Credencial Frente" 
+					 style="width: 102%; height: 100%; object-fit: fill; position: absolute; top: 1%; left: 0%;">
+                
+				<!-- Campos editables posicionados sobre la imagen -->
+				<div class="campos-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                    
+					<!-- NOMBRE  -->
+					<div class="campo-nombre" style="position: absolute; top: 28.1%; left: 6.5%; width: 35%;">
+						<ng-container *ngIf="isPrintMode">
+							<span class="text-black" style="font-size: 26px; font-family: 'NotoSans-Black', Arial, sans-serif; ">{{ empleado.nombre }}</span>
+						</ng-container>
+						<ng-container *ngIf="!isPrintMode">
+							<input type="text" [disabled]="!editable" 
+								   class="campo-credencial text-black" 
+								   [(ngModel)]="empleado.nombre" 
+								   placeholder="Nombre">
+						</ng-container>
+					</div>
+
+					<!-- APELLIDOS -->
+					<div class="campo-apellidos" style="position: absolute; top: 28.1%; left: 53%; width: 45%;">
+						<ng-container *ngIf="isPrintMode">
+							<span class="text-black" style="font-size: 26px; font-family: 'NotoSans-Black', Arial, sans-serif; ">{{ empleado.paterno }} {{ empleado.materno }}</span>
+						</ng-container>
+						<ng-container *ngIf="!isPrintMode">
+							<input type="text" [disabled]="!editable" 
+								   class="campo-credencial text-black" 
+								   [ngModel]="(empleado.paterno || '') + ' ' + (empleado.materno || '')"
+								   (ngModelChange)="separarApellidos($event)"
+								   placeholder="Apellidos">
+						</ng-container>
+					</div>
+
+					<!-- FOTO DEL EMPLEADO -->
+					<div class="campo-foto" 
+						 style="position: absolute; top: 36.8%; left: 7.2%; width: 40.3%; height: 33.1%; padding: 1.5px;"
+						 [style.cursor]="isPrintMode ? 'default' : 'pointer'"
+						 (click)="abrirCamara()">
+                        
+						<!-- Modo impresión: usa background-image para mejor compatibilidad con html2canvas -->
+						<div *ngIf="empleado.foto && isPrintMode" 
+							 [style.background-image]="'url(' + empleado.foto + ')'"
+							 style="width: 100%; height: 100%; background-size: cover; background-position: center top; border-radius: 2px; background-repeat: no-repeat;">
+						</div>
+                        
+						<!-- Modo visualización-->
+						<img *ngIf="empleado.foto && !isPrintMode" 
+							 [src]="empleado.foto" 
+							 style="width: 100%; height: 100%; object-fit: cover; object-position: center top; border-radius: 2px; display: block;">
+                        
+						<div *ngIf="!empleado.foto && !isPrintMode" 
+							 class="text-muted text-center d-flex flex-column align-items-center justify-content-center h-100"
+							 style="border: 2px dashed rgba(114, 47, 55, 0.4); border-radius: 4px; background: rgba(255,255,255,0.8);">
+							<i class="fas fa-camera fa-2x mb-1" style="color: rgba(114, 47, 55, 0.5);"></i>
+							<small style="font-size: 0.65rem; color: rgba(114, 47, 55, 0.6);">Capturar foto</small>
+						</div>
+					</div>
+
+					<!-- NÚMERO DE EMPLEADO -->
+					<div class="campo-num-empleado" style="position: absolute; top: 44.8%; right: 3.2%; width: 45%;">
+						<ng-container *ngIf="isPrintMode">
+							<span style="color: #000000; font-size: 26px; font-family: 'NotoSans-Bold', Arial, sans-serif; font-weight: 700; display: block; text-align: center;">{{ empleado.num_empleado }}</span>
+						</ng-container>
+						<ng-container *ngIf="!isPrintMode">
+							<input type="text" [disabled]="!editable" 
+								   class="campo-credencial text-center" 
+								   style="color: #000000;"
+								   [(ngModel)]="empleado.num_empleado" 
+								   placeholder="No. Empleado">
+						</ng-container>
+					</div>
+
+					<!-- ÁREA DE ADSCRIPCIÓN -->
+					<div class="campo-adscripcion" style="position: absolute; top: 57%; right: 3.2%; width: 45%;">
+						<ng-container *ngIf="isPrintMode">
+							<span style="color: #000000; font-size: 26px; display: block; line-height: 1.2; word-wrap: break-word; font-family: 'NotoSans-Bold', Arial, sans-serif; text-align: center;">{{ empleado.adscripcion }}</span>
+						</ng-container>
+						<ng-container *ngIf="!isPrintMode">
+							<textarea [disabled]="!editable" 
+								   class="campo-credencial text-center" 
+								   style="color: #000000; resize: none; overflow: hidden; height: auto; min-height: 1.5em; font-size: 0.85rem; line-height: 1.2;"
+								   rows="2"
+								   [(ngModel)]="empleado.adscripcion" 
+								   placeholder="Adscripción"></textarea>
+						</ng-container>
+					</div>
+
+					<!-- FIRMA -->
+					<div class="campo-firma" 
+						 style="position: absolute; bottom: 12.8%; left: 7%; width: 45%; height: 19%; cursor: pointer;"
+						 (click)="abrirFirma()">
+						<img *ngIf="empleado.firma" 
+							 [src]="empleado.firma" 
+							 style="max-height: 100%; max-width: 100%; object-fit: contain;">
+					</div>
+
+					<!-- LABEL DE FIRMA BOX BLANCO DASHED -->
+
+					<div class="label-firma" style="position: absolute; bottom: 19.45%; left: 8.2%; width: 42%; height: 8%; pointer-events: none;">
+						<div *ngIf="!empleado.firma && !isPrintMode" 
+							 class="text-muted text-center d-flex align-items-center justify-content-center h-100"
+							 style="border: 2px dashed rgba(114, 47, 55, 0.3); border-radius: 4px; background: rgba(255,255,255,0.7);">
+							<small><i class="fas fa-signature"></i> Firmar</small>        
+						</div>
+					</div>
+
+					<!-- CÓDIGO QR  -->
+					<div class="campo-qr" style="position: absolute; bottom: 16%; right: 12.35%; width: 26.6%; aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; ">
+						<img *ngIf="qrCodeDataUrl" 
+							 [src]="qrCodeDataUrl" 
+							 style="max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain;"
+							 alt="QR Code">
+						<div *ngIf="!qrCodeDataUrl && !isPrintMode" 
+							 class="text-white text-center"
+							 style="font-size: 0.6rem;">
+							<i class="fas fa-qrcode"></i>
+							<br>QR
+						</div>
+					</div>
+
+					<!-- VIGENCIA -->
+					<div class="campo-vigencia" style="position: absolute; bottom: 8.8%; right: .5%; width: 32%; ">
+						<ng-container *ngIf="isPrintMode">
+							<span style="color: #000000; font-size: 18px; font-family: 'NotoSans-Bold', Arial, sans-serif; font-weight: 700; display: block; text-align: center;">{{ empleado.fin_vig | date:'dd/MM/yyyy' }}</span>
+						</ng-container>
+						<ng-container *ngIf="!isPrintMode">
+							<input type="date" [disabled]="!editable" 
+								   class="campo-credencial text-center" 
+								   style="font-size: 0.55rem;"
+								   [(ngModel)]="empleado.fin_vig">
+						</ng-container>
+					</div>
+
+					<!-- FOLIO -->
+					<div class="campo-folio" style="position: absolute; bottom: 3.5%; right: 19.5%; width: 35%;">
+						<ng-container *ngIf="isPrintMode">
+							<span style="color: #000000; font-size: 18px; font-family: 'NotoSans-Bold', Arial, sans-serif; font-weight: 700; display: block; text-align: right;">{{ empleado.folio}}</span>
+						</ng-container>
+						<ng-container *ngIf="!isPrintMode">
+							<input type="text" [disabled]="!editable" 
+								   class="campo-credencial text-right" 
+								   style="color: #000000; background: transparent; font-size: 0.55rem;"
+								   [(ngModel)]="empleado.folio"
+								   placeholder="Folio">
+						</ng-container>
+					</div>
+
+				</div>
+			</div>
+
+			<!-- ======================= REVERSO - CREDENCIAL HACIENDA ======================= -->
+			<div *ngIf="vistaCredencial === 'reverso'" 
+				 class="credencial-reverso mx-auto"
+				 [class.print-mode]="isPrintMode"
+				 [ngStyle]="isPrintMode ? {'width': '638px', 'height': '1001px', 'border-radius': '0', 'box-shadow': 'none', 'margin': '0'} : {'width': '400px', 'height': '628px', 'border-radius': '10px', 'box-shadow': '0 8px 20px rgba(0,0,0,0.2)'}"
+				 style="position: relative; overflow: hidden;">
+                
+				<!-- Imagen de fondo -->
+				<img src="img/reversoNLFINAL.jpg" 
+					 alt="Credencial Reverso" 
+					 style="width: 100%; height: 100%; object-fit: fill; position: absolute; top:1%; left: 0; ">
+                
+				<!-- Campos editables posicionados sobre la imagen -->
+				<div class="campos-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                    
+					<!-- CURP  -->
+					<div class="campo-curp" style="position: absolute; bottom: 65%; left: 50.5%; transform: translateX(-50%); width: 80%; text-align: center;">
+						<ng-container *ngIf="isPrintMode">
+							<span style="color: #000000; font-size: 20px; font-family: 'NotoSans-Bold', Arial, sans-serif; font-weight: 700;">{{ empleado.curp }}</span>
+						</ng-container>
+						<ng-container *ngIf="!isPrintMode">
+							<input type="text" [disabled]="!editable" 
+								   class="campo-credencial text-center" 
+								   style="color: #000000; background: transparent;"
+								   [(ngModel)]="empleado.curp" 
+								   placeholder="CURP">
+						</ng-container>
+					</div>
+
+					<!-- LABEL: FECHA DE EXPEDICIÓN -->
+					<div class="label-fecha" style="position: absolute; bottom: 3.8%; left: 2.5%; width: 45%;">
+						<ng-container *ngIf="isPrintMode">
+							<span style="color: #00000000; font-size: 18px; font-family: 'NotoSans-Bold', Arial, sans-serif; font-weight: 700; display: block; text-align: left; position: relative; top: 8px;">FECHA DE EXPEDICIÓN:</span>
+						</ng-container>
+						<ng-container *ngIf="!isPrintMode">
+							<span style="color: #00000000; font-size: 8px; font-family: 'NotoSans-Bold', Arial, sans-serif; font-weight: 700; display: block; text-align: left;">FECHA DE EXPEDICIÓN:</span>
+						</ng-container>
+					</div>
+
+					<!-- VALOR: FECHA DE EXPEDICIÓN -->
+					<div class="campo-fecha-expedicion" style="position: absolute; bottom: 1%; left: 10.7%; width: 35%;">
+						<ng-container *ngIf="isPrintMode">
+							<span style="color: #00000000; font-size: 18px; font-family: 'NotoSans-Bold', Arial, sans-serif; font-weight: 700; display: block; text-align: left;">{{ empleado.fecha_expedicion | date:'dd/MM/yyyy' }}</span>
+						</ng-container>
+						<ng-container *ngIf="!isPrintMode">
+							<input type="date" [disabled]="!editable" 
+								   class="campo-credencial text-left" 
+								   style="color: #00000000; background: transparent; font-size: 0.7rem;"
+								   [(ngModel)]="empleado.fecha_expedicion"
+								   placeholder="Fecha Expedición">
+						</ng-container>
+					</div>
+
+					<!-- LABEL: FOLIO -->
+					<!-- <div class="label-folio" style="position: absolute; bottom: 3.8%; right: 2.5%; width: 35%;">
+						<ng-container *ngIf="isPrintMode">
+							<span style="color: #ffffff; font-size: 18px; font-family: 'NotoSans-Bold', Arial, sans-serif; font-weight: 700; display: block; text-align: right; position: relative; top: 8px;">FOLIO:</span>
+						</ng-container>
+						<ng-container *ngIf="!isPrintMode">
+							<span style="color: #ffffff; font-size: 8px; font-family: 'NotoSans-Bold', Arial, sans-serif; font-weight: 700; display: block; text-align: right;">FOLIO:</span>
+						</ng-container>
+					</div> -->
+
+					<!-- VALOR: FOLIO -->
+					<!-- <div class="campo-folio" style="position: absolute; bottom: .35%; right: 2.5%; width: 35%;">
+						<ng-container *ngIf="isPrintMode">
+							<span style="color: #ffffff; font-size: 18px; font-family: 'NotoSans-Bold', Arial, sans-serif; font-weight: 700; display: block; text-align: right;">{{ empleado.folio}}</span>
+						</ng-container>
+						<ng-container *ngIf="!isPrintMode">
+							<input type="text" [disabled]="!editable" 
+								   class="campo-credencial text-right" 
+								   style="color: #ffffff; background: transparent; font-size: 0.7rem;"
+								   [(ngModel)]="empleado.folio"
+								   placeholder="Folio">
+						</ng-container>
+					</div> -->
+				</div>
+			</div>
+
+			<!-- Estado del Enrolamiento -->
+			 <div class="mt-4" *ngIf="!isPrintMode">
+				<h6 class="font-weight-bold mb-3">Estado del Enrolamiento</h6>
+				<div class="list-group list-group-flush">
+					<div class="list-group-item d-flex justify-content-between align-items-center">
+						<span>Datos Generales</span>
+						<i *ngIf="empleado.nombre && empleado.paterno && empleado.num_empleado" class="fas fa-check-circle text-success"></i>
+						<i *ngIf="!empleado.nombre || !empleado.paterno || !empleado.num_empleado" class="fas fa-exclamation-circle text-warning"></i>
+					</div>
+					<div class="list-group-item d-flex justify-content-between align-items-center">
+						<span>Fotografía</span>
+						<i *ngIf="empleado.foto" class="fas fa-check-circle text-success"></i>
+						<i *ngIf="!empleado.foto" class="fas fa-times-circle text-danger"></i>
+					</div>
+					<div class="list-group-item d-flex justify-content-between align-items-center">
+						<span>Firma Digital</span>
+						<i *ngIf="empleado.firma" class="fas fa-check-circle text-success"></i>
+						<i *ngIf="!empleado.firma" class="fas fa-times-circle text-danger"></i>
+					</div>
+				</div>
+			</div>
+
+			<!-- Botón Guardar -->
+			<div class="mt-4" *ngIf="!isPrintMode">
+				<button class="btn btn-success btn-lg btn-block w-100" 
+						(click)="guardarEnrolamiento()"
+						[disabled]="!empleado.foto || !empleado.firma || guardando">
+					<span *ngIf="!guardando">
+						<i class="fas fa-save mr-2"></i> Guardar y Terminar
+					</span>
+					<span *ngIf="guardando">
+						<i class="fas fa-spinner fa-spin mr-2"></i> Guardando...
+					</span>
+				</button>
+				<small class="text-muted d-block text-center mt-2">
+					Todos los campos son editables manualmente
+				</small>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Modales -->
+<ng-template #modalCamara>
+	<div class="position-relative bg-dark text-center" style="min-height: 350px;">
+        
+		<video #videoElement autoplay class="w-100" style="max-height: 400px;" *ngIf="!fotoCapturada && stream"></video>
+        
+		<div *ngIf="!fotoCapturada && !stream" class="d-flex align-items-center justify-content-center text-white" style="height: 300px;">
+			<div>
+				<i class="fas fa-camera-retro fa-3x mb-3"></i>
+				<p>Cámara no detectada o externa.<br>Por favor suba el archivo.</p>
+			</div>
+		</div>
+
+		<canvas #canvasElement class="d-none"></canvas>
+        
+		<img *ngIf="fotoCapturada" [src]="fotoCapturada" class="img-fluid" style="max-height: 400px;">
+
+		<div class="mt-3 p-3 bg-light rounded-top">
+            
+			<div *ngIf="!fotoCapturada">
+                
+				<!-- Selector de Cámara -->
+				<div class="px-4 mb-2" *ngIf="dispositivosVideo.length > 1">
+					<select class="form-control form-control-sm" [(ngModel)]="camaraSeleccionadaId" (change)="cambiarCamara($event)">
+						<option *ngFor="let cam of dispositivosVideo" [value]="cam.deviceId">
+							{{ cam.label || 'Cámara ' + (dispositivosVideo.indexOf(cam) + 1) }}
+						</option>
+					</select>
+				</div>
+
+				<button *ngIf="stream" class="btn btn-primary btn-circle btn-lg mx-2" (click)="capturarFoto()" title="Tomar foto con Webcam">
+					<i class="fas fa-camera"></i>
+				</button>
+
+				<input type="file" #fileInput hidden accept="image/*" (change)="onArchivoSeleccionado($event)">
+				<button class="btn btn-secondary btn-lg mx-2" (click)="fileInput.click()" title="Subir foto de cámara externa">
+					<i class="fas fa-upload"></i> Subir Foto
+				</button>
+			</div>
+            
+			<div *ngIf="fotoCapturada">
+				<button class="btn btn-warning mr-2" (click)="fotoCapturada = null; iniciarCamara()">
+					<i class="fas fa-redo"></i> Repetir
+				</button>
+				<button class="btn btn-success" (click)="confirmarFoto()">
+					<i class="fas fa-check"></i> Aceptar
+				</button>
+			</div>
+		</div>
+	</div>
+</ng-template>
+
+<ng-template #modalFirma>
+	<div class="text-center py-4">
+        
+		<div class="border d-inline-block bg-white shadow-sm position-relative" 
+			 style="width: 400px; height: 200px; border: 2px dashed #ccc !important; touch-action: none;">
+            
+			<canvas #firmaCanvas
+				(mousedown)="startDrawing($event)"
+				(mousemove)="moveDrawing($event)"
+				(mouseup)="stopDrawing()"
+				(mouseleave)="stopDrawing()"
+				(touchstart)="startDrawing($event)"
+				(touchmove)="moveDrawing($event)"
+				(touchend)="stopDrawing()"
+				style="width: 100%; height: 100%; cursor: crosshair;">
+			</canvas>
+            
+			<small class="text-muted position-absolute" style="bottom: 5px; left: 0; right: 0; pointer-events: none;">
+				Firme dentro del recuadro
+			</small>
+		</div>
+
+		<div class="mt-3">
+			<button class="btn btn-outline-danger btn-sm mr-2" (click)="limpiarFirma()">
+				<i class="fas fa-eraser"></i> Limpiar
+			</button>
+            
+			<button *ngIf="isWacomSupported && !wacomConnected" 
+					class="btn btn-info btn-sm" 
+					(click)="conectarWacom()">
+				<i class="fas fa-pen-nib"></i> Conectar Tableta Wacom
+			</button>
+
+			<span *ngIf="wacomConnected" class="badge badge-success p-2">
+				<i class="fas fa-plug"></i> Tableta Conectada
+			</span>
+		</div>
+	</div>
+</ng-template>
+
+	</div>

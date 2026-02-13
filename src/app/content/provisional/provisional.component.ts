@@ -42,6 +42,8 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy {
   vistaCredencial: 'frente' | 'reverso' = 'frente';
   fechaActual: Date = new Date();
   qrCodeDataUrl: string | null = null;
+  protected tipoCredencialLabel = 'provisional';
+  protected qrPrefix = 'PROVISIONAL';
 
   // Variables Camara
   dispositivosVideo: MediaDeviceInfo[] = []; 
@@ -115,7 +117,7 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       error: (err) => {
         console.error('Error al obtener folio:', err);
-        this.utils.MuestrasToast(TipoToast.Warning, 'No se pudo obtener el folio provisionalmente');
+        this.utils.MuestrasToast(TipoToast.Warning, `No se pudo obtener el folio de ${this.tipoCredencialLabel}`);
       }
     });
   }
@@ -137,7 +139,7 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Construir el texto del QR
     const datosQR = [
-      'PROVISIONAL', // Placeholder ID para QR
+      this.qrPrefix,
       this.empleado.num_empleado || '',
       this.empleado.rfc || '',
       this.empleado.curp || '',
@@ -513,13 +515,13 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!payload.curp) delete payload.curp;
     if (!payload.materno) payload.materno = '';   
 
-    console.log('Enviando payload provisional:', payload);
+    console.log(`Enviando payload ${this.tipoCredencialLabel}:`, payload);
 
     // endpoint 'crearExpediente' apunta a /api/expedientes/ que es el correcto para crear registros
     this.enrolamientoApi.crearExpediente(payload).subscribe({
         next: (resp) => {
             this.guardando = false;
-            this.utils.MuestrasToast(TipoToast.Success, 'Credencial provisional guardada exitosamente');
+          this.utils.MuestrasToast(TipoToast.Success, `Credencial ${this.tipoCredencialLabel} guardada exitosamente`);
             // Podríamos navegar a otra página o limpiar el formulario
             this.empleado = null; 
             // Reinicializar para capturar otro
@@ -528,7 +530,7 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy {
             }, 1000);
         },
         error: (err) => {
-            console.error('Error al guardar provisional:', err);
+          console.error(`Error al guardar ${this.tipoCredencialLabel}:`, err);
             this.guardando = false;
             
             // Intento de mostrar el error detallado si viene en formato JSON

@@ -41,7 +41,7 @@
                  style="position: relative; overflow: hidden;">
                 
                 <!-- Imagen de fondo -->
-                <img src="img/frontalNLFINAL.jpg" 
+                 <img [src]="obtenerImagenFrente()" 
                      alt="Credencial Frente" 
                      style="width: 102%; height: 100%; object-fit: fill; position: absolute; top: 1%; left: 0%;">
                 
@@ -101,7 +101,9 @@
                     </div>
 
                     <!-- NÚMERO DE EMPLEADO -->
-                    <div class="campo-num-empleado" style="position: absolute; top: 38.5%; right: 3.2%; width: 45%;">
+                    <div class="campo-num-empleado"
+                        [style.top]="esCredencialFamiliar() ? '44.8%' : '38.5%'"
+                        style="position: absolute; right: 3.2%; width: 45%;">
                         <ng-container *ngIf="isPrintMode">
                             <span style="color: #000000; font-size: 23px; font-family: 'NotoSans-Black', Arial, sans-serif; font-weight: 700; display: block; text-align: center;">{{ empleado.num_empleado }}</span>
                         </ng-container>
@@ -115,7 +117,9 @@
                     </div>
 
                     <!-- ÁREA DE ADSCRIPCIÓN -->
-                    <div class="campo-adscripcion" style="position: absolute; top: 57.3%; right: 3.2%; width: 45%;">
+                    <div class="campo-adscripcion"
+                        [style.top]="mostrarCampoPuesto() ? '57.3%' : '57%'"
+                        style="position: absolute; right: 3.2%; width: 45%;">
                         <ng-container *ngIf="isPrintMode">
                             <span style="color: #000000; font-size: 23px; display: block; line-height: 1.2; word-wrap: break-word; font-family: 'NotoSans-Black', Arial, sans-serif; text-align: center;">{{ empleado.adscripcion }}</span>
                         </ng-container>
@@ -130,7 +134,7 @@
                     </div>
 
                     <!-- PUESTO -->
-                    <div class="campo-puesto" style="position: absolute; top: 47.8%; right: 3.8%; width: 45%;">
+                    <div class="campo-puesto" *ngIf="mostrarCampoPuesto()" style="position: absolute; top: 47.8%; right: 3.8%; width: 45%;">
                         <ng-container *ngIf="isPrintMode">
                             <span style="color: #000000; font-size: 23px; display: block; line-height: 1.2; word-wrap: break-word; font-family: 'NotoSans-Black', Arial, sans-serif; font-weight: 700; text-align: center;">{{ empleado.puesto }}</span>
                         </ng-container>

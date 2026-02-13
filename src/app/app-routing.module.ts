@@ -13,6 +13,7 @@ import { EnrolamientoComponent } from './content/enrolamiento/enrolamiento.compo
 import { CredencializacionComponent } from './content/credencializacion/credencializacion.component';
 import { CargaMasivaComponent } from './content/carga-masiva/carga-masiva.component';
 import { ProvisionalComponent} from './content/provisional/provisional.component';
+import { FamiliarComponent } from './content/familiar/familiar.component';
 
 const routes: Routes = [
   {
@@ -28,6 +29,12 @@ const routes: Routes = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' 
       },
       { path: 'dashboard', component: DashboardComponent 
+      },
+      {
+        path: 'familiar',
+        component: FamiliarComponent,
+        canActivate: [AuthGuard],
+        data: { rolesPermitidos: [1, 2, 3, 4, 9999] },
       },
       {
         path: 'provisional',

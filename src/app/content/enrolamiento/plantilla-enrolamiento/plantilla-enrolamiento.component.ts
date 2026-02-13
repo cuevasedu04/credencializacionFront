@@ -59,6 +59,34 @@ export class PlantillaEnrolamientoComponent implements AfterViewInit, OnChanges,
   private lastX = 0;
   private lastY = 0;
 
+  // ----------------------------
+  // TIPO DE CREDENCIAL
+  // ----------------------------
+  esCredencialFamiliar(): boolean {
+    if (!this.empleado) return false;
+
+    const tipo = String(this.empleado.tipo_credencial || this.empleado.tipo || '').toLowerCase();
+    const esFamiliarPorTipo = tipo.includes('familiar');
+    const esFamiliarPorFlag = Number(this.empleado.familiar) === 1;
+
+    // Compatibilidad con registros ya creados desde el módulo familiar
+    // que no traen flag pero no manejan puesto.
+    const puestoVacio = !this.empleado.puesto || String(this.empleado.puesto).trim() === '';
+    const esFamiliarPorHeuristica = Number(this.empleado.provisional) === 1 && puestoVacio;
+
+    return esFamiliarPorTipo || esFamiliarPorFlag || esFamiliarPorHeuristica;
+  }
+
+  obtenerImagenFrente(): string {
+    return this.esCredencialFamiliar()
+      ? 'img/frontalNLFamiliar.jpg'
+      : 'img/frontalNLFINAL.jpg';
+  }
+
+  mostrarCampoPuesto(): boolean {
+    return !this.esCredencialFamiliar();
+  }
+
   constructor(
     private modalManager: ModalManagerService,
     private enrolamientoApi: EnrolamientoService,

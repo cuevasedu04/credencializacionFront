@@ -67,9 +67,9 @@
                 <div class="campos-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
                     
                     <!-- NOMBRE  -->
-                    <div class="campo-nombre" style="position: absolute; top: 28.1%; left: 6.5%; width: 45%;">
+                    <div class="campo-nombre" style="position: absolute; top: 28.1%; left: 6.5%; width: 35%;">
                         <ng-container *ngIf="isPrintMode">
-                            <span class="text-black" style="font-size: 23px; font-family: 'NotoSans-Black', Arial, sans-serif; ">{{ empleado.nombre }}</span>
+                            <span class="text-black" style="font-size: 26px; font-family: 'NotoSans-Black', Arial, sans-serif; ">{{ empleado.nombre }}</span>
                         </ng-container>
                         <ng-container *ngIf="!isPrintMode">
                             <input type="text" [disabled]="!editable" 
@@ -80,9 +80,9 @@
                     </div>
 
                     <!-- APELLIDOS -->
-                    <div class="campo-apellidos" style="position: absolute; top: 28.1%; left: 50%; width: 48%;">
+                    <div class="campo-apellidos" style="position: absolute; top: 28.1%; left: 53%; width: 45%;">
                         <ng-container *ngIf="isPrintMode">
-                            <span class="text-black" style="font-size: 23px; font-family: 'NotoSans-Black', Arial, sans-serif; ">{{ empleado.paterno }} {{ empleado.materno }}</span>
+                            <span class="text-black" style="font-size: 26px; font-family: 'NotoSans-Black', Arial, sans-serif; ">{{ empleado.paterno }} {{ empleado.materno }}</span>
                         </ng-container>
                         <ng-container *ngIf="!isPrintMode">
                             <input type="text" [disabled]="!editable" 
@@ -121,7 +121,7 @@
                     <!-- NÚMERO DE EMPLEADO -->
                     <div class="campo-num-empleado" style="position: absolute; top: 38.5%; right: 3.2%; width: 45%;">
                         <ng-container *ngIf="isPrintMode">
-                            <span style="color: #000000; font-size: 23px; font-family: 'NotoSans-Black', Arial, sans-serif; font-weight: 700; display: block; text-align: center;">{{ empleado.num_empleado }}</span>
+                            <span style="color: #000000; font-size: 26px; font-family: 'NotoSans-Bold', Arial, sans-serif; font-weight: 700; display: block; text-align: center;">{{ empleado.num_empleado }}</span>
                         </ng-container>
                         <ng-container *ngIf="!isPrintMode">
                             <input type="text" [disabled]="!editable" 
@@ -133,9 +133,9 @@
                     </div>
 
                     <!-- ÁREA DE ADSCRIPCIÓN -->
-                    <div class="campo-adscripcion" style="position: absolute; top: 57.3%; right: 3.2%; width: 45%;">
+                    <div class="campo-adscripcion" style="position: absolute; top: 57%; right: 3.2%; width: 45%;">
                         <ng-container *ngIf="isPrintMode">
-                            <span style="color: #000000; font-size: 23px; display: block; line-height: 1.2; word-wrap: break-word; font-family: 'NotoSans-Black', Arial, sans-serif; text-align: center;">{{ empleado.adscripcion }}</span>
+                            <span style="color: #000000; font-size: 26px; display: block; line-height: 1.2; word-wrap: break-word; font-family: 'NotoSans-Bold', Arial, sans-serif; text-align: center;">{{ empleado.adscripcion }}</span>
                         </ng-container>
                         <ng-container *ngIf="!isPrintMode">
                             <textarea [disabled]="!editable" 
@@ -150,7 +150,7 @@
                     <!-- PUESTO -->
                     <div class="campo-puesto" style="position: absolute; top: 47.5%; right: 4%; width: 45%;">
                         <ng-container *ngIf="isPrintMode">
-                            <span style="color: #000000; font-size: 23px; display: block; line-height: 1.2; word-wrap: break-word; font-family: 'NotoSans-Black', Arial, sans-serif; font-weight: 700; text-align: center;">{{ empleado.puesto }}</span>
+                            <span style="color: #000000; font-size: 26px; display: block; line-height: 1.2; word-wrap: break-word; font-family: 'NotoSans-Bold', Arial, sans-serif; font-weight: 700; text-align: center;">{{ empleado.puesto }}</span>
                         </ng-container>
                         <ng-container *ngIf="!isPrintMode">
                             <textarea [disabled]="!editable" 
