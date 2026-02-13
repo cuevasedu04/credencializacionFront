@@ -49,9 +49,9 @@
                 <div class="campos-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
                     
                     <!-- NOMBRE  -->
-                    <div class="campo-nombre" style="position: absolute; top: 27.1%; left: 6.5%; width: 35%;">
+                    <div class="campo-nombre" style="position: absolute; top: 28.1%; left: 6.5%; width: 45%;">
                         <ng-container *ngIf="isPrintMode">
-                            <span class="text-black" style="font-size: 26px; font-family: 'NotoSans-Black', Arial, sans-serif; ">{{ empleado.nombre }}</span>
+                            <span class="text-black" style="font-size: 23px; font-family: 'NotoSans-Black', Arial, sans-serif; ">{{ empleado.nombre }}</span>
                         </ng-container>
                         <ng-container *ngIf="!isPrintMode">
                             <input type="text" [disabled]="!editable" 
@@ -62,9 +62,9 @@
                     </div>
 
                     <!-- APELLIDOS -->
-                    <div class="campo-apellidos" style="position: absolute; top: 27.1%; left: 53%; width: 45%;">
+                    <div class="campo-apellidos" style="position: absolute; top: 28.1%; left: 50%; width: 48%;">
                         <ng-container *ngIf="isPrintMode">
-                            <span class="text-black" style="font-size: 26px; font-family: 'NotoSans-Black', Arial, sans-serif; ">{{ empleado.paterno }} {{ empleado.materno }}</span>
+                            <span class="text-black" style="font-size: 23px; font-family: 'NotoSans-Black', Arial, sans-serif; ">{{ empleado.paterno }} {{ empleado.materno }}</span>
                         </ng-container>
                         <ng-container *ngIf="!isPrintMode">
                             <input type="text" [disabled]="!editable" 
@@ -103,7 +103,7 @@
                     <!-- NÚMERO DE EMPLEADO -->
                     <div class="campo-num-empleado" style="position: absolute; top: 38.5%; right: 3.2%; width: 45%;">
                         <ng-container *ngIf="isPrintMode">
-                            <span style="color: #000000; font-size: 26px; font-family: 'NotoSans-Bold', Arial, sans-serif; font-weight: 700; display: block; text-align: center;">{{ empleado.num_empleado }}</span>
+                            <span style="color: #000000; font-size: 23px; font-family: 'NotoSans-Black', Arial, sans-serif; font-weight: 700; display: block; text-align: center;">{{ empleado.num_empleado }}</span>
                         </ng-container>
                         <ng-container *ngIf="!isPrintMode">
                             <input type="text" [disabled]="!editable" 
@@ -115,9 +115,9 @@
                     </div>
 
                     <!-- ÁREA DE ADSCRIPCIÓN -->
-                    <div class="campo-adscripcion" style="position: absolute; top: 57%; right: 3.2%; width: 45%;">
+                    <div class="campo-adscripcion" style="position: absolute; top: 57.3%; right: 3.2%; width: 45%;">
                         <ng-container *ngIf="isPrintMode">
-                            <span style="color: #000000; font-size: 26px; display: block; line-height: 1.2; word-wrap: break-word; font-family: 'NotoSans-Bold', Arial, sans-serif; text-align: center;">{{ empleado.adscripcion }}</span>
+                            <span style="color: #000000; font-size: 23px; display: block; line-height: 1.2; word-wrap: break-word; font-family: 'NotoSans-Black', Arial, sans-serif; text-align: center;">{{ empleado.adscripcion }}</span>
                         </ng-container>
                         <ng-container *ngIf="!isPrintMode">
                             <textarea [disabled]="!editable" 
@@ -130,9 +130,9 @@
                     </div>
 
                     <!-- PUESTO -->
-                    <div class="campo-puesto" style="position: absolute; top: 47.5%; right: 4%; width: 45%;">
+                    <div class="campo-puesto" style="position: absolute; top: 47.8%; right: 3.8%; width: 45%;">
                         <ng-container *ngIf="isPrintMode">
-                            <span style="color: #000000; font-size: 26px; display: block; line-height: 1.2; word-wrap: break-word; font-family: 'NotoSans-Bold', Arial, sans-serif; font-weight: 700; text-align: center;">{{ empleado.puesto }}</span>
+                            <span style="color: #000000; font-size: 23px; display: block; line-height: 1.2; word-wrap: break-word; font-family: 'NotoSans-Black', Arial, sans-serif; font-weight: 700; text-align: center;">{{ empleado.puesto }}</span>
                         </ng-container>
                         <ng-container *ngIf="!isPrintMode">
                             <textarea [disabled]="!editable" 
@@ -150,7 +150,7 @@
                          (click)="abrirFirma()">
                         <img *ngIf="empleado.firma" 
                              [src]="empleado.firma" 
-                             style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                            style="width: 100%; height: 100%; object-fit: contain; object-position: center center; display: block;">
                     </div>
 
                     <!-- LABEL DE FIRMA BOX BLANCO DASHED -->
@@ -177,14 +177,11 @@
                         </div>
                     </div>
 
-                    <div style="position: absolute; bottom: 3.8%; right: 2.5%; width: 35%;">
-                        <span style="color: #ffffff; font-size: 18px; font-family: 'NotoSans-Bold', Arial, sans-serif; font-weight: 700; display: block; text-align: right;">FOLIO:</span>
-                    </div>
 
                     <!-- VIGENCIA -->
                     <div class="campo-vigencia" style="position: absolute; bottom: 8.8%; right: .5%; width: 32%; ">
                         <ng-container *ngIf="isPrintMode">
-                            <span style="color: #a3882d; font-size: 18px; font-family: 'NotoSans-Bold', Arial, sans-serif; font-weight: 700; display: block; text-align: center;">{{ empleado.fin_vig | date:'dd/MM/yyyy' }}</span>
+                            <span style="color: #000000; font-size: 18px; font-family: 'NotoSans-Bold', Arial, sans-serif; font-weight: 700; display: block; text-align: center;">{{ empleado.fin_vig | date:'dd/MM/yyyy' }}</span>
                         </ng-container>
                         <ng-container *ngIf="!isPrintMode">
                             <input type="date" [disabled]="!editable" 
@@ -372,10 +369,10 @@
             </div>
             
             <div *ngIf="fotoCapturada">
-                <button class="btn btn-warning mr-2" (click)="fotoCapturada = null; iniciarCamara()">
+                <button class="btn btn-secondary mr-3" (click)="fotoCapturada = null; iniciarCamara()">
                     <i class="fas fa-redo"></i> Repetir
                 </button>
-                <button class="btn btn-success" (click)="confirmarFoto()">
+                <button class="btn btn-danger" (click)="confirmarFoto()">
                     <i class="fas fa-check"></i> Aceptar
                 </button>
             </div>
@@ -411,7 +408,7 @@
             </button>
             
             <button *ngIf="isWacomSupported && !wacomConnected" 
-                    class="btn btn-info btn-sm" 
+                    class="btn btn-secondary btn-sm" 
                     (click)="conectarWacom()">
                 <i class="fas fa-pen-nib"></i> Conectar Tableta Wacom
             </button>

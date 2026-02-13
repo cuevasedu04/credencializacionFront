@@ -42,7 +42,7 @@ export class SidebarComponent implements OnInit {
     },
     {
       id: 'provisional',
-      label: 'Credencial Provisional',      
+      label: 'Carga manual',      
       icon: 'fa-solid fa-id-badge',
       link: '/provisional',
       rol: [1,2,3,9999],

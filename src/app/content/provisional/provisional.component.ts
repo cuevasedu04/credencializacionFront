@@ -465,47 +465,53 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const fechaEnrolamientoActual = new Date().toISOString();
 
+    // Construir campo apellidos (concatenación de paterno y materno) y asegurar RFC
+    const apellidosConcatenados = `${this.empleado.paterno || ''} ${this.empleado.materno || ''}`.trim();
+    
+    // Regla de Negocio: Si no hay RFC, usar CURP
+    let rfcFinal = this.empleado.rfc;
+    if ((!rfcFinal || rfcFinal.trim() === '') && this.empleado.curp) {
+        rfcFinal = this.empleado.curp;
+    }
+
     const payload: any = {
-        // Datos de la plantilla
+        // Datos Personales
         nombre: this.empleado.nombre,
         paterno: this.empleado.paterno,
         materno: this.empleado.materno,
+        apellidos: apellidosConcatenados, // Campo faltante en el modelo
+
+        // Datos Laborales
         num_empleado: this.empleado.num_empleado,
         adscripcion: this.empleado.adscripcion,
         puesto: this.empleado.puesto,
-        fin_vig: this.empleado.fin_vig || null,
+        
+        // Identificadores
         curp: this.empleado.curp,
-        fecha_expedicion: fechaExpedicionFormateada,
+        rfc: rfcFinal, 
         folio: this.empleado.folio,
+        
+        // Fechas
+        fin_vig: this.empleado.fin_vig || null,
+        inicio_vig: this.empleado.inicio_vig || null,
+        eladia: this.empleado.eladia || null,
+        fecha_expedicion: fechaExpedicionFormateada,
+        fecha_enrolamiento: fechaEnrolamientoActual,
         
         // Imagenes
         foto: this.empleado.foto,
         firma: this.empleado.firma,
-        
-        // Otros
-        rfc: this.empleado.rfc,
-        inicio_vig: this.empleado.inicio_vig || null,
-        eladia: this.empleado.eladia || null,
-        fecha_enrolamiento: fechaEnrolamientoActual, // Puede ser ignorado si el backend usa auto_now_add
 
-        // Campos requeridos para creación
+        // Metadatos y Flags
         activo: 1,
-
-        // IMPORTANTE: Flag Provisional
-        provisional: 1
+        provisional: 1,
+        impreso: 0 // Inicializar como no impreso
     };
     
-    // Limpiar campos vacíos string que no sean obligatorios
-    // SI EL RFC ES REQUERIDO: Usamos el CURP si el RFC está vacío
-    if (!payload.rfc && payload.curp) {
-        payload.rfc = payload.curp;
-    }
-    
-    // Si aun asi no hay RFC (porque no habia CURP), tendriamos que ver que mandar.
-    // Pero asumiendo que CURP sí se captura:
-    if (!payload.rfc) delete payload.rfc; // Esto podria volver a fallar si no hay CURP, pero es lo que tenemos.
+    // Limpieza final de campos opcionales
+    if (!payload.rfc) delete payload.rfc;
     if (!payload.curp) delete payload.curp;
-    if (!payload.materno) payload.materno = '';  
+    if (!payload.materno) payload.materno = '';   
 
     console.log('Enviando payload provisional:', payload);
 

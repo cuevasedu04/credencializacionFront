@@ -72,7 +72,12 @@ export class CargaMasivaComponent implements OnInit {
         this.cargando = false;
         
         if (response.status === 'success') {
-          this.registros = response.registros || [];
+          const registrosRaw = response.registros || [];
+          this.registros = registrosRaw.map((registro: any) => ({
+            ...registro,
+            __fotoIndicador: this.obtenerIndicadorMedia(registro, 'foto'),
+            __firmaIndicador: this.obtenerIndicadorMedia(registro, 'firma')
+          }));
           this.totalRegistros = response.total_registros || 0;
           this.filteredRegistros = [...this.registros];
           
@@ -250,5 +255,41 @@ export class CargaMasivaComponent implements OnInit {
     } catch {
       return fecha;
     }
+  }
+
+  estaCargado(valor: any): boolean {
+    if (valor === null || valor === undefined) return false;
+    if (typeof valor === 'boolean') return valor;
+    if (typeof valor === 'number') return valor > 0;
+
+    if (typeof valor === 'string') {
+      const v = valor.trim().toLowerCase();
+      if (!v) return false;
+      if (['false', '0', 'no', 'n/a', 'null', 'none', 'nan'].includes(v)) return false;
+      return true;
+    }
+
+    // Objetos/arrays no vacíos se consideran cargados
+    if (Array.isArray(valor)) return valor.length > 0;
+    if (typeof valor === 'object') return Object.keys(valor).length > 0;
+
+    return !!valor;
+  }
+
+  private obtenerIndicadorMedia(registro: any, tipo: 'foto' | 'firma'): boolean {
+    if (!registro) return false;
+
+    const keysFoto = ['foto', 'tiene_foto', 'foto_cargada', 'fotoCargada', 'has_foto', 'hasFoto', 'imagen'];
+    const keysFirma = ['firma', 'tiene_firma', 'firma_cargada', 'firmaCargada', 'has_firma', 'hasFirma', 'signature'];
+
+    const keys = tipo === 'foto' ? keysFoto : keysFirma;
+
+    for (const key of keys) {
+      if (Object.prototype.hasOwnProperty.call(registro, key)) {
+        if (this.estaCargado(registro[key])) return true;
+      }
+    }
+
+    return false;
   }
 }

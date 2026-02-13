@@ -174,7 +174,156 @@ export class PlantillaEnrolamientoComponent implements AfterViewInit, OnChanges,
     };
 
     this.empleado.foto = procesar(this.empleado.foto);
-    this.empleado.firma = procesar(this.empleado.firma);
+
+    const firmaProcesada = procesar(this.empleado.firma);
+    if (!firmaProcesada) {
+      this.empleado.firma = null;
+      return;
+    }
+
+    // Normalizar firmas provenientes de carga masiva:
+    // - Elimina fondo blanco
+    // - Recorta márgenes vacíos
+    // - Centra la firma en un lienzo transparente
+    this.normalizarFirmaVisual(firmaProcesada)
+      .then((firmaNormalizada) => {
+        this.empleado.firma = firmaNormalizada;
+      })
+      .catch(() => {
+        this.empleado.firma = firmaProcesada;
+      });
+  }
+
+  private normalizarFirmaVisual(dataUrl: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+
+      img.onload = () => {
+        try {
+          const w = img.naturalWidth || img.width;
+          const h = img.naturalHeight || img.height;
+
+          if (!w || !h) {
+            resolve(dataUrl);
+            return;
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+
+          if (!ctx) {
+            resolve(dataUrl);
+            return;
+          }
+
+          ctx.drawImage(img, 0, 0, w, h);
+
+          // IMPORTANTE:
+          // Si la firma tiene dimensiones/proporción típicas de captura manual
+          // (canvas/tableta), NO aplicar normalización para conservar el comportamiento anterior.
+          const ratio = w / h;
+          const pareceFirmaManual = w <= 1000 && h <= 500 && ratio >= 1.5 && ratio <= 2.8;
+          if (pareceFirmaManual) {
+            resolve(dataUrl);
+            return;
+          }
+
+          // Si la firma ya viene de tableta (normalmente PNG transparente),
+          // no la normalizamos para no agrandarla ni moverla.
+          const esPng = dataUrl.startsWith('data:image/png');
+          if (esPng) {
+            const originalData = ctx.getImageData(0, 0, w, h).data;
+            let tieneTransparencia = false;
+            for (let i = 3; i < originalData.length; i += 4) {
+              if (originalData[i] < 250) {
+                tieneTransparencia = true;
+                break;
+              }
+            }
+            if (tieneTransparencia) {
+              resolve(dataUrl);
+              return;
+            }
+          }
+
+          const imgData = ctx.getImageData(0, 0, w, h);
+          const px = imgData.data;
+
+          // 1) Quitar fondo blanco (o casi blanco)
+          for (let i = 0; i < px.length; i += 4) {
+            const r = px[i];
+            const g = px[i + 1];
+            const b = px[i + 2];
+            if (r > 240 && g > 240 && b > 240) {
+              px[i + 3] = 0;
+            }
+          }
+          ctx.putImageData(imgData, 0, 0);
+
+          // 2) Encontrar bounding box útil (pixeles de trazo real)
+          //    Usamos alpha + oscuridad para evitar tomar ruido/grises del fondo.
+          const data2 = ctx.getImageData(0, 0, w, h).data;
+          let minX = w;
+          let minY = h;
+          let maxX = -1;
+          let maxY = -1;
+
+          for (let y = 0; y < h; y++) {
+            for (let x = 0; x < w; x++) {
+              const idx = (y * w + x) * 4;
+              const r = data2[idx];
+              const g = data2[idx + 1];
+              const b = data2[idx + 2];
+              const alpha = data2[idx + 3];
+              const oscuridad = r + g + b;
+              if (alpha > 24 && oscuridad < 690) {
+                if (x < minX) minX = x;
+                if (y < minY) minY = y;
+                if (x > maxX) maxX = x;
+                if (y > maxY) maxY = y;
+              }
+            }
+          }
+
+          // Si no hay trazo útil, devolvemos original
+          if (maxX < 0 || maxY < 0) {
+            resolve(dataUrl);
+            return;
+          }
+
+          const cropW = maxX - minX + 1;
+          const cropH = maxY - minY + 1;
+
+          // 3) Redibujar firma con padding proporcional (sin forzar proporción fija)
+          //    para evitar que se vea alargada.
+          const padX = Math.max(20, Math.round(cropW * 0.18));
+          const padY = Math.max(12, Math.round(cropH * 0.25));
+          const outW = cropW + padX * 2;      // aqui ajustamos si necesitamos más grande o chica la firma, pero siempre proporcional al contenido real
+          const outH = cropH + padY * 2;
+          const out = document.createElement('canvas');
+          out.width = outW;
+          out.height = outH;
+          const outCtx = out.getContext('2d');
+
+          if (!outCtx) {
+            resolve(dataUrl);
+            return;
+          }
+
+          outCtx.clearRect(0, 0, outW, outH);
+          outCtx.drawImage(canvas, minX, minY, cropW, cropH, padX, padY, cropW, cropH);
+
+          resolve(out.toDataURL('image/png'));
+        } catch {
+          resolve(dataUrl);
+        }
+      };
+
+      img.onerror = () => reject();
+      img.src = dataUrl;
+    });
   }
 
   ngAfterViewInit(): void {

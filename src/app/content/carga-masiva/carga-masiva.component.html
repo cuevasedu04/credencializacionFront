@@ -101,6 +101,7 @@
 							<td> Fin Vig. </td>
 							<td> Eladia </td>
 							<td> Foto </td>
+							<td> Firma </td>
 						</tr>
 					</thead>
 					<tbody *ngIf="paginaRegistros.length > 0; else noData">
@@ -121,8 +122,12 @@
 							<td>{{ formatearFecha(registro.fin_vig) }}</td>
 							<td>{{ registro.eladia || 'N/A' }}</td>
 							<td class="text-center">
-								<i *ngIf="registro.foto" class="fas fa-check-circle text-success"></i>
-								<i *ngIf="!registro.foto" class="fas fa-times-circle text-danger"></i>
+								<i *ngIf="registro.__fotoIndicador" class="fas fa-check-circle text-success"></i>
+								<i *ngIf="!registro.__fotoIndicador" class="fas fa-times-circle text-danger"></i>
+							</td>
+							<td class="text-center">
+								<i *ngIf="registro.__firmaIndicador" class="fas fa-check-circle text-success"></i>
+								<i *ngIf="!registro.__firmaIndicador" class="fas fa-times-circle text-danger"></i>
 							</td>
 						</tr>
 
@@ -131,7 +136,7 @@
 					<ng-template #noData>
 						<tbody>
 							<tr>
-								<td colspan="12" class="text-center py-4 text-muted">
+								<td colspan="13" class="text-center py-4 text-muted">
 									<i class="fas fa-info-circle me-2"></i>
 									No hay registros disponibles.
 								</td>
@@ -205,7 +210,7 @@
 			</ul>
 		</div>
 		
-		<div *ngIf="errorResponse?.lista_duplicados && errorResponse.lista_duplicados.length > 0">
+		<!-- <div *ngIf="errorResponse?.lista_duplicados && errorResponse.lista_duplicados.length > 0">
 			<h6 class="fw-bold mb-2">Lista de duplicados:</h6>
 			<div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
 				<table class="table table-sm table-striped">
@@ -225,7 +230,7 @@
 					</tbody>
 				</table>
 			</div>
-		</div>
+		</div> -->
 		
 		<div class="text-center mt-3">
 			<button class="btn btn-primary" (click)="cerrarModalDuplicados()">
