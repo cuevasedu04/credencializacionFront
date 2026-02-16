@@ -154,7 +154,24 @@
                          (click)="abrirFirma()">
                         <img *ngIf="empleado.firma" 
                              [src]="empleado.firma" 
-                            style="width: 100%; height: 100%; object-fit: contain; object-position: center center; display: block;">
+                                                         [ngStyle]="(isPrintMode && firmaCargaMasiva)
+                                                             ? {
+                                                                     'width': '88%',
+                                                                     'height': '74%',
+                                                                     'object-fit': 'contain',
+                                                                     'object-position': 'center bottom',
+                                                                     'display': 'block',
+                                                                     'margin-left': 'auto',
+                                                                     'margin-right': 'auto',
+                                                                     'margin-top': '16%'
+                                                                 }
+                                                             : {
+                                                                     'width': '100%',
+                                                                     'height': '100%',
+                                                                     'object-fit': 'contain',
+                                                                     'object-position': 'center center',
+                                                                     'display': 'block'
+                                                                 }">
                     </div>
 
                     <!-- LABEL DE FIRMA BOX BLANCO DASHED -->

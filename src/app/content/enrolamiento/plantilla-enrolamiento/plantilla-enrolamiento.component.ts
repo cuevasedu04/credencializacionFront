@@ -54,6 +54,7 @@ export class PlantillaEnrolamientoComponent implements AfterViewInit, OnChanges,
   public isWacomSupported = false;
   public wacomConnected = false;
   public debugInfo: string = 'Wacom: Desconectado';
+  public firmaCargaMasiva: boolean = false;
   
   // Suavizado
   private lastX = 0;
@@ -186,6 +187,18 @@ export class PlantillaEnrolamientoComponent implements AfterViewInit, OnChanges,
 
   corregirUrls() {
     const baseUrl = 'http://127.0.0.1:8000';
+
+    // Detectar si la firma parece provenir de carga masiva (Excel/Base64 crudo o JPEG)
+    this.firmaCargaMasiva = false;
+    const firmaOriginal = typeof this.empleado?.firma === 'string' ? this.empleado.firma.trim().toLowerCase() : '';
+    if (firmaOriginal) {
+      const esData = firmaOriginal.startsWith('data:');
+      const esHttp = firmaOriginal.startsWith('http');
+      const esRutaArchivo = /\.(jpeg|jpg|png|gif|bmp|webp)$/i.test(firmaOriginal);
+      const esDataJpeg = firmaOriginal.startsWith('data:image/jpeg') || firmaOriginal.startsWith('data:image/jpg');
+
+      this.firmaCargaMasiva = esDataJpeg || (!esData && !esHttp && !esRutaArchivo);
+    }
     
     const procesar = (str: string) => {
         if (!str) return null;
