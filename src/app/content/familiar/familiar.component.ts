@@ -23,6 +23,21 @@ export class FamiliarComponent extends ProvisionalComponent {
     super(modalManager, enrolamientoApi, utils, router, wacomService);
     this.tipoCredencialLabel = 'familiar';
     this.qrPrefix = 'FAMILIAR';
+    this.esFamiliar = true;
+  }
+
+  override inicializarEmpleado() {
+    super.inicializarEmpleado();
+    if (this.empleado) {
+      this.empleado.puesto = 'FAMILIAR';
+    }
+  }
+
+  override async guardarEnrolamiento() {
+    if (this.empleado) {
+      this.empleado.puesto = 'FAMILIAR';
+    }
+    await super.guardarEnrolamiento();
   }
 
 }

@@ -20,6 +20,7 @@ export class PlantillaEnrolamientoComponent implements AfterViewInit, OnChanges,
   @Input() empleado: any = null;
   @Input() editable: boolean = false;
   @Input() isPrintMode: boolean = false;
+  @Input() modeloCredencialSeleccionado: 'anam' | 'nuevoLaredo' = 'anam';
   @Output() enrolamientoCompletado = new EventEmitter<void>();
 
   // Modales y Elementos
@@ -79,9 +80,21 @@ export class PlantillaEnrolamientoComponent implements AfterViewInit, OnChanges,
   }
 
   obtenerImagenFrente(): string {
+    if (this.esNuevoLaredo()) {
+      return 'img/frontal_credencial.png';
+    }
+
     return this.esCredencialFamiliar()
       ? 'img/frontalNLFamiliar.jpg'
       : 'img/frontalNLFINAL.jpg';
+  }
+
+  obtenerImagenReverso(): string {
+    return this.esNuevoLaredo() ? 'img/reverso.jpg' : 'img/reversoNLFINAL.jpg';
+  }
+
+  esNuevoLaredo(): boolean {
+    return this.modeloCredencialSeleccionado === 'nuevoLaredo';
   }
 
   mostrarCampoPuesto(): boolean {
@@ -108,6 +121,15 @@ export class PlantillaEnrolamientoComponent implements AfterViewInit, OnChanges,
         this.inicializarFechaExpedicion();
         this.generarQR();
         this.asignarFolioSiHaceFalta();
+        this.empleado.nuevo_laredo = this.esNuevoLaredo() ? 1 : 0;
+    }
+
+    if (changes['modeloCredencialSeleccionado'] && this.empleado) {
+      this.empleado.nuevo_laredo = this.esNuevoLaredo() ? 1 : 0;
+      if (!this.empleado.id_enrolamiento) {
+        this.empleado.folio = '';
+        this.asignarFolioSiHaceFalta();
+      }
     }
   }
 
@@ -118,8 +140,10 @@ export class PlantillaEnrolamientoComponent implements AfterViewInit, OnChanges,
     if (!this.empleado) return;
     if (this.empleado.folio && String(this.empleado.folio).trim() !== '') return;
 
+    const nuevoLaredoFlag = this.esNuevoLaredo() ? 1 : 0;
+
     // Obtener siguiente folio desde el backend
-    this.enrolamientoApi.obtenerFolioMaximo().subscribe({
+    this.enrolamientoApi.obtenerFolioMaximo(nuevoLaredoFlag).subscribe({
       next: (res: any) => {
         if (res && res.status === 'success' && res.siguiente_folio) {
           this.empleado.folio = res.siguiente_folio;
@@ -730,7 +754,8 @@ guardarEnrolamiento() {
         eladia: this.empleado.eladia,
         fecha_expedicion: fechaExpedicionFormateada,
         folio: this.empleado.folio,
-        fecha_enrolamiento: fechaEnrolamientoActual
+        fecha_enrolamiento: fechaEnrolamientoActual,
+        nuevo_laredo: this.esNuevoLaredo() ? 1 : 0
     };
 
     // Detectamos si es una CREACIÓN o una ACTUALIZACIÓN

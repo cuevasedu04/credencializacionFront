@@ -7,6 +7,7 @@ import { environment } from '../../../src/environments/environment';
 export class EnrolamientoService {
   
   private apiUrl = `http://127.0.0.1:8080/api/expedientes/`;
+  private apiFamiliaresUrl = `http://127.0.0.1:8080/api/expedientes-familiares/`;
   private apiCredencializacionUrl = `http://127.0.0.1:8080/api/credencializacion/`;
 
   constructor(private http: HttpClient) { }
@@ -56,14 +57,30 @@ export class EnrolamientoService {
   }
 
   // Obtener folio máximo / siguiente folio desde backend
-  obtenerFolioMaximo(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}obtener-folio-maximo/`);
+  obtenerFolioMaximo(nuevoLaredo?: number): Observable<any> {
+    const query = (nuevoLaredo === 0 || nuevoLaredo === 1)
+      ? `?nuevo_laredo=${nuevoLaredo}`
+      : '';
+    return this.http.get<any>(`${this.apiUrl}obtener-folio-maximo/${query}`);
+  }
+
+  obtenerFolioMaximoFamiliares(): Observable<any> {
+    return this.http.get<any>(`${this.apiFamiliaresUrl}obtener-folio-maximo-familiares/`);
+  }
+
+  crearExpedienteFamiliar(datos: any): Observable<any> {
+    return this.http.post(this.apiFamiliaresUrl, datos);
   }
 
   // Marcar registro como impreso después de generar PDF
   marcarComoImpreso(id: number, fechaExpedicion?: string): Observable<any> {
     const payload = fechaExpedicion ? { fecha_expedicion: fechaExpedicion } : {};
     return this.http.post(`${this.apiUrl}${id}/marcar-impreso/`, payload);
+  }
+
+  marcarComoImpresoFamiliar(id: number, fechaExpedicion?: string): Observable<any> {
+    const payload = fechaExpedicion ? { fecha_expedicion: fechaExpedicion } : {};
+    return this.http.post(`${this.apiFamiliaresUrl}${id}/marcar-impreso/`, payload);
   }
 
   // Búsqueda avanzada con múltiples filtros

@@ -1,0 +1,491 @@
+@import '../provisional/provisional.component.scss';
+
+/*
+	==============================================================
+	GUÍA RÁPIDA PARA AJUSTAR POSICIONES (SOLO ANAM)
+	==============================================================
+	1) FRENTE: mover bloques en `.credencial-frente`.
+	2) REVERSO: mover bloques en `.credencial-reverso`.
+	3) Para cada campo usa:
+	   - top / bottom  -> sube o baja
+	   - left / right  -> mueve izquierda o derecha
+	   - width / height -> tamaño del bloque
+	4) Ajuste fino foto/firma dentro del recuadro:
+	   - `.anam-foto-img`, `.anam-foto-print`, `.anam-firma-img`
+	5) Modo calibración (cuadrícula):
+	   - agrega temporalmente la clase `modo-calibracion` al div raíz
+	     de la plantilla (`.anam-template`) para ver guías visuales.
+*/
+
+.anam-template {
+	.credencial-frente,
+
+	.credencial-reverso {
+		position: relative;
+		overflow: hidden;
+	}
+
+	.campos-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+	}
+
+	.anam-bg-image-front {
+		width: 102%;
+		height: 100%;
+		object-fit: fill;
+		position: absolute;
+		top: 1%;
+		left: 0;
+	}
+
+	.anam-bg-image-back {
+		width: 100%;
+		height: 100%;
+		object-fit: fill;
+		position: absolute;
+		top: 1%;
+		left: 0;
+	}
+
+	.campo-clickable {
+		cursor: pointer;
+	}
+
+	.anam-print-text {
+		color: #000000;
+		font-family: 'NotoSans-Bold', Arial, sans-serif;
+		font-weight: 700;
+		display: block;
+	}
+
+	.anam-print-nombre,
+	.anam-print-apellidos {
+		font-size: 18px;
+		font-family: 'NotoSans-Black', Arial, sans-serif;
+		line-height: 1;
+	}
+
+	.anam-print-num-empleado,
+	.anam-print-adscripcion,
+	.anam-print-puesto {
+		font-size: 26px;
+		text-align: center;
+		line-height: 1.2;
+		word-wrap: break-word;
+	}
+
+	.anam-print-curp {
+		font-size: 20px;
+		text-align: center;
+	}
+
+	.anam-print-vigencia,
+	.anam-print-folio,
+	.anam-print-label-folio,
+	.anam-print-label-fecha,
+	.anam-print-fecha-expedicion {
+		font-size: 18px;
+	}
+
+	.anam-print-vigencia {
+		text-align: center;
+		color: #d4af37;
+		font-size: 22px;
+		font-weight: 800;
+	}
+
+	.anam-print-folio {
+		text-align: right;
+		color: #ffffff !important;
+		font-weight: 800;
+	}
+
+	.anam-print-label-folio {
+		color: #ffffff !important;
+		font-family: 'NotoSans-Bold', Arial, sans-serif;
+		font-weight: 700;
+		text-align: right;
+		letter-spacing: 0.5px;
+	}
+
+	.anam-print-label-fecha,
+	.anam-print-fecha-expedicion,
+	.anam-edit-label-fecha,
+	.anam-input-fecha-expedicion {
+		color: #00000000;
+		text-align: left;
+	}
+
+	.anam-edit-label-fecha {
+		font-size: 8px;
+	}
+
+	.anam-input-text {
+		color: #000000;
+	}
+
+	.anam-input-adscripcion,
+	.anam-input-puesto {
+		resize: none;
+		overflow: hidden;
+		height: auto;
+		min-height: 1.5em;
+		font-size: 0.85rem;
+		line-height: 1.2;
+	}
+
+	.anam-input-vigencia,
+	.anam-input-folio {
+		font-size: 0.55rem;
+	}
+
+	.anam-input-vigencia {
+		color: #d4af37;
+		font-weight: 700;
+	}
+
+	.anam-input-folio {
+		background: transparent;
+		color: #ffffff;
+	}
+
+	.anam-input-fecha-expedicion {
+		background: transparent;
+		font-size: 0.7rem;
+	}
+
+	.anam-foto-print {
+		width: 100%;
+		height: 100%;
+		background-size: cover;
+		background-position: center top;
+		border-radius: 2px;
+		background-repeat: no-repeat;
+	}
+
+	.anam-foto-img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		object-position: center top;
+		border-radius: 2px;
+		display: block;
+	}
+
+	.anam-foto-placeholder {
+		border: 2px dashed rgba(114, 47, 55, 0.4);
+		border-radius: 4px;
+		background: rgba(255, 255, 255, 0.8);
+	}
+
+	.anam-foto-placeholder-icon {
+		color: rgba(114, 47, 55, 0.5);
+	}
+
+	.anam-foto-placeholder-text {
+		font-size: 0.65rem;
+		color: rgba(114, 47, 55, 0.6);
+	}
+
+	.anam-firma-img {
+		width: 84%;
+		height: 84%;
+		object-fit: contain;
+		object-position: center top;
+		display: block;
+		margin: 2% auto 0;
+		transform: translateY(-20%);
+	}
+
+	.anam-firma-placeholder {
+		border: 2px dashed rgba(114, 47, 55, 0.3);
+		border-radius: 4px;
+		background: rgba(255, 255, 255, 0.7);
+	}
+
+	.anam-qr-img {
+		max-width: 100%;
+		max-height: 100%;
+		width: auto;
+		height: auto;
+		object-fit: contain;
+	}
+
+	.anam-qr-placeholder {
+		font-size: 0.6rem;
+	}
+
+	.anam-modal-camara {
+		min-height: 350px;
+	}
+
+	.anam-video,
+	.anam-foto-capturada {
+		max-height: 400px;
+	}
+
+	.anam-camara-sin-stream {
+		height: 300px;
+	}
+
+	.anam-firma-box {
+		width: 400px;
+		height: 200px;
+		border: 2px dashed #ccc !important;
+		touch-action: none;
+	}
+
+	.firma-canvas {
+		width: 100%;
+		height: 100%;
+	}
+
+	.anam-firma-hint {
+		bottom: 5px;
+		left: 0;
+		right: 0;
+		pointer-events: none;
+	}
+
+	&.modo-calibracion {
+		.credencial-frente::before,
+		.credencial-reverso::before {
+			content: '';
+			position: absolute;
+			inset: 0;
+			z-index: 2;
+			pointer-events: none;
+			background-image:
+				linear-gradient(to right, rgba(0, 174, 255, 0.22) 1px, transparent 1px),
+				linear-gradient(to bottom, rgba(0, 174, 255, 0.22) 1px, transparent 1px);
+			background-size: 5% 5%;
+		}
+
+		.campos-overlay > [class^='campo-'],
+		.campos-overlay > [class*=' campo-'],
+		.campos-overlay > .label-firma,
+		.campos-overlay > .label-fecha {
+			outline: 1px dashed rgba(255, 0, 0, 0.75);
+			outline-offset: -1px;
+			z-index: 3;
+		}
+	}
+}
+
+.credencial-frente {
+	.label-nombre,
+	.label-apellidos,
+	.campo-nombre,
+	.campo-apellidos,
+	.campo-foto,
+	.campo-num-empleado,
+	.campo-puesto,
+	.campo-adscripcion,
+	.campo-firma,
+	.label-firma,
+	.campo-qr,
+	.campo-vigencia,
+	.campo-folio {
+		position: absolute !important;
+	}
+
+	.label-nombre {
+		top: 18.6% !important;
+		left: 6.2% !important;
+		width: 42% !important;
+	}
+
+	.label-apellidos {
+		top: 18.6% !important;
+		left: 52% !important;
+		width: 43% !important;
+	}
+
+	.anam-label-text {
+		color: #ffffff;
+		font-size: 10px;
+		font-family: 'NotoSans-Bold', Arial, sans-serif;
+		font-weight: 700;
+		display: block;
+		text-align: left;
+		line-height: 1;
+	}
+
+	&.print-mode {
+		.anam-label-text {
+			font-size: 12px;
+			letter-spacing: 0.3px;
+		}
+	}
+
+	/* ===== AJUSTES DE POSICIÓN - FRENTE ===== */
+	/* Nombre */
+	.campo-nombre {
+		top: 20.6% !important;
+		left: 6.2% !important;
+		width: 42% !important;
+	}
+
+	/* Apellidos */
+	.campo-apellidos {
+		top: 20.6% !important;
+		left: 52% !important;
+		width: 43% !important;
+	}
+
+	/* Foto (posición + tamaño del recuadro) */
+	.campo-foto {
+		top: 35.2% !important;
+		left: 10.9% !important;
+		width: 37.7% !important;
+		height: 30.9% !important;
+	}
+
+	/* Número de empleado */
+	.campo-num-empleado {
+		top: 37.8% !important;
+		right: 2.8% !important;
+		width: 45% !important;
+	}
+
+	/* Puesto */
+	.campo-puesto {
+		top: 59% !important;
+		right: 2.5% !important;
+		width: 45% !important;
+	}
+
+	/* Area */
+	.campo-adscripcion {
+		top: 49% !important;
+		right: 3.2% !important;
+		width: 45% !important;
+	}
+
+	/* Firma (posición + tamaño del recuadro) */
+	.campo-firma {
+		bottom: 14.2% !important;
+		left: 8.2% !important;
+		width: 35% !important;
+		height: 10.2% !important;
+		z-index: 4 !important;
+	}
+
+	/* Label de firma (placeholder) */
+	.label-firma {
+		bottom: 14.8% !important;
+		left: 8.3% !important;
+		width: 35% !important;
+		height: 6.8% !important;
+		z-index: 1 !important;
+		pointer-events: none;
+	}
+
+	/* QR */
+	.campo-qr {
+		bottom: 17.1% !important;
+		right: 10.4% !important;
+		width: 26.5% !important;
+	}
+
+	/* Vigencia */
+	.campo-vigencia {
+		bottom: 9% !important;
+		right: 5.7% !important;
+		width: 31% !important;
+	}
+
+	/* Folio */
+	.campo-folio {
+		bottom: 2.9% !important;
+		right: 19.3% !important;
+		width: 34% !important;
+	}
+
+	.campo-foto img,
+	.campo-foto div[style*='background-image'] {
+		object-position: center top !important;
+		background-position: center top !important;
+	}
+
+}
+
+/* Modal de firma: fuera de .anam-template por render en overlay */
+.anam-firma-box {
+	width: 400px;
+	height: 200px;
+	border: 2px dashed #bdbdbd !important;
+	background: #ffffff;
+	touch-action: none;
+	overflow: hidden;
+}
+
+.anam-firma-box .firma-canvas {
+	width: 100%;
+	height: 100%;
+	display: block;
+	background: #ffffff;
+}
+
+.anam-firma-hint {
+	left: 0;
+	right: 0;
+	bottom: 8px;
+	text-align: center !important;
+	pointer-events: none;
+}
+
+.credencial-reverso {
+	/* ===== AJUSTES DE POSICIÓN - REVERSO ===== */
+	/* CURP */
+	.campo-curp {
+		position: absolute;
+		bottom: 10.9%;
+		left: 50%;
+		transform: translateX(-50%);
+		width: 62%;
+		text-align: center;
+	}
+
+	/* Label fecha de expedición */
+	.label-fecha {
+		position: absolute;
+		bottom: 3.8%;
+		left: 2.5%;
+		width: 45%;
+	}
+
+	/* Valor fecha de expedición */
+	.campo-fecha-expedicion {
+		position: absolute;
+		bottom: 1%;
+		left: 10.7%;
+		width: 35%;
+	}
+
+	.anam-print-label-fecha,
+	.anam-print-fecha-expedicion,
+	.anam-edit-label-fecha,
+	.anam-input-fecha-expedicion {
+		color: #ffffff !important;
+	}
+
+    .label-folio{
+        position: absolute;
+        bottom: 3.8%;
+        right: 2.5%;
+		width: 35%;
+		text-align: right;
+    }
+
+    .campo-folio{
+        position: absolute;
+        bottom: .35%;
+        right: 2.5%;
+        width: 35%;
+    }
+}

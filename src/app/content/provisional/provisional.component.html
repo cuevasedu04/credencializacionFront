@@ -59,7 +59,7 @@
                  style="position: relative; overflow: hidden;">
                 
                 <!-- Imagen de fondo -->
-                <img src="img/frontalNLFINAL.jpg" 
+                 <img [src]="obtenerImagenFrente()" 
                      alt="Credencial Frente" 
                      style="width: 102%; height: 100%; object-fit: fill; position: absolute; top: 1%; left: 0%;">
                 
@@ -168,7 +168,7 @@
                          (click)="abrirFirma()">
                         <img *ngIf="empleado.firma" 
                              [src]="empleado.firma" 
-                             style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                                style="width: 96%; height: 96%; object-fit: contain; object-position: center; display: block; margin: 2% auto 0; transform: translateY(-8%);">
                     </div>
 
                     <!-- LABEL DE FIRMA BOX BLANCO DASHED -->
@@ -233,7 +233,7 @@
                  style="position: relative; overflow: hidden;">
                 
                 <!-- Imagen de fondo -->
-                <img src="img/reversoNLFINAL.jpg" 
+                 <img [src]="obtenerImagenReverso()" 
                      alt="Credencial Reverso" 
                      style="width: 100%; height: 100%; object-fit: fill; position: absolute; top:1%; left: 0; ">
                 
@@ -405,6 +405,7 @@
              style="width: 400px; height: 200px; border: 2px dashed #ccc !important; touch-action: none;">
             
             <canvas #firmaCanvas
+                class="firma-canvas"
                 (mousedown)="startDrawing($event)"
                 (mousemove)="moveDrawing($event)"
                 (mouseup)="stopDrawing()"
@@ -412,7 +413,7 @@
                 (touchstart)="startDrawing($event)"
                 (touchmove)="moveDrawing($event)"
                 (touchend)="stopDrawing()"
-                style="width: 100%; height: 100%; cursor: crosshair;">
+                style="width: 100%; height: 100%;">
             </canvas>
             
             <small class="text-muted position-absolute" style="bottom: 5px; left: 0; right: 0; pointer-events: none;">
@@ -424,11 +425,16 @@
             <button class="btn btn-outline-danger btn-sm mr-2" (click)="limpiarFirma()">
                 <i class="fas fa-eraser"></i> Limpiar
             </button>
+
+            <input type="file" #signatureFileInput hidden accept="image/*" (change)="onArchivoFirmaSeleccionado($event)">
+            <button class="btn btn-outline-secondary btn-sm mr-2" (click)="signatureFileInput.click()">
+                <i class="fas fa-upload"></i> Subir Firma
+            </button>
             
             <button *ngIf="isWacomSupported && !wacomConnected" 
-                    class="btn btn-info btn-sm" 
+                    class="btn btn-secondary btn-sm" 
                     (click)="conectarWacom()">
-                <i class="fas fa-pen-nib"></i> Conectar Tableta Wacom
+                <i class="fas fa-pen-nib"></i> Wacom
             </button>
 
             <span *ngIf="wacomConnected" class="badge badge-success p-2">

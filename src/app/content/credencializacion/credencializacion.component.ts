@@ -6,6 +6,7 @@ import { ModalManagerService } from '../../components/shared/modal-manager.servi
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { PlantillaEnrolamientoComponent } from '../enrolamiento/plantilla-enrolamiento/plantilla-enrolamiento.component';
+import { PlantillaAnamComponent } from '../plantilla-anam/plantilla-anam.component';
 
 @Component({
   standalone: false,
@@ -31,7 +32,10 @@ export class CredencializacionComponent implements OnInit {
 
   // Variables para impresión
   empleadoImprimir: any = null;
+  @ViewChild('plantillaModal') plantillaModal!: PlantillaEnrolamientoComponent;
+  @ViewChild('plantillaModalAnam') plantillaModalAnam!: PlantillaAnamComponent;
   @ViewChild('plantillaImprimir') plantillaImprimir!: PlantillaEnrolamientoComponent;
+  @ViewChild('plantillaImprimirAnam') plantillaImprimirAnam!: PlantillaAnamComponent;
   @ViewChild('printContainer') printContainer!: ElementRef;
 
   constructor(
@@ -147,15 +151,27 @@ export class CredencializacionComponent implements OnInit {
     });
   }
 
-  guardarCambios(plantilla: any) {
-    if (plantilla) {
-      plantilla.guardarEnrolamiento();
+  guardarCambios() {
+    const plantillaActiva = this.esCredencialAnam(this.empleadoSeleccionado)
+      ? this.plantillaModalAnam
+      : this.plantillaModal;
+
+    if (plantillaActiva) {
+      plantillaActiva.guardarEnrolamiento();
     }
   }
 
   onEnrolamientoCompletado() {
     this.modalManager.closeModal();
     this.obtenerCredenciales(); // Recargar la tabla
+  }
+
+  esCredencialAnam(persona: any): boolean {
+    if (!persona) return false;
+    const tipo = String(persona?.tipo_credencial || '').toLowerCase();
+    if (tipo === 'anam') return true;
+    if (tipo === 'familiar' || tipo === 'provisional' || tipo === 'enrolamiento') return false;
+    return persona?.source_table === 'enrolamiento' && Number(persona?.provisional) === 1 && Number(persona?.nuevo_laredo || 0) !== 1;
   }
 
   async imprimirCredencial(persona: any) {
@@ -195,8 +211,11 @@ export class CredencializacionComponent implements OnInit {
             };
 
             // --- FRENTE ---
-            if (this.plantillaImprimir) {
-                this.plantillaImprimir.vistaCredencial = 'frente';
+            const usarPlantillaAnam = this.esCredencialAnam(persona);
+            const plantillaActiva: any = usarPlantillaAnam ? this.plantillaImprimirAnam : this.plantillaImprimir;
+
+            if (plantillaActiva) {
+              plantillaActiva.vistaCredencial = 'frente';
                 await new Promise(resolve => setTimeout(resolve, 400));
                 
                 const element = this.printContainer.nativeElement.querySelector('.credencial-frente');
@@ -207,8 +226,8 @@ export class CredencializacionComponent implements OnInit {
             }
 
             // --- REVERSO ---
-            if (this.plantillaImprimir) {
-                this.plantillaImprimir.vistaCredencial = 'reverso';
+            if (plantillaActiva) {
+              plantillaActiva.vistaCredencial = 'reverso';
                 await new Promise(resolve => setTimeout(resolve, 400));
 
                 const elementReverso = this.printContainer.nativeElement.querySelector('.credencial-reverso');
@@ -224,7 +243,11 @@ export class CredencializacionComponent implements OnInit {
 
             // Marcar como impreso en el backend y actualizar tabla
             if (persona.id_enrolamiento) {
-              this.enrolamientoService.marcarComoImpreso(persona.id_enrolamiento, persona.fecha_expedicion).subscribe({
+              const marcar$ = persona.source_table === 'familiar'
+                ? this.enrolamientoService.marcarComoImpresoFamiliar(persona.id_enrolamiento, persona.fecha_expedicion)
+                : this.enrolamientoService.marcarComoImpreso(persona.id_enrolamiento, persona.fecha_expedicion);
+
+              marcar$.subscribe({
                 next: () => {
                   this.obtenerCredenciales();
                 },

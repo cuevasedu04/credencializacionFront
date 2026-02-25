@@ -21,7 +21,7 @@ export class SidebarComponent implements OnInit {
   menuItems = [
     {
       id: 'Carga masiva',
-      label: 'Carga masiva',      
+      label: 'Carga excel',      
       icon: 'fas fa-upload',
       link: '/carga-masiva',
       rol: [1,2,9999],
@@ -42,16 +42,23 @@ export class SidebarComponent implements OnInit {
     },
     {
       id: 'provisional',
-      label: 'Carga manual',      
+      label: 'Carga manual - NL',      
       icon: 'fa-solid fa-id-badge',
       link: '/provisional',
       rol: [1,2,3,9999],
     },
     {
       id: 'familiar',
-      label: 'Familiares',      
+      label: 'Familiares - NL',      
       icon: 'fa-solid fa-id-badge',
       link: '/familiar',
+      rol: [1,2,3,9999],
+    },
+    {
+      id: 'plantilla-anam',
+      label: 'Carga manual - ANAM',
+      icon: 'fa-solid fa-id-badge',
+      link: '/plantilla-anam',
       rol: [1,2,3,9999],
     },
     {

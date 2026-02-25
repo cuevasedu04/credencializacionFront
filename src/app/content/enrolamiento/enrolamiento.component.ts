@@ -13,6 +13,7 @@ export class EnrolamientoComponent implements OnInit {
 
   // Variable con datos de empleado (para visualización inmediata)
   empleadoSeleccionado: any = null;
+  modeloCredencialSeleccionado: 'anam' | 'nuevoLaredo' = 'anam';
 
   constructor() { }
 
@@ -24,6 +25,9 @@ export class EnrolamientoComponent implements OnInit {
   // Esta función se ejecuta cuando el hijo "Consulta" emite el evento
   recibirEmpleado(empleado: any) {
     this.empleadoSeleccionado = empleado;
+    if (empleado && Number(empleado.nuevo_laredo) === 1) {
+      this.modeloCredencialSeleccionado = 'nuevoLaredo';
+    }
   }
 
   // Cuando se completa un enrolamiento, refrescamos la lista
@@ -32,5 +36,9 @@ export class EnrolamientoComponent implements OnInit {
     if (this.consultaComponent) {
       this.consultaComponent.cargarEmpleados();
     }
+  }
+
+  cambiarModeloCredencial(modelo: 'anam' | 'nuevoLaredo') {
+    this.modeloCredencialSeleccionado = modelo;
   }
 }

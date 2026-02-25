@@ -13,7 +13,20 @@
                     </div>
                 </div>
                 <div class="d-flex align-items-center gap-2 text-muted small">
-                    <i class="bi bi-calendar"></i>
+                    <div class="btn-group" role="group">
+                        <button type="button"
+                                class="btn btn-outline-secondary btn-sm"
+                                [class.active]="modeloCredencialSeleccionado === 'anam'"
+                                (click)="cambiarModeloCredencial('anam')">
+                            ANAM
+                        </button>
+                        <button type="button"
+                                class="btn btn-outline-secondary btn-sm"
+                                [class.active]="modeloCredencialSeleccionado === 'nuevoLaredo'"
+                                (click)="cambiarModeloCredencial('nuevoLaredo')">
+                            Nuevo Laredo
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -32,6 +45,7 @@
             <app-plantilla-enrolamiento 
                 [empleado]="empleadoSeleccionado"
                 [editable]="true"
+                [modeloCredencialSeleccionado]="modeloCredencialSeleccionado"
                 (enrolamientoCompletado)="onEnrolamientoCompletado()">
             </app-plantilla-enrolamiento>
         </div>

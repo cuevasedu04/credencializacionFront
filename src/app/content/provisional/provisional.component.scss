@@ -253,3 +253,7 @@
         small { font-size: 0.7rem !important; }
     }
 }
+
+.firma-canvas {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cline x1='14' y1='2' x2='14' y2='26' stroke='black' stroke-width='2'/%3E%3Cline x1='2' y1='14' x2='26' y2='14' stroke='black' stroke-width='2'/%3E%3C/svg%3E") 14 14, crosshair;
+}
