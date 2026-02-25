@@ -1,4 +1,4 @@
-import { Component, Input, ViewChild, ElementRef, TemplateRef, AfterViewInit, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, ViewChild, ElementRef, TemplateRef, AfterViewInit, OnInit, OnDestroy, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { ModalManagerService } from '../../components/shared/modal-manager.service';
 import { EnrolamientoService } from '../../services/enrolamiento.service';
@@ -15,14 +15,16 @@ import * as QRCode from 'qrcode';
   templateUrl: './provisional.component.html',
   styleUrls: ['./provisional.component.scss']
 })
-export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy {
+export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges {
 
   // En provisional, el empleado se inicializa vacío
-  empleado: any = null;
+  @Input() empleado: any = null;
   
   // Siempre es editable en provisional
-  editable: boolean = true;
-  isPrintMode: boolean = false;
+  @Input() editable: boolean = true;
+  @Input() isPrintMode: boolean = false;
+  @Input() mostrarHeader: boolean = true;
+  @Output() enrolamientoCompletado = new EventEmitter<void>();
 
   // Modales y Elementos
   @ViewChild('modalCamara', { static: true }) modalCamara!: TemplateRef<any>;
@@ -75,7 +77,22 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.inicializarEmpleado();
+    if (!this.empleado) {
+      this.inicializarEmpleado();
+      return;
+    }
+
+    this.normalizarMediaUrls();
+    this.inicializarFechaExpedicion();
+    this.generarQR();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['empleado'] && this.empleado) {
+      this.normalizarMediaUrls();
+      this.inicializarFechaExpedicion();
+      this.generarQR();
+    }
   }
 
   ngOnDestroy(): void {
@@ -104,6 +121,21 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy {
     
     this.inicializarFechaExpedicion();
     this.asignarFolioSiguiente();
+  }
+
+  private normalizarMediaUrls() {
+    if (!this.empleado) return;
+    const baseUrl = 'http://127.0.0.1:8000';
+
+    const procesar = (str: string) => {
+      if (!str) return null;
+      if (str.startsWith('http') || str.startsWith('data:')) return str;
+      if (/\.(jpeg|jpg|png|gif|bmp|webp)$/i.test(str)) return `${baseUrl}${str}`;
+      return str;
+    };
+
+    this.empleado.foto = procesar(this.empleado.foto);
+    this.empleado.firma = procesar(this.empleado.firma);
   }
 
   protected asignarFolioSiguiente() {
@@ -711,33 +743,47 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy {
 
     console.log(`Enviando payload ${this.tipoCredencialLabel}:`, payload);
 
+    const id = this.empleado.id_enrolamiento;
+    if (id) {
+      this.enrolamientoApi.actualizarExpediente(id, payload).subscribe({
+        next: () => {
+          this.guardando = false;
+          this.utils.MuestrasToast(TipoToast.Success, `Credencial ${this.tipoCredencialLabel} actualizada exitosamente`);
+          this.enrolamientoCompletado.emit();
+        },
+        error: (err) => {
+          console.error(`Error al actualizar ${this.tipoCredencialLabel}:`, err);
+          this.guardando = false;
+          this.utils.MuestraErrorInterno(err);
+        }
+      });
+      return;
+    }
+
     const createRequest$ = this.esFamiliar
       ? this.enrolamientoApi.crearExpedienteFamiliar(payload)
       : this.enrolamientoApi.crearExpediente(payload);
 
     createRequest$.subscribe({
-        next: (resp) => {
-            this.guardando = false;
-          this.utils.MuestrasToast(TipoToast.Success, `Credencial ${this.tipoCredencialLabel} guardada exitosamente`);
-            // Podríamos navegar a otra página o limpiar el formulario
-            this.empleado = null; 
-            // Reinicializar para capturar otro
-            setTimeout(() => {
-                this.inicializarEmpleado();
-            }, 1000);
-        },
-        error: (err) => {
-          console.error(`Error al guardar ${this.tipoCredencialLabel}:`, err);
-            this.guardando = false;
-            
-            // Intento de mostrar el error detallado si viene en formato JSON
-            let msg = 'Error interno';
-            if (err.error) {
-                if (typeof err.error === 'string') msg = err.error;
-                else if (typeof err.error === 'object') msg = JSON.stringify(err.error);
-            }
-            this.utils.MuestrasToast(TipoToast.Error, 'Error al guardar: ' + msg);
+      next: () => {
+        this.guardando = false;
+        this.utils.MuestrasToast(TipoToast.Success, `Credencial ${this.tipoCredencialLabel} guardada exitosamente`);
+        this.empleado = null;
+        setTimeout(() => {
+          this.inicializarEmpleado();
+        }, 1000);
+      },
+      error: (err) => {
+        console.error(`Error al guardar ${this.tipoCredencialLabel}:`, err);
+        this.guardando = false;
+
+        let msg = 'Error interno';
+        if (err.error) {
+          if (typeof err.error === 'string') msg = err.error;
+          else if (typeof err.error === 'object') msg = JSON.stringify(err.error);
         }
+        this.utils.MuestrasToast(TipoToast.Error, 'Error al guardar: ' + msg);
+      }
     });
   }
 }

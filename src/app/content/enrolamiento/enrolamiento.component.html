@@ -18,7 +18,7 @@
                                 class="btn btn-outline-secondary btn-sm"
                                 [class.active]="modeloCredencialSeleccionado === 'anam'"
                                 (click)="cambiarModeloCredencial('anam')">
-                            ANAM
+                            ANAM    
                         </button>
                         <button type="button"
                                 class="btn btn-outline-secondary btn-sm"
@@ -42,12 +42,22 @@
 
         <!-- Panel derecho: Plantilla de credencial -->
         <div class="col-lg-7">
-            <app-plantilla-enrolamiento 
+            <app-plantilla-anam
+                *ngIf="modeloCredencialSeleccionado === 'anam'; else plantillaNuevoLaredo"
                 [empleado]="empleadoSeleccionado"
                 [editable]="true"
-                [modeloCredencialSeleccionado]="modeloCredencialSeleccionado"
+                [mostrarHeader]="false"
                 (enrolamientoCompletado)="onEnrolamientoCompletado()">
-            </app-plantilla-enrolamiento>
+            </app-plantilla-anam>
+
+            <ng-template #plantillaNuevoLaredo>
+                <app-provisional 
+                    [empleado]="empleadoSeleccionado"
+                    [editable]="true"
+                    [mostrarHeader]="false"
+                    (enrolamientoCompletado)="onEnrolamientoCompletado()">
+                </app-provisional>
+            </ng-template>
         </div>
     </div>
 </div>

@@ -124,27 +124,73 @@
                 <input class="form-check-input" type="checkbox" id="flexSwitchCheckDefault" [(ngModel)]="esEditable">
                 <label class="form-check-label" for="flexSwitchCheckDefault">Editar</label>
             </div>
-            <button class="btn btn-primary" (click)="guardarCambios(plantilla)" [disabled]="!esEditable">
+            <button class="btn btn-primary" (click)="guardarCambios()" [disabled]="!esEditable">
                 <i class="fas fa-save mr-1"></i> Guardar
             </button>
         </div>
-        
-        <app-plantilla-enrolamiento 
-            #plantilla 
-            [empleado]="empleadoSeleccionado" 
+
+        <app-familiar
+            *ngIf="esCredencialFamiliar(empleadoSeleccionado); else plantillaNoFamiliarModal"
+            #plantillaModalFamiliar
+            [empleado]="empleadoSeleccionado"
             [editable]="esEditable"
+            [mostrarHeader]="false"
             (enrolamientoCompletado)="onEnrolamientoCompletado()">
-        </app-plantilla-enrolamiento>
+        </app-familiar>
+
+        <ng-template #plantillaNoFamiliarModal>
+            <app-plantilla-anam
+                *ngIf="esCredencialAnam(empleadoSeleccionado); else plantillaNuevoLaredoModal"
+                #plantillaModalAnam
+                [empleado]="empleadoSeleccionado"
+                [editable]="esEditable"
+                [mostrarHeader]="false"
+                (enrolamientoCompletado)="onEnrolamientoCompletado()">
+            </app-plantilla-anam>
+
+            <ng-template #plantillaNuevoLaredoModal>
+                <app-provisional
+                    #plantillaModalNuevoLaredo
+                    [empleado]="empleadoSeleccionado"
+                    [editable]="esEditable"
+                    [mostrarHeader]="false"
+                    (enrolamientoCompletado)="onEnrolamientoCompletado()">
+                </app-provisional>
+            </ng-template>
+        </ng-template>
     </div>
 </ng-template>
 
 <!-- Contenedor oculto para imprimir -->
 <div #printContainer style="position: absolute; left: -9999px; top: -9999px;">
-    <app-plantilla-enrolamiento 
-        #plantillaImprimir
-        *ngIf="empleadoImprimir"
-        [empleado]="empleadoImprimir" 
+    <app-familiar
+        *ngIf="empleadoImprimir && esCredencialFamiliar(empleadoImprimir); else plantillaNoFamiliarImpresion"
+        #plantillaImprimirFamiliar
+        [empleado]="empleadoImprimir"
         [isPrintMode]="true"
-        [editable]="false">
-    </app-plantilla-enrolamiento>
+        [editable]="false"
+        [mostrarHeader]="false">
+    </app-familiar>
+
+    <ng-template #plantillaNoFamiliarImpresion>
+        <app-plantilla-anam
+            *ngIf="empleadoImprimir && esCredencialAnam(empleadoImprimir); else plantillaNuevoLaredoImpresion"
+            #plantillaImprimirAnam
+            [empleado]="empleadoImprimir"
+            [isPrintMode]="true"
+            [editable]="false"
+            [mostrarHeader]="false">
+        </app-plantilla-anam>
+
+        <ng-template #plantillaNuevoLaredoImpresion>
+            <app-provisional
+                *ngIf="empleadoImprimir"
+                #plantillaImprimirNuevoLaredo
+                [empleado]="empleadoImprimir"
+                [isPrintMode]="true"
+                [editable]="false"
+                [mostrarHeader]="false">
+            </app-provisional>
+        </ng-template>
+    </ng-template>
 </div>

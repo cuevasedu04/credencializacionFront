@@ -9,6 +9,9 @@ import { ModalManagerService } from '../../components/shared/modal-manager.servi
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { PlantillaEnrolamientoComponent } from '../enrolamiento/plantilla-enrolamiento/plantilla-enrolamiento.component';
+import { PlantillaAnamComponent } from '../plantilla-anam/plantilla-anam.component';
+import { ProvisionalComponent } from '../provisional/provisional.component';
+import { FamiliarComponent } from '../familiar/familiar.component';
 
 @Component({
   selector: 'app-busqueda-avanzada',
@@ -36,7 +39,12 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
   
   // Variables para impresión
   empleadoImprimir: any = null;
-  @ViewChild('plantillaImprimir') plantillaImprimir!: PlantillaEnrolamientoComponent;
+  @ViewChild('plantillaModalAnam') plantillaModalAnam!: PlantillaAnamComponent;
+  @ViewChild('plantillaModalNuevoLaredo') plantillaModalNuevoLaredo!: ProvisionalComponent;
+  @ViewChild('plantillaModalFamiliar') plantillaModalFamiliar!: FamiliarComponent;
+  @ViewChild('plantillaImprimirAnam') plantillaImprimirAnam!: PlantillaAnamComponent;
+  @ViewChild('plantillaImprimirNuevoLaredo') plantillaImprimirNuevoLaredo!: ProvisionalComponent;
+  @ViewChild('plantillaImprimirFamiliar') plantillaImprimirFamiliar!: FamiliarComponent;
   @ViewChild('printContainer') printContainer!: ElementRef;
   
   // Paginación y Estado
@@ -358,9 +366,36 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
     });
   }
 
-  guardarCambios(plantilla: any) {
-    if (plantilla) {
-      plantilla.guardarEnrolamiento();
+  esCredencialFamiliar(persona: any): boolean {
+    if (!persona) return false;
+    const tipo = String(persona?.tipo_credencial || '').toLowerCase();
+    return tipo === 'familiar' || persona?.source_table === 'familiar' || Number(persona?.familiar || 0) === 1;
+  }
+
+  esCredencialAnam(persona: any): boolean {
+    if (!persona || this.esCredencialFamiliar(persona)) return false;
+    const tipo = String(persona?.tipo_credencial || '').toLowerCase();
+    if (tipo === 'anam') return true;
+    if (tipo === 'provisional' || tipo === 'nuevolaredo') return false;
+    return persona?.source_table === 'enrolamiento' && Number(persona?.provisional || 0) === 1 && Number(persona?.nuevo_laredo || 0) !== 1;
+  }
+
+  private obtenerPlantillaModalActiva(): any {
+    if (this.esCredencialFamiliar(this.empleadoSeleccionado)) return this.plantillaModalFamiliar;
+    if (this.esCredencialAnam(this.empleadoSeleccionado)) return this.plantillaModalAnam;
+    return this.plantillaModalNuevoLaredo;
+  }
+
+  private obtenerPlantillaImpresionActiva(persona: any): any {
+    if (this.esCredencialFamiliar(persona)) return this.plantillaImprimirFamiliar;
+    if (this.esCredencialAnam(persona)) return this.plantillaImprimirAnam;
+    return this.plantillaImprimirNuevoLaredo;
+  }
+
+  guardarCambios() {
+    const plantillaActiva = this.obtenerPlantillaModalActiva();
+    if (plantillaActiva) {
+      plantillaActiva.guardarEnrolamiento();
     }
   }
 
@@ -398,8 +433,10 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
               removeContainer: false
             };
 
-            if (this.plantillaImprimir) {
-                this.plantillaImprimir.vistaCredencial = 'frente';
+            const plantillaActiva = this.obtenerPlantillaImpresionActiva(persona);
+
+            if (plantillaActiva) {
+              plantillaActiva.vistaCredencial = 'frente';
                 await new Promise(resolve => setTimeout(resolve, 400));
                 
                 const element = this.printContainer.nativeElement.querySelector('.credencial-frente');
@@ -409,8 +446,8 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
                 pdf.addImage(imgDataFront, 'PNG', xOffset, yOffset, imgWidth, imgHeight, '', 'FAST');
             }
 
-            if (this.plantillaImprimir) {
-                this.plantillaImprimir.vistaCredencial = 'reverso';
+            if (plantillaActiva) {
+              plantillaActiva.vistaCredencial = 'reverso';
                 await new Promise(resolve => setTimeout(resolve, 400));
 
                 const elementReverso = this.printContainer.nativeElement.querySelector('.credencial-reverso');
@@ -425,7 +462,11 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
             this.utils.MuestrasToast(TipoToast.Success, 'PDF generado correctamente');
 
             if (persona.id_enrolamiento) {
-              this.enrolamientoService.marcarComoImpreso(persona.id_enrolamiento, persona.fecha_expedicion).subscribe({
+              const marcar$ = this.esCredencialFamiliar(persona)
+                ? this.enrolamientoService.marcarComoImpresoFamiliar(persona.id_enrolamiento, persona.fecha_expedicion)
+                : this.enrolamientoService.marcarComoImpreso(persona.id_enrolamiento, persona.fecha_expedicion);
+
+              marcar$.subscribe({
                 next: () => {
                   this.buscarCredenciales();
                 },

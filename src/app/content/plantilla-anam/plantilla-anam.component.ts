@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { ProvisionalComponent } from '../provisional/provisional.component';
 import { ModalManagerService } from '../../components/shared/modal-manager.service';
 import { EnrolamientoService } from '../../services/enrolamiento.service';
@@ -16,7 +16,6 @@ export class PlantillaAnamComponent extends ProvisionalComponent implements OnIn
   @Input() override empleado: any = null;
   @Input() override editable: boolean = true;
   @Input() override isPrintMode: boolean = false;
-  @Output() enrolamientoCompletado = new EventEmitter<void>();
 
   constructor(
     modalManager: ModalManagerService,
