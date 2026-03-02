@@ -25,19 +25,14 @@ export class EnrolamientoComponent implements OnInit {
 
   private aplicarModeloDesdeBloque(): void {
     const bloque = this.moduleContext.selectedBlock();
-    if (bloque === 'anam') {
-      this.modeloCredencialSeleccionado = 'anam';
-      this.modoBloqueFijo = true;
-      return;
-    }
-
     if (bloque === 'nuevo-laredo') {
       this.modeloCredencialSeleccionado = 'nuevoLaredo';
       this.modoBloqueFijo = true;
       return;
     }
 
-    this.modoBloqueFijo = false;
+    this.modeloCredencialSeleccionado = 'anam';
+    this.modoBloqueFijo = true;
   }
 
   // Esta función se ejecuta cuando el hijo "Consulta" emite el evento

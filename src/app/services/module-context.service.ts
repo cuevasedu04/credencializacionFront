@@ -4,17 +4,43 @@ export type SidebarBlock = 'anam' | 'nuevo-laredo' | 'consultas' | null;
 
 @Injectable({ providedIn: 'root' })
 export class ModuleContextService {
+  private readonly storageKey = 'sicre.selectedBlock';
   private readonly _selectedBlock = signal<SidebarBlock>(null);
   readonly selectedBlock = this._selectedBlock.asReadonly();
 
   readonly hasSelection = computed(() => this._selectedBlock() !== null);
 
+  constructor() {
+    this.restoreBlock();
+  }
+
   setBlock(block: SidebarBlock): void {
     this._selectedBlock.set(block);
+    this.persistBlock(block);
   }
 
   clearBlock(): void {
     this._selectedBlock.set(null);
+    this.persistBlock(null);
+  }
+
+  private persistBlock(block: SidebarBlock): void {
+    if (typeof window === 'undefined') return;
+    if (!block) {
+      window.sessionStorage.removeItem(this.storageKey);
+      return;
+    }
+
+    window.sessionStorage.setItem(this.storageKey, block);
+  }
+
+  private restoreBlock(): void {
+    if (typeof window === 'undefined') return;
+
+    const saved = window.sessionStorage.getItem(this.storageKey);
+    if (saved === 'anam' || saved === 'nuevo-laredo' || saved === 'consultas') {
+      this._selectedBlock.set(saved);
+    }
   }
 
   getAllowedIds(block: SidebarBlock): string[] {
