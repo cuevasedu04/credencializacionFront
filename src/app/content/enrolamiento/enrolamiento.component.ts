@@ -1,5 +1,6 @@
 import { Component, ViewChild, OnInit } from '@angular/core';
 import { ConsultaEnrolamientoComponent } from './consulta-enrolamiento/consulta-enrolamiento.component';
+import { ModuleContextService } from '../../services/module-context.service';
 
 @Component({
   standalone: false,
@@ -14,18 +15,41 @@ export class EnrolamientoComponent implements OnInit {
   // Variable con datos de empleado (para visualización inmediata)
   empleadoSeleccionado: any = null;
   modeloCredencialSeleccionado: 'anam' | 'nuevoLaredo' = 'anam';
+  modoBloqueFijo = false;
 
-  constructor() { }
+  constructor(private moduleContext: ModuleContextService) { }
 
   ngOnInit(): void {
-    // Puedes comentar la siguiente línea para empezar sin empleado seleccionado
-    // this.empleadoSeleccionado = null;
+    this.aplicarModeloDesdeBloque();
+  }
+
+  private aplicarModeloDesdeBloque(): void {
+    const bloque = this.moduleContext.selectedBlock();
+    if (bloque === 'anam') {
+      this.modeloCredencialSeleccionado = 'anam';
+      this.modoBloqueFijo = true;
+      return;
+    }
+
+    if (bloque === 'nuevo-laredo') {
+      this.modeloCredencialSeleccionado = 'nuevoLaredo';
+      this.modoBloqueFijo = true;
+      return;
+    }
+
+    this.modoBloqueFijo = false;
   }
 
   // Esta función se ejecuta cuando el hijo "Consulta" emite el evento
   recibirEmpleado(empleado: any) {
     this.empleadoSeleccionado = empleado;
     if (!empleado) return;
+
+    if (this.modoBloqueFijo) {
+      this.empleadoSeleccionado.nuevo_laredo = this.modeloCredencialSeleccionado === 'nuevoLaredo' ? 1 : 0;
+      return;
+    }
+
     this.modeloCredencialSeleccionado = Number(empleado.nuevo_laredo) === 1 ? 'nuevoLaredo' : 'anam';
   }
 

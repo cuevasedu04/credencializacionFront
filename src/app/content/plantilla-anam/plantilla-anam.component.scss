@@ -1,4 +1,4 @@
-@import '../provisional/provisional.component.scss';
+@use '../provisional/provisional.component.scss' as *;
 
 /*
 	==============================================================
@@ -368,10 +368,10 @@
 
 	/* Firma (posición + tamaño del recuadro) */
 	.campo-firma {
-		bottom: 14.2% !important;
-		left: 8.2% !important;
-		width: 35% !important;
-		height: 10.2% !important;
+		top: 75% !important;
+		left: -10% !important;
+		width: 80%; 
+		height: 54%;
 		z-index: 4 !important;
 	}
 
@@ -484,8 +484,8 @@
 
     .campo-folio{
         position: absolute;
-        bottom: .35%;
-        right: 2.5%;
+        bottom: 1.6%;
+        right: 1.6%;
         width: 35%;
     }
 }

@@ -9,69 +9,53 @@
                 </div>
             <div class="card w-100">
                 <div class="card-body">
-                    <h1 class="card-title frmlabel m-0 p-0">Sistema de Enrolamiento y Credencialización</h1>
+                    <h1 class="card-title frmlabel m-0 p-0">Sistema de Credencialización y Enrolamiento</h1>
                     <p class="card-text"></p>
-                    <p class="card-text">Aquí podrás realizar enrolamientos e impresiones de credenciales para el personal de la ANAM.</p>
-                    <p class="card-text">Para empezar, haz clic en las opciones a continuación.</p>
-                    <a href="/enrolamiento" class="btn btn-primary mx-2">Enrolar</a>
+                    <p class="card-text">Aquí podrás realizar consultas, enrolamientos e impresiones de credenciales para el personal de la ANAM.</p>
+                    <p class="card-text">Para empezar, selecciona alguno de los modulos a continuación.</p>
+                    <!-- <a href="/enrolamiento" class="btn btn-primary mx-2">Enrolar</a>
         
                     <a href="/credencializacion" class="btn btn-primary mx-2">Imprimir credenciales</a>                        
-                    
+                     -->
                 </div>
             </div>
 
             <!-- Aquí puedes agregar más contenido -->
 
         </main>
-        </div>
 
-        <!-- Document Consultation -->
-        <div class="mt-4 p-2">
-        <section class="quick-actions">
-            <h3 class="frmlabel text-center">Documentos de Consulta</h3>
-            <div class="documents-grid">
-                <div class="document-card textce"> 
-                    <div class="document-icon manual"> <i class="fas fa-book-open"></i> </div>
-                    <div class="document-info">
-                        <h4>Manual de Usuario del Sistema</h4>
-                        <p>Guía completa para el uso del sistema de movimientos de personal</p>
-                        <div class="document-meta">
-                            <span class="document-version">v1.0</span>
-                            <span class="document-date">Actualizado: 24/10/2025</span>
-                        </div>
-                    </div>
-                    <button class="document-button">
-                        <i class="fas fa-book-open"></i>  Ver Manual
+        <section class="module-blocks card w-100 mt-4">
+            <div class="card-body">
+                <h4 class="frmlabel mb-3">Módulos del sistema</h4>
+                <div class="module-blocks-grid">
+                    <button
+                        type="button"
+                        class="module-block anam"
+                        [class.active]="esBloqueActivo('anam')"
+                        (click)="seleccionarBloque('anam')">
+                        <div class="module-title">Credenciales ANAM</div>
+                        <div class="module-text">Aquí puedes generar credenciales para el personal de la ANAM.</div>
+                        <span class="module-link">ANAM</span>
                     </button>
-                </div>
-                
-                <div class="document-card textce"> 
-                    <div class="document-icon privacy"><i class="fas fa-lock"></i></div>
-                    <div class="document-info">
-                        <h4>Aviso de Privacidad</h4>
-                        <p>Tratamiento y protección de datos personales conforme a la LFTAIPG</p>
-                        <div class="document-meta">
-                            <span class="document-version">v1.0</span>
-                            <span class="document-date">Actualizado: 24/10/2025</span>
-                        </div>
-                    </div>
-                    <button class="document-button secondary" (click)="openDocument('privacy')">
-                        <i class="fas fa-lock"></i> Ver Aviso
+
+                    <button
+                        type="button"
+                        class="module-block nuevo-laredo"
+                        [class.active]="esBloqueActivo('nuevo-laredo')"
+                        (click)="seleccionarBloque('nuevo-laredo')">
+                        <div class="module-title">Credenciales Nuevo Laredo</div>
+                        <div class="module-text">Aquí puedes generar credenciales para el personal de ANAM Nuevo Laredo.</div>
+                        <span class="module-link">Nuevo Laredo</span>
                     </button>
-                </div>
-                
-                <div class="document-card textce"> 
-                    <div class="document-icon regulation"> <i class="fas fa-balance-scale"></i></div>
-                    <div class="document-info">
-                        <h4>Reglamento Interior de la ANAM</h4>
-                        <p>Normatividad aplicable a la Administración Nacional de Aduanas</p>
-                        <div class="document-meta">
-                            <!-- <span class="document-version"></span> -->
-                            <span class="document-date">Actualizado: 21/12/2021</span>
-                        </div>
-                    </div>
-                    <button class="document-button tertiary" (click)="openDocument('regulation')">
-                        <i class="fas fa-clipboard-list"></i> Ver Reglamento
+
+                    <button
+                        type="button"
+                        class="module-block consultas"
+                        [class.active]="esBloqueActivo('consultas')"
+                        (click)="seleccionarBloque('consultas')">
+                        <div class="module-title">Consultas, carga e impresión</div>
+                        <div class="module-text">Búsqueda avanzada, reportes, carga excel e impresión.</div>
+                        <span class="module-link">Consultas e impresión</span>
                     </button>
                 </div>
             </div>

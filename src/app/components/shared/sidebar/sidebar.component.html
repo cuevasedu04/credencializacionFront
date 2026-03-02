@@ -3,6 +3,10 @@
 				<nav class="sidebar " [class.collapsed]="sidebarService.isCollapsed()"
 			 [class.mobile-visible]="sidebarService.isMobile() && sidebarService.isExpanded()">
 
+				<div class="sidebar-empty-state" *ngIf="mostrarMensajeDashboard && sidebarService.isExpanded()">
+					<p>Selecciona un bloque para acceder a los módulos del sistema.</p>
+				</div>
+
 				<!-- Menú de navegación -->
 				<ul class="sidebar-menu">
 					<li class="menu-item" *ngFor="let item of menuUsuario">
@@ -12,10 +16,22 @@
 						</a>
 					</li>
 				</ul>
-				<div class="d-block" [ngClass]="{'d-none': sidebarService.isCollapsed()}">
-					<!-- <div  style= " position: absolute; width: 90vh; height: 70vh; background-color: #43020244; border-radius: 50%; left: -30%; z-index: -1;"></div> -->
-					<img src="/img/anam.png" alt="" width="180" height="120" class="mx-auto d-block  my-5 ">
-				</div>
+
+				<footer class="sidebar-footer-docs" *ngIf="sidebarService.isExpanded()">
+					<div class="footer-title">Documentos</div>
+					<a class="footer-link" href="/docs/Manual%20de%20usuario_SCG_NV.pdf" target="_blank" rel="noopener noreferrer">
+						<i class="fas fa-book-open"></i>
+						<span>Manual</span>
+					</a>
+					<a class="footer-link" href="/docs/Aviso%20de%20privacidad%20SCG.pdf" target="_blank" rel="noopener noreferrer">
+						<i class="fas fa-lock"></i>
+						<span>Privacidad</span>
+					</a>
+					<a class="footer-link" href="/docs/RIANAM_2023.pdf" target="_blank" rel="noopener noreferrer">
+						<i class="fas fa-balance-scale"></i>
+						<span>Reglamento</span>
+					</a>
+				</footer>
 			</nav>
 
 

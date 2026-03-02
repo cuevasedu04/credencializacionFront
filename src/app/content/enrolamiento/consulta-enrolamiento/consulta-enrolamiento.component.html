@@ -73,7 +73,7 @@
                         </td>
                     </tr>
 
-                    <tr *ngFor="let emp of listaFiltrada" class="cursor-pointer row-hover-effect" (click)="seleccionarEmpleado(emp)">
+                    <tr *ngFor="let emp of listaFiltrada" class="cursor-pointer row-hover-effect" (click)="seleccionarEmpleado(emp)" [hidden]="cargando">
                         <td class="align-middle font-weight-bold text-dark">{{ emp.num_empleado || 'S/N' }}</td>
                         <td class="align-middle text-primary">{{ emp.curp }}</td>
                         

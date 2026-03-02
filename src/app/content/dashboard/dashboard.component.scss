@@ -141,3 +141,77 @@
 .document-button.tertiary:hover {
     box-shadow: 0 12px 24px rgba(79, 172, 254, 0.4);
 }
+
+.module-blocks {
+    border: 1px solid rgba(67, 2, 2, 0.12);
+}
+
+.module-blocks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.module-block {
+    border: 1px solid rgba(67, 2, 2, 0.16);
+    border-radius: 14px;
+    padding: 24px 20px;
+    background: #ffffff;
+    text-align: left;
+    transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 165px;
+    justify-content: space-between;
+}
+
+.module-block:hover {
+    transform: translateY(-5px) scale(1.01);
+    box-shadow: 0 16px 30px rgba(0, 0, 0, 0.14);
+    border-color: rgba(67, 2, 2, 0.28);
+}
+
+.module-block.active {
+    border-color: rgba(67, 2, 2, 0.5);
+    box-shadow: 0 0 0 2px rgba(67, 2, 2, 0.16);
+}
+
+.module-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.module-text {
+    font-size: 0.92rem;
+    color: #5f6b7a;
+    min-height: 52px;
+}
+
+.module-link {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.35px;
+    align-self: center;
+    text-align: center;
+    padding: 7px 12px;
+    border-radius: 999px;
+    color: #ffffff;
+}
+
+.module-block.anam .module-link {
+    background: linear-gradient(45deg, #7d1021, #b62c44);
+}
+
+.module-block.nuevo-laredo .module-link {
+    background: linear-gradient(45deg, #1f4f7a, #2f8ec4);
+    align-content: center;
+}
+
+.module-block.consultas .module-link {
+    background: linear-gradient(45deg, #216e38, #2f9f52);
+}
+

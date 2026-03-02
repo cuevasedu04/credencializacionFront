@@ -84,6 +84,7 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy, O
 
     this.normalizarMediaUrls();
     this.inicializarFechaExpedicion();
+    this.asignarFolioSiguienteSiHaceFalta();
     this.generarQR();
   }
 
@@ -91,6 +92,7 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy, O
     if (changes['empleado'] && this.empleado) {
       this.normalizarMediaUrls();
       this.inicializarFechaExpedicion();
+      this.asignarFolioSiguienteSiHaceFalta();
       this.generarQR();
     }
   }
@@ -161,6 +163,12 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy, O
     });
   }
 
+  protected asignarFolioSiguienteSiHaceFalta() {
+    if (!this.empleado) return;
+    if (this.empleado.folio && String(this.empleado.folio).trim() !== '') return;
+    this.asignarFolioSiguiente();
+  }
+
   protected obtenerImagenFrente(): string {
     return 'img/frontalNLFINAL.jpg';
   }
@@ -175,10 +183,11 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy, O
 
   inicializarFechaExpedicion() {
     if (!this.empleado) return;
-    
-    // Establecer fecha_expedicion como el día de hoy
-    const hoy = new Date();
-    this.empleado.fecha_expedicion = hoy.toISOString().split('T')[0];
+
+    if (!this.empleado.fecha_expedicion) {
+      const hoy = new Date();
+      this.empleado.fecha_expedicion = hoy.toISOString().split('T')[0];
+    }
   }
 
   // Generamos el QR justo antes de guardar (o dinámicamente)

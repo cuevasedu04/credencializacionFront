@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { SessionService } from '../../services/session.service';
+import { ModuleContextService, SidebarBlock } from '../../services/module-context.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -9,12 +10,24 @@ import { SessionService } from '../../services/session.service';
 })
 export class DashboardComponent {
   usuario:any= {};
-  constructor(private sessionS: SessionService) {}
+  constructor(
+    private sessionS: SessionService,
+    private moduleContext: ModuleContextService
+  ) {}
 
   ngOnInit(): void {
     //Called after the constructor, initializing input properties, and the first call to ngOnChanges.
     //Add 'implements OnInit' to the class.
     this.usuario = this.sessionS.getUsuario();
+    this.moduleContext.clearBlock();
+  }
+
+  seleccionarBloque(bloque: Exclude<SidebarBlock, null>): void {
+    this.moduleContext.setBlock(bloque);
+  }
+
+  esBloqueActivo(bloque: Exclude<SidebarBlock, null>): boolean {
+    return this.moduleContext.selectedBlock() === bloque;
   }
 
   public openDocument(type: 'manual' | 'privacy' | 'regulation'): void {

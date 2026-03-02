@@ -119,6 +119,15 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
       textCol({ headerName: 'Puesto', field: 'puesto', width: 200, hide: false }),
       textCol({ headerName: 'Adscripción', field: 'adscripcion', width: 220, hide: false }),
       textCol({ headerName: 'Folio', field: 'folio', width: 120, hide: false }),
+      {
+        headerName: 'Tipo',
+        colId: 'tipo',
+        width: 160,
+        hide: false,
+        valueGetter: (params: any) => this.obtenerTipoCredencialLabel(params.data),
+        filterValueGetter: (params: any) => this.obtenerTipoCredencialLabel(params.data),
+        cellStyle: { display: 'flex', alignItems: 'center' }
+      },
       { 
         headerName: 'Impreso', 
         field: 'impreso', 
@@ -207,6 +216,26 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
   dateFormatter(params: ValueFormatterParams, mostrarHora: boolean): string {
     if (!params.value) return '---'; 
     return this.fechaMexicoPipe.transform(params.value, mostrarHora, false);
+  }
+
+  private obtenerTipoCredencialLabel(persona: any): string {
+    if (!persona) return '---';
+
+    const tipo = String(persona.tipo_credencial || '').toLowerCase();
+
+    if (tipo === 'familiar' || persona.source_table === 'familiar' || Number(persona.familiar || 0) === 1) {
+      return 'Familiar';
+    }
+
+    if (tipo === 'anam') {
+      return 'ANAM';
+    }
+
+    if (tipo === 'provisional' || tipo === 'nuevolaredo' || Number(persona.nuevo_laredo || 0) === 1) {
+      return 'Nuevo Laredo';
+    }
+
+    return 'ANAM';
   }
 
   toggleColumnPanel(): void {

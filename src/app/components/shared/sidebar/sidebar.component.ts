@@ -1,8 +1,11 @@
-import { AfterViewInit, Component, inject, OnInit } from '@angular/core';
+import { Component, effect, EffectRef, OnDestroy, OnInit } from '@angular/core';
 import { SidebarService } from '../../../services/sidebar-service.service';
-import { Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
 import { UtilsService } from '../../../services/utils.service';
 import { SessionService } from '../../../services/session.service';
+import { ModuleContextService } from '../../../services/module-context.service';
+import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-sidebar',
@@ -10,14 +13,22 @@ import { SessionService } from '../../../services/session.service';
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss',
 })
-export class SidebarComponent implements OnInit {
+export class SidebarComponent implements OnInit, OnDestroy {
   usuario:any = null;
+  private routerSub?: Subscription;
+  private blockEffect?: EffectRef;
   constructor(
     private router: Router,
     public sidebarService: SidebarService,
     private utils: UtilsService,
-	private sessionS: SessionService
-  ){}
+	private sessionS: SessionService,
+    public moduleContext: ModuleContextService
+  ){
+    this.blockEffect = effect(() => {
+      this.moduleContext.selectedBlock();
+      this.rebuildMenu();
+    });
+  }
   menuItems = [
     {
       id: 'Carga masiva',
@@ -81,7 +92,40 @@ export class SidebarComponent implements OnInit {
   menuUsuario:any = []
   ngOnInit(): void {
     this.usuario = this.sessionS.getUsuario();
-	this.menuUsuario = this.menuItems.filter(item => item.rol.includes(this.usuario.idUsuarioRol));
+	this.rebuildMenu();
+
+    this.routerSub = this.router.events
+      .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+      .subscribe((event) => {
+        if (event.urlAfterRedirects.includes('/dashboard')) {
+          this.moduleContext.clearBlock();
+        }
+        this.rebuildMenu();
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.routerSub?.unsubscribe();
+    this.blockEffect?.destroy();
+  }
+
+  private rebuildMenu(): void {
+    const menuPorRol = this.menuItems.filter(item => item.rol.includes(this.usuario?.idUsuarioRol));
+    const bloque = this.moduleContext.resolveBlockFromRoute(this.router.url);
+    const idsPermitidos = this.moduleContext.getAllowedIds(bloque);
+
+    if (this.router.url.includes('/dashboard') && !bloque) {
+      this.menuUsuario = [];
+      return;
+    }
+
+    this.menuUsuario = idsPermitidos.length
+      ? menuPorRol.filter(item => idsPermitidos.includes(item.id))
+      : menuPorRol;
+  }
+
+  get mostrarMensajeDashboard(): boolean {
+    return this.router.url.includes('/dashboard') && this.menuUsuario.length === 0;
   }
 
 

@@ -15,6 +15,7 @@ import { CargaMasivaComponent } from './content/carga-masiva/carga-masiva.compon
 import { ProvisionalComponent} from './content/provisional/provisional.component';
 import { FamiliarComponent } from './content/familiar/familiar.component';
 import { PlantillaAnamComponent } from './content/plantilla-anam/plantilla-anam.component';
+import { BlockAccessGuard } from './services/block-access.guard';
 
 const routes: Routes = [
   {
@@ -40,13 +41,13 @@ const routes: Routes = [
       {
         path: 'plantilla-anam',
         component: PlantillaAnamComponent,
-        canActivate: [AuthGuard],
+        canActivate: [AuthGuard, BlockAccessGuard],
         data: { rolesPermitidos: [1, 2, 3, 4, 9999] },
       },
       {
         path: 'provisional',
         component: ProvisionalComponent,
-        canActivate: [AuthGuard],
+        canActivate: [AuthGuard, BlockAccessGuard],
         data: { rolesPermitidos: [1, 2, 3, 4, 9999] },
       },
       {
