@@ -71,7 +71,7 @@ const routes: Routes = [
       {
         path: 'enrolamiento',
         component: EnrolamientoComponent,
-        canActivate: [AuthGuard],
+        canActivate: [AuthGuard, BlockAccessGuard],
         data: { rolesPermitidos: [1, 2, 3, 4, 9999] },
       },
       {

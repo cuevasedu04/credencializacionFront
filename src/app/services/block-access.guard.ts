@@ -13,6 +13,11 @@ export class BlockAccessGuard implements CanActivate {
     const path = route.routeConfig?.path;
     const block = this.moduleContext.selectedBlock();
 
+    if (path === 'enrolamiento' && block !== 'anam' && block !== 'nuevo-laredo') {
+      this.router.navigate(['/dashboard']);
+      return false;
+    }
+
     if (path === 'plantilla-anam' && block !== 'anam') {
       this.router.navigate(['/dashboard']);
       return false;
