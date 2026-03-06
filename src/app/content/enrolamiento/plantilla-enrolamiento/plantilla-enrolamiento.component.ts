@@ -8,6 +8,7 @@ import { Router } from '@angular/router';
 import { WacomService } from '../../../services/wacom.service';
 import { Subscription } from 'rxjs';
 import * as QRCode from 'qrcode';
+import { NIVELES_CREDENCIAL, NivelCredencial, cargoANivel, getNivel, IMAGEN_FRENTE_FALLBACK, IMAGEN_REVERSO_FALLBACK } from '../../../shared/nivel-credencial.const';
 
 @Component({
   standalone: false,
@@ -41,6 +42,22 @@ export class PlantillaEnrolamientoComponent implements AfterViewInit, OnChanges,
   vistaCredencial: 'frente' | 'reverso' = 'frente';
   fechaActual: Date = new Date();
   qrCodeDataUrl: string | null = null;
+
+  // ----- NIVEL CREDENCIAL -----
+  readonly niveles: NivelCredencial[] = NIVELES_CREDENCIAL;
+  nivelActual: NivelCredencial = NIVELES_CREDENCIAL.find(n => n.valor === 'ENLACE')!;
+
+  obtenerNivelActual(): NivelCredencial {
+    const valor = this.empleado?.nivel_credencial || null;
+    return getNivel(valor);
+  }
+
+  onNivelCambio(nuevoValor: string): void {
+    if (this.empleado) {
+      this.empleado.nivel_credencial = nuevoValor;
+      this.nivelActual = getNivel(nuevoValor);
+    }
+  }
 
   // Variables Camara
   dispositivosVideo: MediaDeviceInfo[] = []; 
@@ -83,14 +100,17 @@ export class PlantillaEnrolamientoComponent implements AfterViewInit, OnChanges,
     if (this.esNuevoLaredo()) {
       return 'img/frontal_credencial.png';
     }
-
-    return this.esCredencialFamiliar()
-      ? 'img/frontalNLFamiliar.jpg'
-      : 'img/frontalNLFINAL.jpg';
+    if (this.esCredencialFamiliar()) {
+      return 'img/frontalNLFamiliar.jpg';
+    }
+    const nivel = this.obtenerNivelActual();
+    return nivel.imagenFrente;
   }
 
   obtenerImagenReverso(): string {
-    return this.esNuevoLaredo() ? 'img/reverso.jpg' : 'img/reversoNLFINAL.jpg';
+    if (this.esNuevoLaredo()) return 'img/reverso.jpg';
+    const nivel = this.obtenerNivelActual();
+    return nivel.imagenReverso;
   }
 
   esNuevoLaredo(): boolean {
@@ -122,6 +142,11 @@ export class PlantillaEnrolamientoComponent implements AfterViewInit, OnChanges,
         this.generarQR();
         this.asignarFolioSiHaceFalta();
         this.empleado.nuevo_laredo = this.esNuevoLaredo() ? 1 : 0;
+        // Auto-asignar nivel desde cargo si no viene guardado
+        if (!this.empleado.nivel_credencial && this.empleado.puesto) {
+          this.empleado.nivel_credencial = cargoANivel(this.empleado.puesto);
+        }
+        this.nivelActual = getNivel(this.empleado.nivel_credencial);
     }
 
     if (changes['modeloCredencialSeleccionado'] && this.empleado) {
@@ -739,8 +764,6 @@ guardarEnrolamiento() {
     // Preparamos los datos a enviar (Payload)
     // Solo mandamos lo que queremos actualizar para ahorrar ancho de banda
     const payload = {
-        foto: this.empleado.foto,
-        firma: this.empleado.firma,
         num_empleado: this.empleado.num_empleado,
         rfc: this.empleado.rfc,
         curp: this.empleado.curp,
@@ -755,20 +778,29 @@ guardarEnrolamiento() {
         fecha_expedicion: fechaExpedicionFormateada,
         folio: this.empleado.folio,
         fecha_enrolamiento: fechaEnrolamientoActual,
-        nuevo_laredo: this.esNuevoLaredo() ? 1 : 0
+        nuevo_laredo: this.esNuevoLaredo() ? 1 : 0,
+        nivel_credencial: this.empleado.nivel_credencial || cargoANivel(this.empleado.puesto)
     };
 
     // Detectamos si es una CREACIÓN o una ACTUALIZACIÓN
     const id = this.empleado.id_enrolamiento;
 
     if (id) {
-        // CASO ACTUALIZAR (PATCH)
-        this.enrolamientoApi.actualizarExpediente(id, payload).subscribe({
-            next: (resp) => {
-                this.guardando = false;
-                this.utils.MuestrasToast(TipoToast.Success, 'Enrolamiento completado exitosamente');
-                this.enrolamientoCompletado.emit();
-                this.empleado = null;
+        // CASO ACTUALIZAR: primero guardar foto/firma en safirho_db, luego PATCH
+        this.enrolamientoApi.guardarFotoFirma(id, this.empleado.foto, this.empleado.firma).subscribe({
+            next: () => {
+                this.enrolamientoApi.actualizarExpediente(id, payload).subscribe({
+                    next: (resp) => {
+                        this.guardando = false;
+                        this.utils.MuestrasToast(TipoToast.Success, 'Enrolamiento completado exitosamente');
+                        this.enrolamientoCompletado.emit();
+                        this.empleado = null;
+                    },
+                    error: (err) => {
+                        this.guardando = false;
+                        this.utils.MuestraErrorInterno(err);
+                    }
+                });
             },
             error: (err) => {
                 this.guardando = false;

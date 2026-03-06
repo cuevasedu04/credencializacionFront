@@ -83,6 +83,11 @@ export class EnrolamientoService {
     return this.http.post(`${this.apiFamiliaresUrl}${id}/marcar-impreso/`, payload);
   }
 
+  // Obtener foto y firma existentes desde safirho_db.NW_EMPL_FOTO_ANAM
+  getFotoFirmaExterna(numEmpleado: string | number): Observable<any> {
+    return this.http.get(`http://127.0.0.1:8080/api/foto-firma/${numEmpleado}/`);
+  }
+
   // Búsqueda avanzada con múltiples filtros
   busquedaAvanzada(filtros: any): Observable<any> {
     return this.http.post(`${this.apiUrl}busqueda-avanzada/`, filtros);
@@ -94,5 +99,10 @@ export class EnrolamientoService {
     if (fechaDesde) params.fecha_desde = fechaDesde;
     if (fechaHasta) params.fecha_hasta = fechaHasta;
     return this.http.get(`${this.apiUrl}estadisticas/`, { params });
+  }
+
+  // Guardar foto y firma en safirho_db.NW_EMPL_FOTO_ANAM
+  guardarFotoFirma(id: number, foto: string, firma: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}${id}/guardar-foto-firma/`, { foto, firma });
   }
 }

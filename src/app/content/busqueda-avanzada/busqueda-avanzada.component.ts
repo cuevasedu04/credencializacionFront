@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy, ViewChild, TemplateRef, ElementRef } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ColDef, GridApi, GridReadyEvent, ValueFormatterParams } from 'ag-grid-community';
 import { UtilsService } from '../../services/utils.service';
@@ -12,6 +13,7 @@ import { PlantillaEnrolamientoComponent } from '../enrolamiento/plantilla-enrola
 import { PlantillaAnamComponent } from '../plantilla-anam/plantilla-anam.component';
 import { ProvisionalComponent } from '../provisional/provisional.component';
 import { FamiliarComponent } from '../familiar/familiar.component';
+import { cargoANivel } from '../../shared/nivel-credencial.const';
 
 @Component({
   selector: 'app-busqueda-avanzada',
@@ -36,6 +38,9 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
   @ViewChild('modalVisualizar') modalVisualizar!: TemplateRef<any>;
   empleadoSeleccionado: any = null;
   esEditable: boolean = false;
+  fotoFirmaLoading: boolean = false;
+
+  private readonly apiFotoFirmaUrl = 'http://127.0.0.1:8080/api/foto-firma/';
   
   // Variables para impresión
   empleadoImprimir: any = null;
@@ -75,7 +80,8 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
     private fechaMexicoPipe: FechaMexicoPipe,
     private utils: UtilsService,
     private sanitizer: DomSanitizer,
-    private modalManager: ModalManagerService
+    private modalManager: ModalManagerService,
+    private http: HttpClient
   ) {}
 
   ngOnInit(): void {
@@ -385,13 +391,53 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
   }
 
   visualizarCredencial(persona: any) {
-    this.empleadoSeleccionado = { ...persona };
-    this.esEditable = false;
-    this.modalManager.openModal({
-      title: 'Visualizar Credencial',
-      template: this.modalVisualizar,
-      width: '400px',
-      showFooter: false
+    const emplid = persona.num_empleado;
+    if (!emplid) {
+      // Sin EMPLID: abrir modal inmediatamente sin foto/firma
+      this.empleadoSeleccionado = { ...persona };
+      this.esEditable = false;
+      this.modalManager.openModal({
+        title: 'Visualizar Credencial',
+        template: this.modalVisualizar,
+        width: '400px',
+        showFooter: false
+      });
+      return;
+    }
+
+    this.fotoFirmaLoading = true;
+    this.http.get<any>(`${this.apiFotoFirmaUrl}${emplid}/`).subscribe({
+      next: (res) => {
+        this.fotoFirmaLoading = false;
+        const empleado = { ...persona, foto: res.foto ?? persona.foto, firma: res.firma ?? persona.firma };
+        // Garantizar nivel_credencial antes de que el componente renderice
+        if (!empleado.nivel_credencial && empleado.puesto) {
+          empleado.nivel_credencial = cargoANivel(empleado.puesto);
+        }
+        this.empleadoSeleccionado = empleado;
+        this.esEditable = false;
+        this.modalManager.openModal({
+          title: 'Visualizar Credencial',
+          template: this.modalVisualizar,
+          width: '400px',
+          showFooter: false
+        });
+      },
+      error: () => {
+        this.fotoFirmaLoading = false;
+        const empleado = { ...persona };
+        if (!empleado.nivel_credencial && empleado.puesto) {
+          empleado.nivel_credencial = cargoANivel(empleado.puesto);
+        }
+        this.empleadoSeleccionado = empleado;
+        this.esEditable = false;
+        this.modalManager.openModal({
+          title: 'Visualizar Credencial',
+          template: this.modalVisualizar,
+          width: '400px',
+          showFooter: false
+        });
+      }
     });
   }
 
@@ -403,6 +449,8 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
 
   esCredencialAnam(persona: any): boolean {
     if (!persona || this.esCredencialFamiliar(persona)) return false;
+    // Si tiene nivel_credencial asignado y no es Nuevo Laredo, siempre usar plantilla ANAM
+    if (persona.nivel_credencial && Number(persona.nuevo_laredo || 0) !== 1) return true;
     const tipo = String(persona?.tipo_credencial || '').toLowerCase();
     if (tipo === 'anam') return true;
     if (tipo === 'provisional' || tipo === 'nuevolaredo') return false;

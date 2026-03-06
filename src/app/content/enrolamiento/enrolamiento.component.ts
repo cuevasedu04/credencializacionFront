@@ -1,6 +1,7 @@
 import { Component, ViewChild, OnInit } from '@angular/core';
 import { ConsultaEnrolamientoComponent } from './consulta-enrolamiento/consulta-enrolamiento.component';
 import { ModuleContextService } from '../../services/module-context.service';
+import { EnrolamientoService } from '../../services/enrolamiento.service';
 
 @Component({
   standalone: false,
@@ -17,7 +18,10 @@ export class EnrolamientoComponent implements OnInit {
   modeloCredencialSeleccionado: 'anam' | 'nuevoLaredo' = 'anam';
   modoBloqueFijo = false;
 
-  constructor(private moduleContext: ModuleContextService) { }
+  constructor(
+    private moduleContext: ModuleContextService,
+    private enrolamientoApi: EnrolamientoService
+  ) { }
 
   ngOnInit(): void {
     this.aplicarModeloDesdeBloque();
@@ -37,15 +41,41 @@ export class EnrolamientoComponent implements OnInit {
 
   // Esta función se ejecuta cuando el hijo "Consulta" emite el evento
   recibirEmpleado(empleado: any) {
-    this.empleadoSeleccionado = empleado;
-    if (!empleado) return;
-
-    if (this.modoBloqueFijo) {
-      this.empleadoSeleccionado.nuevo_laredo = this.modeloCredencialSeleccionado === 'nuevoLaredo' ? 1 : 0;
+    if (!empleado) {
+      this.empleadoSeleccionado = null;
       return;
     }
 
-    this.modeloCredencialSeleccionado = Number(empleado.nuevo_laredo) === 1 ? 'nuevoLaredo' : 'anam';
+    if (this.modoBloqueFijo) {
+      empleado.nuevo_laredo = this.modeloCredencialSeleccionado === 'nuevoLaredo' ? 1 : 0;
+    } else {
+      this.modeloCredencialSeleccionado = Number(empleado.nuevo_laredo) === 1 ? 'nuevoLaredo' : 'anam';
+    }
+
+    // Si el empleado no tiene foto o firma en sicre, buscamos en NW_EMPL_FOTO_ANAM
+    const numEmpleado = empleado.num_empleado;
+    const faltaFoto = !empleado.foto || empleado.foto === '1';
+    const faltaFirma = !empleado.firma || empleado.firma === '1';
+
+    if (numEmpleado && (faltaFoto || faltaFirma)) {
+      this.enrolamientoApi.getFotoFirmaExterna(numEmpleado).subscribe({
+        next: (res: any) => {
+          if (faltaFoto && res?.foto) {
+            empleado.foto = res.foto;
+          }
+          if (faltaFirma && res?.firma) {
+            empleado.firma = res.firma;
+          }
+          this.empleadoSeleccionado = { ...empleado };
+        },
+        error: () => {
+          // Si no hay datos externos, usamos el empleado tal cual
+          this.empleadoSeleccionado = { ...empleado };
+        }
+      });
+    } else {
+      this.empleadoSeleccionado = { ...empleado };
+    }
   }
 
   // Cuando se completa un enrolamiento, refrescamos la lista

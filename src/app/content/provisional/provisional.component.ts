@@ -8,6 +8,7 @@ import { Router } from '@angular/router';
 import { WacomService } from '../../services/wacom.service';
 import { Subscription } from 'rxjs';
 import * as QRCode from 'qrcode';
+import { cargoANivel } from '../../shared/nivel-credencial.const';
 
 @Component({
   standalone: false,
@@ -734,7 +735,8 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy, O
         // Metadatos y Flags
         activo: 1,
         provisional: 1,
-        impreso: 0
+        impreso: 0,
+        nivel_credencial: this.empleado.nivel_credencial || cargoANivel(this.empleado.puesto)
     };
 
     if (!this.esFamiliar) {

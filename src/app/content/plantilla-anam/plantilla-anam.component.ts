@@ -1,10 +1,11 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { ProvisionalComponent } from '../provisional/provisional.component';
 import { ModalManagerService } from '../../components/shared/modal-manager.service';
 import { EnrolamientoService } from '../../services/enrolamiento.service';
 import { UtilsService } from '../../services/utils.service';
 import { Router } from '@angular/router';
 import { WacomService } from '../../services/wacom.service';
+import { NIVELES_CREDENCIAL, NivelCredencial, cargoANivel, getNivel } from '../../shared/nivel-credencial.const';
 
 @Component({
   selector: 'app-plantilla-anam',
@@ -12,10 +13,23 @@ import { WacomService } from '../../services/wacom.service';
   templateUrl: './plantilla-anam.component.html',
   styleUrls: ['./plantilla-anam.component.scss']
 })
-export class PlantillaAnamComponent extends ProvisionalComponent implements OnInit {
+export class PlantillaAnamComponent extends ProvisionalComponent implements OnInit, OnChanges {
   @Input() override empleado: any = null;
   @Input() override editable: boolean = true;
   @Input() override isPrintMode: boolean = false;
+
+  // ----- NIVEL CREDENCIAL -----
+  readonly niveles: NivelCredencial[] = NIVELES_CREDENCIAL;
+
+  getNivelActual(): NivelCredencial {
+    return getNivel(this.empleado?.nivel_credencial);
+  }
+
+  onNivelCambio(nuevoValor: string): void {
+    if (this.empleado) {
+      this.empleado.nivel_credencial = nuevoValor;
+    }
+  }
 
   constructor(
     modalManager: ModalManagerService,
@@ -33,17 +47,29 @@ export class PlantillaAnamComponent extends ProvisionalComponent implements OnIn
     if (!this.empleado) {
       this.inicializarEmpleado();
     } else {
+      if (!this.empleado.nivel_credencial && this.empleado.puesto) {
+        this.empleado.nivel_credencial = cargoANivel(this.empleado.puesto);
+      }
       this.inicializarFechaExpedicion();
       this.generarQR();
     }
   }
 
+  override ngOnChanges(changes: SimpleChanges): void {
+    super.ngOnChanges(changes);
+    if (changes['empleado'] && this.empleado) {
+      if (!this.empleado.nivel_credencial && this.empleado.puesto) {
+        this.empleado.nivel_credencial = cargoANivel(this.empleado.puesto);
+      }
+    }
+  }
+
   protected override obtenerImagenFrente(): string {
-    return 'img/frontal_credencial.png';
+    return this.getNivelActual().imagenFrente;
   }
 
   protected override obtenerImagenReverso(): string {
-    return 'img/reverso.jpg';
+    return this.getNivelActual().imagenReverso;
   }
 
   protected override obtenerFlagNuevoLaredo(): number {
@@ -95,7 +121,8 @@ export class PlantillaAnamComponent extends ProvisionalComponent implements OnIn
       activo: 1,
       provisional: 1,
       impreso: this.empleado.impreso ?? 0,
-      nuevo_laredo: 0
+      nuevo_laredo: 0,
+      nivel_credencial: this.empleado.nivel_credencial || cargoANivel(this.empleado.puesto)
     };
 
     this.enrolamientoApi.actualizarExpediente(id, payload).subscribe({

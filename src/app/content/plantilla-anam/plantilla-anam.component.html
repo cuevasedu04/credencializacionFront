@@ -61,6 +61,7 @@
                 
 				<!-- Imagen de fondo -->
 				 <img [src]="obtenerImagenFrente()" 
+					 (error)="$any($event.target).src='img/frontal_credencial.png'"
 					 alt="Credencial Frente" 
 					 class="anam-bg-image-front">
                 
@@ -226,9 +227,9 @@
 				<!-- Imagen de fondo -->
 				 <img [src]="obtenerImagenReverso()" 
 					 alt="Credencial Reverso" 
+					 (error)="$any($event.target).src='img/reverso.jpg'"
 					 class="anam-bg-image-back">
                 
-				<!-- Campos editables posicionados sobre la imagen -->
 				<div class="campos-overlay">
                     
 					<!-- CURP  -->
@@ -328,26 +329,20 @@
 				</div>
 			</div>
 
-			<!-- Botón Guardar -->
-			<div class="mt-4" *ngIf="!isPrintMode">
-				<button class="btn btn-success btn-lg btn-block w-100" 
-						(click)="guardarEnrolamiento()"
-						[disabled]="!empleado.foto || !empleado.firma || guardando">
-					<span *ngIf="!guardando">
-						<i class="fas fa-save mr-2"></i> Guardar y Terminar
-					</span>
-					<span *ngIf="guardando">
-						<i class="fas fa-spinner fa-spin mr-2"></i> Guardando...
-					</span>
-				</button>
-				<small class="text-muted d-block text-center mt-2">
-					Todos los campos son editables manualmente
-				</small>
-			</div>
+		<!-- Selector de Nivel de Credencial -->
+		<div class="mt-3" *ngIf="!isPrintMode">
+			<label class="form-label small font-weight-bold mb-1">
+				<i class="fas fa-id-badge mr-1"></i> Tipo de Credencial
+			</label>
+			<select class="form-control form-control-sm"
+					[ngModel]="empleado?.nivel_credencial"
+					(ngModelChange)="onNivelCambio($event)">
+				<option *ngFor="let nivel of niveles" [value]="nivel.valor">
+					{{ nivel.label }}
+				</option>
+			</select>
+			<small class="text-muted">Se asigna automáticamente según el puesto</small>
 		</div>
-	</div>
-</div>
-
 <!-- Modales -->
 <ng-template #modalCamara>
 	<div class="anam-modal-camara position-relative bg-dark text-center">
