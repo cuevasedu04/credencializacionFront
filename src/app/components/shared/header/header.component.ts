@@ -80,4 +80,8 @@ export class HeaderComponent {
   goHome(){
     this.router.navigate(['/dashboard']);
   }
+
+  volverASiorh() {
+    window.location.href = '/dashboard'; 
+}
 }

@@ -11,19 +11,24 @@
         <!-- bton home -->
          <div 
           class="toolbar-toggle-btn"
-          (click)="goHome()"
-          >
+          (click)="goHome()">
           <span class="toggle-icon"> <i class="fas fa-house"></i> </span>
-
         </div>
         <div class="text-white">Sistema de Credencialización y Enrolamiento 
         
+          <!-- ...existing code... -->
+
         </div>
+        
 
     </div>
         
         <!-- Elementos del usuario (lado derecho) -->
         <div class="header-right">
+                    <!-- Botón regresar al siorh -->
+                    <div class="toolbar-siorh-btn header-right-btn" (click)="volverASiorh()">
+                      <span class="toggle-icon"> <i class="fas fa-arrow-left text-white"></i> </span>
+                    </div>
           <span class="username">{{ usuario?.nombreCompleto || '' }} ( {{ usuario?.nombreRol || '' }} )<i class="fas fa-caret-right mx-1 fa-xs"></i>{{usuario.area || 'Sin área asignada'}}</span>
           <div class="user-menu" (click)="toggleDropdown()">
             <!-- Ícono de usuario -->
