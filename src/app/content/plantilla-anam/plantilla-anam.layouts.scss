@@ -1,0 +1,318 @@
+.anam-template.layout-titular,
+.anam-template.layout-director-general,
+.anam-template.layout-director-central,
+.anam-template.layout-director-de-area,
+.anam-template.layout-subdirector,
+.anam-template.layout-jefe-de-departamento,
+.anam-template.layout-enlace,
+.anam-template.layout-seguridad-institucional {
+
+	/* fuentes para credencial nueva  */
+
+	--font-front-nombre: 22px;
+	--font-front-apellidos: 22px;
+	--font-front-num-empleado: 18px;
+	--font-front-puesto-adscripcion: 18px;
+	--font-front-vigencia: 18px;
+	--font-front-folio: 18px;
+
+	--font-back-curp: 18px;
+	--font-back-labels: 15px;
+	--font-back-fecha: 17px;
+	--font-back-folio: 17px;
+	--font-family-layout: 'NotoSans-Bold', Arial, sans-serif;
+
+	/* colores para credencial nueva */
+	--color-front-nombre: #333333;
+	--color-front-apellidos: #333333;
+	--color-front-num-empleado: #333333;
+	--color-front-puesto-adscripcion: #333333;
+	--color-front-vigencia: #333333;
+	--color-front-folio: #333333;
+
+	--color-back-curp: #333333;
+	--color-back-labels: #333333;
+	--color-back-fecha: #333333;
+	--color-back-folio: #333333;
+
+	.credencial-frente {
+		.anam-print-text,
+		.anam-label-text,
+		.anam-print-nombre,
+		.anam-print-apellidos,
+		.anam-print-num-empleado,
+		.anam-print-puesto,
+		.anam-print-adscripcion,
+		.anam-print-vigencia,
+		.anam-print-folio {
+			font-family: var(--font-family-layout) !important;
+			font-weight: 700 !important;
+		}
+
+		.campo-credencial,
+		.anam-input-text,
+		.anam-input-nombre,
+		.anam-input-apellidos,
+		.anam-input-num-empleado,
+		.anam-input-adscripcion,
+		.anam-input-puesto,
+		.anam-input-vigencia,
+		.anam-input-curp,
+		.anam-input-fecha-expedicion,
+		.anam-input-folio {
+			font-family: var(--font-family-layout) !important;
+			text-align: left !important;
+			padding-left: 2px !important;
+		}
+
+		.campo-credencial::placeholder,
+		.anam-input-text::placeholder,
+		.anam-input-nombre::placeholder,
+		.anam-input-apellidos::placeholder,
+		.anam-input-num-empleado::placeholder,
+		.anam-input-adscripcion::placeholder,
+		.anam-input-puesto::placeholder,
+		.anam-input-vigencia::placeholder,
+		.anam-input-curp::placeholder,
+		.anam-input-fecha-expedicion::placeholder,
+		.anam-input-folio::placeholder {
+			font-family: var(--font-family-layout) !important;
+		}
+
+		.anam-print-nombre,
+		.anam-input-nombre {
+			font-size: var(--font-front-nombre) !important;
+			color: var(--color-front-nombre) !important;
+			line-height: 1.05 !important;
+		}
+
+		.anam-print-apellidos,
+		.anam-input-apellidos {
+			font-size: var(--font-front-apellidos) !important;
+			color: var(--color-front-apellidos) !important;
+			line-height: 1.05 !important;
+		}
+
+		.anam-print-num-empleado,
+		.anam-input-num-empleado {
+			font-size: var(--font-front-num-empleado) !important;
+			color: var(--color-front-num-empleado) !important;
+			text-align: left !important;
+			padding-left: 2px !important;
+		}
+
+		.anam-print-puesto,
+		.anam-input-puesto,
+		.anam-print-adscripcion,
+		.anam-input-adscripcion {
+			font-size: var(--font-front-puesto-adscripcion) !important;
+			color: var(--color-front-puesto-adscripcion) !important;
+			line-height: 1.1 !important;
+		}
+
+		.anam-print-vigencia,
+		.anam-input-vigencia {
+			font-size: var(--font-front-vigencia) !important;
+			color: var(--color-front-vigencia) !important;
+		}
+
+		.anam-print-folio,
+		.anam-input-folio {
+			font-size: var(--font-front-folio) !important;
+			color: var(--color-front-folio) !important;
+		}
+
+		// .label-nombre {
+		// 	top: 60.6% !important;
+		// 	left: 6.2% !important;
+		// 	width: 42% !important;
+		// }
+
+		// .label-apellidos {
+		// 	top: 60.6% !important;
+		// 	left: 52% !important;
+		// 	width: 43% !important;
+		// }
+
+		.campo-nombre {
+			top: 47.6% !important;
+			left: 4.6% !important;
+			width: 80% !important;
+		}
+
+		.campo-apellidos {
+			top: 51.5% !important;
+			left: 4.6% !important;
+			width: 80% !important;
+		}
+
+		.campo-foto {
+			top: 14.5% !important;
+			left: 5.4% !important;
+			width: 36.5% !important;
+			height: 29.6% !important;
+		}
+
+		.campo-num-empleado {
+			top: 62% !important;
+			left: 4.6% !important;
+			width: 50% !important;
+		}
+
+		.campo-puesto {
+			top: 71.5% !important;
+			left: 4.6% !important;
+			width: 80% !important;
+		}
+
+		.campo-adscripcion {
+			top: 85.5% !important;
+			left: 4.6% !important;
+			width: 80% !important;
+		}
+
+		.campo-firma {
+			top: 34.7% !important;
+			left: 46% !important;
+			width: 35.3%;
+			height: 9.3%;
+			z-index: 4 !important;
+		}
+
+		.label-firma {
+			bottom: 14.8% !important;
+			left: 8.3% !important;
+			width: 35% !important;
+			height: 6.8% !important;
+			z-index: 1 !important;
+			pointer-events: none;
+		}
+
+		.campo-qr {
+			top: 13.7% !important;
+			right: 20.5% !important;
+			width: 31% !important;
+		}
+
+		.campo-vigencia {
+			display: none !important;
+		}
+
+		.campo-folio {
+			bottom: 2.9% !important;
+			right: 19.3% !important;
+			width: 34% !important;
+		}
+	}
+
+	.credencial-reverso {
+		.anam-print-text,
+		.anam-print-curp,
+		.anam-print-label-fecha,
+		.anam-print-label-folio,
+		.anam-print-fecha-expedicion,
+		.anam-print-vigencia,
+		.anam-print-folio,
+		.anam-edit-label-fecha {
+			font-family: var(--font-family-layout) !important;
+			font-weight: 700 !important;
+		}
+
+		.campo-credencial,
+		.anam-input-text,
+		.anam-input-curp,
+		.anam-input-fecha-expedicion,
+		.anam-input-folio {
+			font-family: var(--font-family-layout) !important;
+			text-align: left !important;
+			padding-left: 2px !important;
+		}
+
+		.campo-credencial::placeholder,
+		.anam-input-text::placeholder,
+		.anam-input-curp::placeholder,
+		.anam-input-fecha-expedicion::placeholder,
+		.anam-input-folio::placeholder {
+			font-family: var(--font-family-layout) !important;
+		}
+
+		.anam-print-curp,
+		.anam-input-curp {
+			font-size: var(--font-back-curp) !important;
+			color: var(--color-back-curp) !important;
+		}
+
+		.anam-print-label-fecha,
+		.anam-edit-label-fecha,
+		.anam-print-label-folio {
+			font-size: var(--font-back-labels) !important;
+			color: var(--color-back-labels) !important;
+		}
+
+		.anam-print-fecha-expedicion,
+		.anam-input-fecha-expedicion {
+			font-size: var(--font-back-fecha) !important;
+			color: var(--color-back-fecha) !important;
+		}
+
+		.anam-print-vigencia,
+		.anam-input-vigencia {
+			font-size: var(--font-back-fecha) !important;
+			color: var(--color-back-fecha) !important;
+		}
+
+		.anam-print-folio,
+		.anam-input-folio {
+			font-size: var(--font-back-folio) !important;
+			color: var(--color-back-folio) !important;
+		}
+
+		.campo-curp {
+			position: absolute;
+			bottom: 24%;
+			left: 41.5%;
+			transform: translateX(-50%);
+			width: 40%;
+			text-align: center;
+		}
+
+		// .label-fecha {
+		// 	position: absolute;
+		// 	bottom: 3.8%;
+		// 	left: 2.5%;
+		// 	width: 45%;
+		// }
+
+		.campo-fecha-expedicion {
+			position: absolute;
+			bottom: 12.5%;
+			left: 21.5%;
+			width: 35%;
+		}
+
+		.campo-vigencia-reverso {
+			position: absolute;
+			bottom: 12.5%;
+			right: 5%;
+			width: 32%;
+		}
+
+		.label-folio {
+			display: none !important;
+		}
+
+		.label-fecha,
+		.anam-print-label-fecha,
+		.anam-edit-label-fecha,
+		.anam-print-label-folio {
+			display: none !important;
+		}
+
+		.campo-folio {
+			position: absolute;
+			bottom: 23.9%;
+			right: 1.9%;
+			width: 35%;
+		}
+	}
+}

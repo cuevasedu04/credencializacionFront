@@ -7,6 +7,8 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { PlantillaEnrolamientoComponent } from '../enrolamiento/plantilla-enrolamiento/plantilla-enrolamiento.component';
 import { PlantillaAnamComponent } from '../plantilla-anam/plantilla-anam.component';
+import { cargoANivel } from '../../shared/nivel-credencial.const';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   standalone: false,
@@ -168,10 +170,25 @@ export class CredencializacionComponent implements OnInit {
 
   esCredencialAnam(persona: any): boolean {
     if (!persona) return false;
-    const tipo = String(persona?.tipo_credencial || '').toLowerCase();
-    if (tipo === 'anam') return true;
-    if (tipo === 'familiar' || tipo === 'provisional' || tipo === 'enrolamiento') return false;
-    return persona?.source_table === 'enrolamiento' && Number(persona?.provisional) === 1 && Number(persona?.nuevo_laredo || 0) !== 1;
+    if (Number(persona?.nuevo_laredo || 0) === 1) return false;
+    return true;
+  }
+
+  private async esperarFuentesYRender(delayMs: number = 650): Promise<void> {
+    await new Promise(resolve => setTimeout(resolve, delayMs));
+    const docWithFonts = document as Document & { fonts?: { ready: Promise<unknown> } };
+    if (docWithFonts.fonts?.ready) {
+      try {
+        await docWithFonts.fonts.ready;
+      } catch {
+      }
+    }
+    await new Promise(resolve => requestAnimationFrame(() => resolve(null)));
+    await new Promise(resolve => requestAnimationFrame(() => resolve(null)));
+  }
+
+  private obtenerSelectorPlantillaImpresion(persona: any): string {
+    return this.esCredencialAnam(persona) ? 'app-plantilla-anam' : 'app-plantilla-enrolamiento';
   }
 
   async imprimirCredencial(persona: any) {
@@ -181,7 +198,28 @@ export class CredencializacionComponent implements OnInit {
     }
 
     this.utils.MuestrasToast(TipoToast.Info, 'Generando PDF');
-    this.empleadoImprimir = { ...persona };
+    let personaImprimir = { ...persona };
+    if (persona?.id_enrolamiento) {
+      try {
+        const actual = await firstValueFrom(this.enrolamientoService.obtenerExpedientePorId(persona.id_enrolamiento));
+        personaImprimir = {
+          ...persona,
+          ...actual,
+          source_table: 'enrolamiento',
+          tipo_credencial: 'anam',
+        };
+      } catch {
+      }
+    }
+    if (this.esCredencialAnam(personaImprimir)) {
+      if (!personaImprimir.nivel_credencial && personaImprimir.puesto) {
+        personaImprimir.nivel_credencial = cargoANivel(personaImprimir.puesto);
+      }
+      if (!personaImprimir.layout_credencial) {
+        personaImprimir.layout_credencial = personaImprimir.nivel_credencial ? 'ANAM_2025' : 'ANAM_CLASICA';
+      }
+    }
+    this.empleadoImprimir = personaImprimir;
     
     // Esperamos a que Angular renderice
     setTimeout(async () => {
@@ -211,14 +249,19 @@ export class CredencializacionComponent implements OnInit {
             };
 
             // --- FRENTE ---
-            const usarPlantillaAnam = this.esCredencialAnam(persona);
+            const usarPlantillaAnam = this.esCredencialAnam(personaImprimir);
             const plantillaActiva: any = usarPlantillaAnam ? this.plantillaImprimirAnam : this.plantillaImprimir;
+            const selectorPlantilla = this.obtenerSelectorPlantillaImpresion(personaImprimir);
+            const printRoot = this.printContainer?.nativeElement as HTMLElement;
 
             if (plantillaActiva) {
               plantillaActiva.vistaCredencial = 'frente';
-                await new Promise(resolve => setTimeout(resolve, 400));
+                await this.esperarFuentesYRender(700);
                 
-                const element = this.printContainer.nativeElement.querySelector('.credencial-frente');
+                const element = printRoot?.querySelector(`${selectorPlantilla} .credencial-frente`) as HTMLElement | null;
+                if (!element) {
+                  throw new Error('No se encontró el frente de la plantilla para impresión');
+                }
                 const canvasFront = await html2canvas(element, options);
                 const imgDataFront = canvasFront.toDataURL('image/png', 1.0); 
                 
@@ -228,9 +271,12 @@ export class CredencializacionComponent implements OnInit {
             // --- REVERSO ---
             if (plantillaActiva) {
               plantillaActiva.vistaCredencial = 'reverso';
-                await new Promise(resolve => setTimeout(resolve, 400));
+                await this.esperarFuentesYRender(700);
 
-                const elementReverso = this.printContainer.nativeElement.querySelector('.credencial-reverso');
+                const elementReverso = printRoot?.querySelector(`${selectorPlantilla} .credencial-reverso`) as HTMLElement | null;
+                if (!elementReverso) {
+                  throw new Error('No se encontró el reverso de la plantilla para impresión');
+                }
                 const canvasBack = await html2canvas(elementReverso, options);
                 const imgDataBack = canvasBack.toDataURL('image/png', 1.0);
                 

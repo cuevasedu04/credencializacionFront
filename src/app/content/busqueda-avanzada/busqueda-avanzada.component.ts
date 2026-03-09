@@ -14,6 +14,7 @@ import { PlantillaAnamComponent } from '../plantilla-anam/plantilla-anam.compone
 import { ProvisionalComponent } from '../provisional/provisional.component';
 import { FamiliarComponent } from '../familiar/familiar.component';
 import { cargoANivel } from '../../shared/nivel-credencial.const';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-busqueda-avanzada',
@@ -233,12 +234,12 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
       return 'Familiar';
     }
 
-    if (tipo === 'anam') {
-      return 'ANAM';
+    if (Number(persona.nuevo_laredo || 0) === 1 || tipo === 'provisional' || tipo === 'nuevolaredo') {
+      return 'Nuevo Laredo';
     }
 
-    if (tipo === 'provisional' || tipo === 'nuevolaredo' || Number(persona.nuevo_laredo || 0) === 1) {
-      return 'Nuevo Laredo';
+    if (tipo === 'anam') {
+      return 'ANAM';
     }
 
     return 'ANAM';
@@ -449,12 +450,8 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
 
   esCredencialAnam(persona: any): boolean {
     if (!persona || this.esCredencialFamiliar(persona)) return false;
-    // Si tiene nivel_credencial asignado y no es Nuevo Laredo, siempre usar plantilla ANAM
-    if (persona.nivel_credencial && Number(persona.nuevo_laredo || 0) !== 1) return true;
-    const tipo = String(persona?.tipo_credencial || '').toLowerCase();
-    if (tipo === 'anam') return true;
-    if (tipo === 'provisional' || tipo === 'nuevolaredo') return false;
-    return persona?.source_table === 'enrolamiento' && Number(persona?.provisional || 0) === 1 && Number(persona?.nuevo_laredo || 0) !== 1;
+    if (Number(persona?.nuevo_laredo || 0) === 1) return false;
+    return true;
   }
 
   private obtenerPlantillaModalActiva(): any {
@@ -481,6 +478,25 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
     this.buscarCredenciales();
   }
 
+  private async esperarFuentesYRender(delayMs: number = 650): Promise<void> {
+    await new Promise(resolve => setTimeout(resolve, delayMs));
+    const docWithFonts = document as Document & { fonts?: { ready: Promise<unknown> } };
+    if (docWithFonts.fonts?.ready) {
+      try {
+        await docWithFonts.fonts.ready;
+      } catch {
+      }
+    }
+    await new Promise(resolve => requestAnimationFrame(() => resolve(null)));
+    await new Promise(resolve => requestAnimationFrame(() => resolve(null)));
+  }
+
+  private obtenerSelectorPlantillaImpresion(persona: any): string {
+    if (this.esCredencialFamiliar(persona)) return 'app-familiar';
+    if (this.esCredencialAnam(persona)) return 'app-plantilla-anam';
+    return 'app-provisional';
+  }
+
   async imprimirCredencial(persona: any) {
     if (!persona.num_empleado) {
       this.utils.MuestrasToast(TipoToast.Warning, 'No se puede imprimir: Falta número de empleado.');
@@ -488,7 +504,30 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
     }
 
     this.utils.MuestrasToast(TipoToast.Info, 'Generando PDF');
-    this.empleadoImprimir = { ...persona };
+    let personaImprimir = { ...persona };
+    if (persona?.id_enrolamiento) {
+      try {
+        const actual = this.esCredencialFamiliar(persona)
+          ? await firstValueFrom(this.enrolamientoService.obtenerExpedienteFamiliarPorId(persona.id_enrolamiento))
+          : await firstValueFrom(this.enrolamientoService.obtenerExpedientePorId(persona.id_enrolamiento));
+        personaImprimir = {
+          ...persona,
+          ...actual,
+          source_table: this.esCredencialFamiliar(persona) ? 'familiar' : 'enrolamiento',
+          tipo_credencial: this.esCredencialFamiliar(persona) ? 'familiar' : 'anam',
+        };
+      } catch {
+      }
+    }
+    if (this.esCredencialAnam(personaImprimir)) {
+      if (!personaImprimir.nivel_credencial && personaImprimir.puesto) {
+        personaImprimir.nivel_credencial = cargoANivel(personaImprimir.puesto);
+      }
+      if (!personaImprimir.layout_credencial) {
+        personaImprimir.layout_credencial = personaImprimir.nivel_credencial ? 'ANAM_2025' : 'ANAM_CLASICA';
+      }
+    }
+    this.empleadoImprimir = personaImprimir;
     
     setTimeout(async () => {
         try {
@@ -510,13 +549,18 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
               removeContainer: false
             };
 
-            const plantillaActiva = this.obtenerPlantillaImpresionActiva(persona);
+            const plantillaActiva = this.obtenerPlantillaImpresionActiva(personaImprimir);
+            const selectorPlantilla = this.obtenerSelectorPlantillaImpresion(personaImprimir);
+            const printRoot = this.printContainer?.nativeElement as HTMLElement;
 
             if (plantillaActiva) {
               plantillaActiva.vistaCredencial = 'frente';
-                await new Promise(resolve => setTimeout(resolve, 400));
-                
-                const element = this.printContainer.nativeElement.querySelector('.credencial-frente');
+                await this.esperarFuentesYRender(700);
+
+                const element = printRoot?.querySelector(`${selectorPlantilla} .credencial-frente`) as HTMLElement | null;
+                if (!element) {
+                  throw new Error('No se encontró el frente de la plantilla para impresión');
+                }
                 const canvasFront = await html2canvas(element, options);
                 const imgDataFront = canvasFront.toDataURL('image/png', 1.0); 
                 
@@ -525,9 +569,12 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
 
             if (plantillaActiva) {
               plantillaActiva.vistaCredencial = 'reverso';
-                await new Promise(resolve => setTimeout(resolve, 400));
+                await this.esperarFuentesYRender(700);
 
-                const elementReverso = this.printContainer.nativeElement.querySelector('.credencial-reverso');
+                const elementReverso = printRoot?.querySelector(`${selectorPlantilla} .credencial-reverso`) as HTMLElement | null;
+                if (!elementReverso) {
+                  throw new Error('No se encontró el reverso de la plantilla para impresión');
+                }
                 const canvasBack = await html2canvas(elementReverso, options);
                 const imgDataBack = canvasBack.toDataURL('image/png', 1.0);
                 

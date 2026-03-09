@@ -736,7 +736,8 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy, O
         activo: 1,
         provisional: 1,
         impreso: 0,
-        nivel_credencial: this.empleado.nivel_credencial || cargoANivel(this.empleado.puesto)
+        nivel_credencial: this.empleado.nivel_credencial || cargoANivel(this.empleado.puesto),
+        layout_credencial: this.empleado.layout_credencial || (this.obtenerFlagNuevoLaredo() === 0 ? 'ANAM_2025' : null)
     };
 
     if (!this.esFamiliar) {
@@ -750,6 +751,7 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy, O
     // Limpieza final de campos opcionales
     if (!payload.rfc) delete payload.rfc;
     if (!payload.curp) delete payload.curp;
+    if (!payload.layout_credencial) delete payload.layout_credencial;
     if (!payload.materno) payload.materno = '';   
 
     console.log(`Enviando payload ${this.tipoCredencialLabel}:`, payload);

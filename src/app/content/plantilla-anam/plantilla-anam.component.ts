@@ -5,13 +5,13 @@ import { EnrolamientoService } from '../../services/enrolamiento.service';
 import { UtilsService } from '../../services/utils.service';
 import { Router } from '@angular/router';
 import { WacomService } from '../../services/wacom.service';
-import { NIVELES_CREDENCIAL, NivelCredencial, cargoANivel, getNivel } from '../../shared/nivel-credencial.const';
+import { IMAGEN_FRENTE_FALLBACK, IMAGEN_REVERSO_FALLBACK, LAYOUTS_CREDENCIAL, LayoutCredencial, NIVELES_CREDENCIAL, NivelCredencial, cargoANivel, getLayoutCredencial, getNivel } from '../../shared/nivel-credencial.const';
 
 @Component({
   selector: 'app-plantilla-anam',
   standalone: false,
   templateUrl: './plantilla-anam.component.html',
-  styleUrls: ['./plantilla-anam.component.scss']
+  styleUrls: ['./plantilla-anam.component.scss', './plantilla-anam.layouts.scss']
 })
 export class PlantillaAnamComponent extends ProvisionalComponent implements OnInit, OnChanges {
   @Input() override empleado: any = null;
@@ -20,6 +20,7 @@ export class PlantillaAnamComponent extends ProvisionalComponent implements OnIn
 
   // ----- NIVEL CREDENCIAL -----
   readonly niveles: NivelCredencial[] = NIVELES_CREDENCIAL;
+  readonly layouts: LayoutCredencial[] = LAYOUTS_CREDENCIAL;
 
   getNivelActual(): NivelCredencial {
     return getNivel(this.empleado?.nivel_credencial);
@@ -28,7 +29,30 @@ export class PlantillaAnamComponent extends ProvisionalComponent implements OnIn
   onNivelCambio(nuevoValor: string): void {
     if (this.empleado) {
       this.empleado.nivel_credencial = nuevoValor;
+      if (!this.empleado.layout_credencial) {
+        this.empleado.layout_credencial = 'ANAM_2025';
+      }
     }
+  }
+
+  onLayoutCambio(nuevoLayout: string): void {
+    if (!this.empleado) return;
+    this.empleado.layout_credencial = getLayoutCredencial(nuevoLayout);
+  }
+
+  getLayoutActual(): string {
+    const current = String(this.empleado?.layout_credencial || '').toUpperCase();
+    if (current === 'ANAM_2025' || current === 'ANAM_CLASICA') {
+      return current;
+    }
+    return this.empleado?.nivel_credencial ? 'ANAM_2025' : 'ANAM_CLASICA';
+  }
+
+  obtenerClaseLayout(): string {
+    if (this.getLayoutActual() === 'ANAM_CLASICA') return 'layout-roja';
+    const nivel = String(this.empleado?.nivel_credencial || '').trim().toUpperCase();
+    if (!nivel) return 'layout-enlace';
+    return `layout-${nivel.toLowerCase().replace(/_/g, '-')}`;
   }
 
   constructor(
@@ -47,6 +71,9 @@ export class PlantillaAnamComponent extends ProvisionalComponent implements OnIn
     if (!this.empleado) {
       this.inicializarEmpleado();
     } else {
+      if (!this.empleado.layout_credencial) {
+        this.empleado.layout_credencial = this.empleado.nivel_credencial ? 'ANAM_2025' : 'ANAM_CLASICA';
+      }
       if (!this.empleado.nivel_credencial && this.empleado.puesto) {
         this.empleado.nivel_credencial = cargoANivel(this.empleado.puesto);
       }
@@ -58,6 +85,9 @@ export class PlantillaAnamComponent extends ProvisionalComponent implements OnIn
   override ngOnChanges(changes: SimpleChanges): void {
     super.ngOnChanges(changes);
     if (changes['empleado'] && this.empleado) {
+      if (!this.empleado.layout_credencial) {
+        this.empleado.layout_credencial = this.empleado.nivel_credencial ? 'ANAM_2025' : 'ANAM_CLASICA';
+      }
       if (!this.empleado.nivel_credencial && this.empleado.puesto) {
         this.empleado.nivel_credencial = cargoANivel(this.empleado.puesto);
       }
@@ -65,10 +95,16 @@ export class PlantillaAnamComponent extends ProvisionalComponent implements OnIn
   }
 
   protected override obtenerImagenFrente(): string {
+    if (this.getLayoutActual() === 'ANAM_CLASICA') {
+      return IMAGEN_FRENTE_FALLBACK;
+    }
     return this.getNivelActual().imagenFrente;
   }
 
   protected override obtenerImagenReverso(): string {
+    if (this.getLayoutActual() === 'ANAM_CLASICA') {
+      return IMAGEN_REVERSO_FALLBACK;
+    }
     return this.getNivelActual().imagenReverso;
   }
 
@@ -122,7 +158,8 @@ export class PlantillaAnamComponent extends ProvisionalComponent implements OnIn
       provisional: 1,
       impreso: this.empleado.impreso ?? 0,
       nuevo_laredo: 0,
-      nivel_credencial: this.empleado.nivel_credencial || cargoANivel(this.empleado.puesto)
+      nivel_credencial: this.empleado.nivel_credencial || cargoANivel(this.empleado.puesto),
+      layout_credencial: this.getLayoutActual(),
     };
 
     this.enrolamientoApi.actualizarExpediente(id, payload).subscribe({

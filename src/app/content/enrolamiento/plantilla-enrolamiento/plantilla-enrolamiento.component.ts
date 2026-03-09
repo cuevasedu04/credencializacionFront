@@ -779,7 +779,8 @@ guardarEnrolamiento() {
         folio: this.empleado.folio,
         fecha_enrolamiento: fechaEnrolamientoActual,
         nuevo_laredo: this.esNuevoLaredo() ? 1 : 0,
-        nivel_credencial: this.empleado.nivel_credencial || cargoANivel(this.empleado.puesto)
+        nivel_credencial: this.empleado.nivel_credencial || cargoANivel(this.empleado.puesto),
+        layout_credencial: this.esNuevoLaredo() ? null : (this.empleado.layout_credencial || 'ANAM_2025')
     };
 
     // Detectamos si es una CREACIÓN o una ACTUALIZACIÓN

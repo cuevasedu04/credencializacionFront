@@ -6,6 +6,22 @@ export interface NivelCredencial {
   imagenReverso: string;
 }
 
+export interface LayoutCredencial {
+  valor: string;
+  label: string;
+}
+
+export const LAYOUTS_CREDENCIAL: LayoutCredencial[] = [
+  {
+    valor: 'ANAM_2025',
+    label: 'Credencial ANAM 2025',
+  },
+  {
+    valor: 'ANAM_CLASICA',
+    label: 'Credencial ANAM clásica (roja)',
+  },
+];
+
 export const NIVELES_CREDENCIAL: NivelCredencial[] = [
   {
     valor: 'TITULAR',
@@ -68,6 +84,13 @@ export const NIVELES_CREDENCIAL: NivelCredencial[] = [
 /** Imagen de respaldo si la del nivel no existe aún */
 export const IMAGEN_FRENTE_FALLBACK = 'img/frontal_credencial.png';
 export const IMAGEN_REVERSO_FALLBACK = 'img/reverso.jpg';
+
+export function getLayoutCredencial(layout: string | null | undefined): string {
+  const valor = String(layout || '').toUpperCase();
+  if (valor === 'ANAM_2025') return 'ANAM_2025';
+  if (valor === 'ANAM_CLASICA') return 'ANAM_CLASICA';
+  return 'ANAM_2025';
+}
 
 /** Devuelve el NivelCredencial para un valor dado, o ENLACE por defecto */
 export function getNivel(valor: string | null | undefined): NivelCredencial {

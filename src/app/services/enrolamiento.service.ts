@@ -25,6 +25,14 @@ export class EnrolamientoService {
     return this.http.get<any[]>(this.apiUrl);
   }
 
+  obtenerExpedientePorId(id: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}${id}/`);
+  }
+
+  obtenerExpedienteFamiliarPorId(id: number): Observable<any> {
+    return this.http.get<any>(`${this.apiFamiliaresUrl}${id}/`);
+  }
+
   // 3. Buscar (Ojo: Tu endpoint 'pendientes' en el back no tiene activado el filtro de búsqueda ?search=
   // por lo que recomendaremos usar el filtro local de la tabla para buscar dentro de los pendientes)
   buscarExpediente(termino: string): Observable<any[]> {
