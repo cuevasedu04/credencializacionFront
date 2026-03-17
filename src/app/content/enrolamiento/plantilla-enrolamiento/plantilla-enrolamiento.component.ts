@@ -25,8 +25,8 @@ export class PlantillaEnrolamientoComponent implements AfterViewInit, OnChanges,
   @Output() enrolamientoCompletado = new EventEmitter<void>();
 
   // Modales y Elementos
-  @ViewChild('modalCamara', { static: true }) modalCamara!: TemplateRef<any>;
-  @ViewChild('modalFirma', { static: true }) modalFirma!: TemplateRef<any>;
+  @ViewChild('modalCamara', { static: false }) modalCamara!: TemplateRef<any>;
+  @ViewChild('modalFirma', { static: false }) modalFirma!: TemplateRef<any>;
   @ViewChild('videoElement') videoElement!: ElementRef;
   @ViewChild('canvasElement') canvasElement!: ElementRef;
   
@@ -440,6 +440,10 @@ export class PlantillaEnrolamientoComponent implements AfterViewInit, OnChanges,
   // LÓGICA DE FOTO (CÁMARA EXT. O WEBCAM)
   // ==========================================
   abrirCamara() {
+    if (!this.modalCamara) {
+      this.utils.MuestrasToast(TipoToast.Warning, 'No se pudo abrir el modal de foto. Recargue la vista e intente de nuevo.');
+      return;
+    }
     this.fotoCapturada = null;
     this.modalCamaraRef = this.modalManager.openModal({
       title: 'Captura de Fotografía',
@@ -613,6 +617,10 @@ export class PlantillaEnrolamientoComponent implements AfterViewInit, OnChanges,
   }
 
   abrirFirma() {
+    if (!this.modalFirma) {
+      this.utils.MuestrasToast(TipoToast.Warning, 'No se pudo abrir el modal de firma. Recargue la vista e intente de nuevo.');
+      return;
+    }
     this.modalFirmaRef = this.modalManager.openModal({
       title: 'Captura de Firma',
       template: this.modalFirma,

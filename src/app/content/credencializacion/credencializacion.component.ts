@@ -191,6 +191,41 @@ export class CredencializacionComponent implements OnInit {
     return this.esCredencialAnam(persona) ? 'app-plantilla-anam' : 'app-plantilla-enrolamiento';
   }
 
+  private async capturarCredencialRecortada(
+    printRoot: HTMLElement,
+    selectorPlantilla: string,
+    selectorCredencial: '.credencial-frente' | '.credencial-reverso',
+    options: any
+  ): Promise<HTMLCanvasElement> {
+    const host = printRoot?.querySelector(`${selectorPlantilla} .anam-template, ${selectorPlantilla} .container`) as HTMLElement | null;
+    const target = printRoot?.querySelector(`${selectorPlantilla} ${selectorCredencial}`) as HTMLElement | null;
+
+    if (!host || !target) {
+      throw new Error(`No se encontró el nodo para captura: ${selectorCredencial}`);
+    }
+
+    const hostRect = host.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+    const canvasHost = await html2canvas(host, options);
+
+    const scaleX = canvasHost.width / Math.max(hostRect.width, 1);
+    const scaleY = canvasHost.height / Math.max(hostRect.height, 1);
+
+    const sx = Math.max(0, Math.round((targetRect.left - hostRect.left) * scaleX));
+    const sy = Math.max(0, Math.round((targetRect.top - hostRect.top) * scaleY));
+    const sw = Math.min(canvasHost.width - sx, Math.round(targetRect.width * scaleX));
+    const sh = Math.min(canvasHost.height - sy, Math.round(targetRect.height * scaleY));
+
+    const out = document.createElement('canvas');
+    out.width = Math.max(sw, 1);
+    out.height = Math.max(sh, 1);
+    const outCtx = out.getContext('2d');
+    if (!outCtx) return canvasHost;
+
+    outCtx.drawImage(canvasHost, sx, sy, sw, sh, 0, 0, out.width, out.height);
+    return out;
+  }
+
   async imprimirCredencial(persona: any) {
     if (!persona.num_empleado) {
       this.utils.MuestrasToast(TipoToast.Warning, 'No se puede imprimir: Falta número de empleado.');
@@ -258,11 +293,12 @@ export class CredencializacionComponent implements OnInit {
               plantillaActiva.vistaCredencial = 'frente';
                 await this.esperarFuentesYRender(700);
                 
-                const element = printRoot?.querySelector(`${selectorPlantilla} .credencial-frente`) as HTMLElement | null;
-                if (!element) {
-                  throw new Error('No se encontró el frente de la plantilla para impresión');
-                }
-                const canvasFront = await html2canvas(element, options);
+                const canvasFront = await this.capturarCredencialRecortada(
+                  printRoot,
+                  selectorPlantilla,
+                  '.credencial-frente',
+                  options
+                );
                 const imgDataFront = canvasFront.toDataURL('image/png', 1.0); 
                 
                 pdf.addImage(imgDataFront, 'PNG', xOffset, yOffset, imgWidth, imgHeight, '', 'FAST');
@@ -273,11 +309,12 @@ export class CredencializacionComponent implements OnInit {
               plantillaActiva.vistaCredencial = 'reverso';
                 await this.esperarFuentesYRender(700);
 
-                const elementReverso = printRoot?.querySelector(`${selectorPlantilla} .credencial-reverso`) as HTMLElement | null;
-                if (!elementReverso) {
-                  throw new Error('No se encontró el reverso de la plantilla para impresión');
-                }
-                const canvasBack = await html2canvas(elementReverso, options);
+                const canvasBack = await this.capturarCredencialRecortada(
+                  printRoot,
+                  selectorPlantilla,
+                  '.credencial-reverso',
+                  options
+                );
                 const imgDataBack = canvasBack.toDataURL('image/png', 1.0);
                 
                 pdf.addPage();
