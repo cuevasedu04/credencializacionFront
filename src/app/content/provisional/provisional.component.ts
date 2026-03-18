@@ -682,8 +682,8 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy, O
   async guardarEnrolamiento() {
     if (!this.empleado) return;
     
-    if(!this.empleado.foto || !this.empleado.firma) {
-      this.utils.MuestrasToast(TipoToast.Warning, 'Falta capturar foto o firma');
+    if(!this.empleado.foto || (!this.empleado.firma && !this.esFamiliar)) {
+      this.utils.MuestrasToast(TipoToast.Warning, this.esFamiliar ? 'Falta capturar foto' : 'Falta capturar foto o firma');
       return;
     }
 
