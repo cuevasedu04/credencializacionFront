@@ -67,9 +67,9 @@
                 <div class="campos-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
                     
                     <!-- NOMBRE  -->
-                    <div class="campo-nombre" style="position: absolute; top: 28.1%; left: 6.5%; width: 35%;">
+                    <div class="campo-nombre" style="position: absolute; top: 28.1%; left: 4%; width: 44%;">
                         <ng-container *ngIf="isPrintMode">
-                            <span class="text-black" style="font-size: 26px; font-family: 'NotoSans-Black', Arial, sans-serif; font-weight: 900 !important;">{{ empleado.nombre }}</span>
+                            <span class="text-black" style="font-size: 21px; font-family: 'NotoSans-Black', Arial, sans-serif; font-weight: 900 !important;">{{ empleado.nombre }}</span>
                         </ng-container>
                         <ng-container *ngIf="!isPrintMode">
                             <input type="text" [disabled]="!editable" 
@@ -80,9 +80,9 @@
                     </div>
 
                     <!-- APELLIDOS -->
-                    <div class="campo-apellidos" style="position: absolute; top: 28.1%; left: 53%; width: 45%;">
+                    <div class="campo-apellidos" style="position: absolute; top: 28.1%; left: 46%; width: 52%;">
                         <ng-container *ngIf="isPrintMode">
-                            <span class="text-black" style="font-size: 26px; font-family: 'NotoSans-Black', Arial, sans-serif; font-weight: 900 !important;">{{ empleado.paterno }} {{ empleado.materno }}</span>
+                            <span class="text-black" style="font-size: 21px; font-family: 'NotoSans-Black', Arial, sans-serif; font-weight: 900 !important;">{{ empleado.paterno }} {{ empleado.materno }}</span>
                         </ng-container>
                         <ng-container *ngIf="!isPrintMode">
                             <input type="text" [disabled]="!editable" 
@@ -121,7 +121,7 @@
                     <!-- NÚMERO DE EMPLEADO -->
                     <div class="campo-num-empleado" style="position: absolute; top: 38.5%; right: 3.2%; width: 45%;">
                         <ng-container *ngIf="isPrintMode">
-                            <span style="color: #000000; font-size: 26px; font-family: 'NotoSans-Black', Arial, sans-serif; font-weight: 900 !important; display: block; text-align: center;">{{ empleado.num_empleado }}</span>
+                            <span style="color: #000000; font-size: 21px; font-family: 'NotoSans-Black', Arial, sans-serif; font-weight: 900 !important; display: block; text-align: center;">{{ empleado.num_empleado }}</span>
                         </ng-container>
                         <ng-container *ngIf="!isPrintMode">
                             <input type="text" [disabled]="!editable" 
@@ -135,12 +135,12 @@
                     <!-- ÁREA DE ADSCRIPCIÓN -->
                     <div class="campo-adscripcion" style="position: absolute; top: 57%; right: 3.2%; width: 45%;">
                         <ng-container *ngIf="isPrintMode">
-                            <span style="color: #000000; font-size: 26px; display: block; line-height: 1.2; word-wrap: break-word; font-family: 'NotoSans-Black', Arial, sans-serif; font-weight: 900 !important; text-align: center;">{{ empleado.adscripcion }}</span>
+                            <span style="color: #000000; font-size: 21px; display: block; line-height: 1.1; word-wrap: break-word; font-family: 'NotoSans-Black', Arial, sans-serif; font-weight: 900 !important; text-align: center;">{{ empleado.adscripcion }}</span>
                         </ng-container>
                         <ng-container *ngIf="!isPrintMode">
                             <textarea [disabled]="!editable" 
                                    class="campo-credencial text-center" 
-                                   style="color: #000000; resize: none; overflow: hidden; height: auto; min-height: 1.5em; font-size: 0.85rem; line-height: 1.2;"
+                                   style="color: #000000; resize: none; overflow: hidden; height: auto; min-height: 1.5em; font-size: 0.85rem; line-height: 1.1;"
                                    rows="2"
                                    [(ngModel)]="empleado.adscripcion" 
                                    placeholder="Adscripción"></textarea>
@@ -150,12 +150,12 @@
                     <!-- PUESTO -->
                     <div class="campo-puesto" style="position: absolute; top: 48.2%; right: 3.6%; width: 45%;">
                         <ng-container *ngIf="isPrintMode">
-                            <span style="color: #000000; font-size: 26px; display: block; line-height: 1.2; word-wrap: break-word; font-family: 'NotoSans-Black', Arial, sans-serif; font-weight: 900 !important; text-align: center;">{{ empleado.puesto }}</span>
+                            <span style="color: #000000; font-size: 21px; display: block; line-height: 1.1; word-wrap: break-word; font-family: 'NotoSans-Black', Arial, sans-serif; font-weight: 900 !important; text-align: center;">{{ empleado.puesto }}</span>
                         </ng-container>
                         <ng-container *ngIf="!isPrintMode">
                             <textarea [disabled]="!editable" 
                                    class="campo-credencial text-center" 
-                                   style="color: #000000; resize: none; overflow: hidden; height: auto; min-height: 1.5em; font-size: 0.85rem; line-height: 1.2;"
+                                   style="color: #000000; resize: none; overflow: hidden; height: auto; min-height: 1.5em; font-size: 0.85rem; line-height: 1.1;"
                                    rows="2"
                                    [(ngModel)]="empleado.puesto" 
                                    placeholder="Puesto"></textarea>
@@ -196,9 +196,9 @@
                     </div>
 
                     <!-- VIGENCIA -->
-                    <div class="campo-vigencia" style="position: absolute; bottom: 8.8%; right: .5%; width: 32%; ">
+                    <div class="campo-vigencia" style="position: absolute; bottom: 8.8%; right: 4%; width: 25%;">
                         <ng-container *ngIf="isPrintMode">
-                            <span style="color: #000000; font-size: 18px; font-family: 'NotoSans-Black', Arial, sans-serif; font-weight: 900 !important; display: block; text-align: center;">{{ empleado.fin_vig | date:'dd/MM/yyyy' }}</span>
+                            <span style="color: #000000; font-size: 18px; font-family: 'NotoSans-Black', Arial, sans-serif; font-weight: 900 !important; display: block; text-align: right;">{{ empleado.fin_vig | date:'dd/MM/yyyy' }}</span>
                         </ng-container>
                         <ng-container *ngIf="!isPrintMode">
                             <input type="date" [disabled]="!editable" 
@@ -209,7 +209,7 @@
                     </div>
 
                     <!-- FOLIO -->
-                    <div class="campo-folio" style="position: absolute; bottom: 3.5%; right: 19.5%; width: 35%;">
+                    <div class="campo-folio" style="position: absolute; bottom: 3.5%; right: 4%; width: 25%;">
                         <ng-container *ngIf="isPrintMode">
                             <span style="color: #000000; font-size: 18px; font-family: 'NotoSans-Black', Arial, sans-serif; font-weight: 900 !important; display: block; text-align: right;">{{ empleado.folio}}</span>
                         </ng-container>
@@ -289,7 +289,7 @@
                     </div> -->
 
                     <!-- VALOR: FOLIO -->
-                    <!-- <div class="campo-folio" style="position: absolute; bottom: .35%; right: 2.5%; width: 35%;">
+                    <!-- <div class="campo-folio" style="position: absolute; bottom: .35%; right: 4%; width: 25%;">
                         <ng-container *ngIf="isPrintMode">
                             <span style="color: #ffffff; font-size: 18px; font-family: 'NotoSans-Black', Arial, sans-serif; font-weight: 900 !important; display: block; text-align: right;">{{ empleado.folio}}</span>
                         </ng-container>

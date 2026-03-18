@@ -528,7 +528,7 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
 
     const hostRect = host.getBoundingClientRect();
     const targetRect = target.getBoundingClientRect();
-    const canvasHost = await html2canvas(host, options);
+    const canvasHost = await htmlToImage.toCanvas(host, options);
 
     const scaleX = canvasHost.width / Math.max(hostRect.width, 1);
     const scaleY = canvasHost.height / Math.max(hostRect.height, 1);

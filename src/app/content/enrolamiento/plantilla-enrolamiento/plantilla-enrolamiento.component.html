@@ -53,7 +53,7 @@
                     <!-- NOMBRE  -->
                     <div class="campo-nombre" style="position: absolute; top: 28.1%; left: 6.5%; width: 45%;">
                         <ng-container *ngIf="isPrintMode">
-                            <span class="text-black" style="font-size: 23px; font-family: 'NotoSans-Black', Arial, sans-serif; font-weight: 900 !important;">{{ empleado.nombre }}</span>
+                            <span class="text-black" style="font-size: 23px; font-family: 'NotoSans-Black';">{{ empleado.nombre }}</span>
                         </ng-container>
                         <ng-container *ngIf="!isPrintMode">
                             <input type="text" [disabled]="!editable" 
