@@ -8,7 +8,7 @@ import { FechaMexicoPipe } from '../../../app/pipes/date-mx-format';
 import { EnrolamientoService } from '../../services/enrolamiento.service';
 import { ModalManagerService } from '../../components/shared/modal-manager.service';
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import * as htmlToImage from 'html-to-image';
 import { PlantillaEnrolamientoComponent } from '../enrolamiento/plantilla-enrolamiento/plantilla-enrolamiento.component';
 import { PlantillaAnamComponent } from '../plantilla-anam/plantilla-anam.component';
 import { ProvisionalComponent } from '../provisional/provisional.component';
@@ -478,8 +478,24 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
     this.buscarCredenciales();
   }
 
+  private async precargarFuenteCredencial(): Promise<void> {
+    const docWithFonts = document as Document & { fonts?: FontFaceSet };
+    if (!docWithFonts.fonts?.load) {
+      return;
+    }
+
+    try {
+      await Promise.all([
+        docWithFonts.fonts.load("900 24px 'NotoSans-Black'"),
+        docWithFonts.fonts.load("700 24px 'NotoSans-Black'")
+      ]);
+    } catch {
+    }
+  }
+
   private async esperarFuentesYRender(delayMs: number = 650): Promise<void> {
     await new Promise(resolve => setTimeout(resolve, delayMs));
+    await this.precargarFuenteCredencial();
     const docWithFonts = document as Document & { fonts?: { ready: Promise<unknown> } };
     if (docWithFonts.fonts?.ready) {
       try {
@@ -541,12 +557,9 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
             const xOffset = (pdfWidth - imgWidth) / 2;
             const yOffset = (pdfHeight - imgHeight) / 2;
 
-            const options = { 
-              scale: 2,
-              useCORS: true,      
-              logging: false,
-              backgroundColor: '#ffffff',
-              removeContainer: false
+            const options = {
+              pixelRatio: 2,
+              backgroundColor: '#ffffff'
             };
 
             const plantillaActiva = this.obtenerPlantillaImpresionActiva(personaImprimir);
@@ -561,8 +574,7 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
                 if (!element) {
                   throw new Error('No se encontró el frente de la plantilla para impresión');
                 }
-                const canvasFront = await html2canvas(element, options);
-                const imgDataFront = canvasFront.toDataURL('image/png', 1.0); 
+                const imgDataFront = await htmlToImage.toPng(element, options); 
                 
                 pdf.addImage(imgDataFront, 'PNG', xOffset, yOffset, imgWidth, imgHeight, '', 'FAST');
             }
@@ -575,8 +587,7 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
                 if (!elementReverso) {
                   throw new Error('No se encontró el reverso de la plantilla para impresión');
                 }
-                const canvasBack = await html2canvas(elementReverso, options);
-                const imgDataBack = canvasBack.toDataURL('image/png', 1.0);
+                const imgDataBack = await htmlToImage.toPng(elementReverso, options);
                 
                 pdf.addPage();
                 pdf.addImage(imgDataBack, 'PNG', xOffset, yOffset, imgWidth, imgHeight, '', 'FAST');

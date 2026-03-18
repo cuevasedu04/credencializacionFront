@@ -4,7 +4,7 @@ import { UtilsService } from '../../services/utils.service';
 import { TipoToast } from '../../../api/entidades/enumeraciones';
 import { ModalManagerService } from '../../components/shared/modal-manager.service';
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import * as htmlToImage from 'html-to-image';
 import { PlantillaEnrolamientoComponent } from '../enrolamiento/plantilla-enrolamiento/plantilla-enrolamiento.component';
 import { PlantillaAnamComponent } from '../plantilla-anam/plantilla-anam.component';
 import { cargoANivel } from '../../shared/nivel-credencial.const';
@@ -174,8 +174,24 @@ export class CredencializacionComponent implements OnInit {
     return true;
   }
 
+  private async precargarFuenteCredencial(): Promise<void> {
+    const docWithFonts = document as Document & { fonts?: FontFaceSet };
+    if (!docWithFonts.fonts?.load) {
+      return;
+    }
+
+    try {
+      await Promise.all([
+        docWithFonts.fonts.load("900 24px 'NotoSans-Black'"),
+        docWithFonts.fonts.load("700 24px 'NotoSans-Black'")
+      ]);
+    } catch {
+    }
+  }
+
   private async esperarFuentesYRender(delayMs: number = 650): Promise<void> {
     await new Promise(resolve => setTimeout(resolve, delayMs));
+    await this.precargarFuenteCredencial();
     const docWithFonts = document as Document & { fonts?: { ready: Promise<unknown> } };
     if (docWithFonts.fonts?.ready) {
       try {
@@ -240,12 +256,9 @@ export class CredencializacionComponent implements OnInit {
             const yOffset = (pdfHeight - imgHeight) / 2;
 
             // Opciones optimizadas para html2canvas
-            const options = { 
-              scale: 2,
-              useCORS: true,      
-              logging: false,
-              backgroundColor: '#ffffff',
-              removeContainer: false
+            const options = {
+              pixelRatio: 2,
+              backgroundColor: '#ffffff'
             };
 
             // --- FRENTE ---
@@ -262,8 +275,7 @@ export class CredencializacionComponent implements OnInit {
                 if (!element) {
                   throw new Error('No se encontró el frente de la plantilla para impresión');
                 }
-                const canvasFront = await html2canvas(element, options);
-                const imgDataFront = canvasFront.toDataURL('image/png', 1.0); 
+                const imgDataFront = await htmlToImage.toPng(element, options); 
                 
                 pdf.addImage(imgDataFront, 'PNG', xOffset, yOffset, imgWidth, imgHeight, '', 'FAST');
             }
@@ -277,8 +289,7 @@ export class CredencializacionComponent implements OnInit {
                 if (!elementReverso) {
                   throw new Error('No se encontró el reverso de la plantilla para impresión');
                 }
-                const canvasBack = await html2canvas(elementReverso, options);
-                const imgDataBack = canvasBack.toDataURL('image/png', 1.0);
+                const imgDataBack = await htmlToImage.toPng(elementReverso, options);
                 
                 pdf.addPage();
                 pdf.addImage(imgDataBack, 'PNG', xOffset, yOffset, imgWidth, imgHeight, '', 'FAST');

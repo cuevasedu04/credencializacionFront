@@ -68,6 +68,13 @@
     }
 }
 
+/* En Nuevo Laredo todos los textos impresos deben usar NotoSans-Black */
+.credencial-frente.layout-nuevo-laredo.print-mode .campos-overlay span,
+.credencial-reverso.layout-nuevo-laredo.print-mode .campos-overlay span {
+    font-family: 'NotoSans-Black', Arial, sans-serif !important;
+    font-weight: 900 !important;
+}
+
 .foto-container, .firma-container {
     cursor: pointer;
     transition: opacity 0.2s ease;
