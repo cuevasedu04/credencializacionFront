@@ -54,40 +54,38 @@
             <!-- ======================= FRENTE - CREDENCIAL ADUANAS ======================= -->
             <div *ngIf="vistaCredencial === 'frente'" 
                  class="credencial-frente mx-auto"
-                 [class.print-mode]="isPrintMode"
-                 [ngStyle]="isPrintMode ? {'width': '638px', 'height': '1001px', 'border-radius': '0', 'box-shadow': 'none', 'margin': '0'} : {'width': '400px', 'height': '628px', 'border-radius': '10px', 'box-shadow': '0 8px 20px rgba(0,0,0,0.2)'}"
-                 style="position: relative; overflow: hidden;">
+                 [class.print-mode]="isPrintMode">
                 
                 <!-- Imagen de fondo -->
                  <img [src]="obtenerImagenFrente()" 
                      alt="Credencial Frente" 
-                     style="width: 102%; height: 100%; object-fit: fill; position: absolute; top: 1%; left: 0%;">
+                     class="credencial-bg">
                 
                 <!-- Campos editables posicionados sobre la imagen -->
-                <div class="campos-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                <div class="campos-overlay">
                     
                     <!-- NOMBRE  -->
-                    <div class="campo-nombre" style="position: absolute; top: 28.1%; left: 4%; width: 44%;">
+                    <div class="campo-nombre">
                         <ng-container *ngIf="isPrintMode">
-                            <span class="text-black" style="font-size: 21px; font-family: 'NotoSans-Black', Arial, sans-serif; font-weight: 900 !important;">{{ empleado.nombre }}</span>
+                            <span class="prov-print-text prov-print-nombre">{{ empleado.nombre }}</span>
                         </ng-container>
                         <ng-container *ngIf="!isPrintMode">
                             <input type="text" [disabled]="!editable" 
-                                   class="campo-credencial text-black" 
+                                   class="campo-credencial prov-input-nombre" 
                                    [(ngModel)]="empleado.nombre" 
                                    placeholder="Nombre">
                         </ng-container>
                     </div>
 
                     <!-- APELLIDOS -->
-                    <div class="campo-apellidos" style="position: absolute; top: 28.1%; left: 46%; width: 52%;">
+                    <div class="campo-apellidos">
                         <ng-container *ngIf="isPrintMode">
-                            <span class="text-black" style="font-size: 21px; font-family: 'NotoSans-Black', Arial, sans-serif; font-weight: 900 !important;">{{ empleado.paterno }} {{ empleado.materno }}</span>
+                            <span class="prov-print-text prov-print-apellidos">{{ empleado.paterno }} {{ empleado.materno }}</span>
                         </ng-container>
                         <ng-container *ngIf="!isPrintMode">
                             <input type="text" [disabled]="!editable" 
-                                   class="campo-credencial text-black" 
-                                   [ngModel]="(empleado.paterno || '') + ' ' + (empleado.materno || '')"
+                                   class="campo-credencial prov-input-apellidos" 
+                                   [ngModel]="(empleado.paterno || '') + (empleado.materno ? ' ' + empleado.materno : '')"
                                    (ngModelChange)="separarApellidos($event)"
                                    placeholder="Apellidos">
                         </ng-container>
@@ -95,52 +93,48 @@
 
                     <!-- FOTO DEL EMPLEADO -->
                     <div class="campo-foto" 
-                         style="position: absolute; top: 36.8%; left: 7.2%; width: 40.3%; height: 33.1%; padding: 1.5px;"
                          [style.cursor]="isPrintMode ? 'default' : 'pointer'"
                          (click)="abrirCamara()">
                         
-                        <!-- Modo impresión: usa background-image para mejor compatibilidad con html2canvas -->
+                        <!-- Modo impresión: usa background-image para mejor compatibilidad con html-to-image -->
                         <div *ngIf="empleado.foto && isPrintMode" 
-                             [style.background-image]="'url(' + empleado.foto + ')'"
-                             style="width: 100%; height: 100%; background-size: cover; background-position: center top; border-radius: 2px; background-repeat: no-repeat;">
+                             class="foto-print"
+                             [style.background-image]="'url(' + empleado.foto + ')'">
                         </div>
                         
                         <!-- Modo visualización-->
                         <img *ngIf="empleado.foto && !isPrintMode" 
                              [src]="empleado.foto" 
-                             style="width: 100%; height: 100%; object-fit: cover; object-position: center top; border-radius: 2px; display: block;">
+                             class="foto-view border-radius-2">
                         
                         <div *ngIf="!empleado.foto && !isPrintMode" 
-                             class="text-muted text-center d-flex flex-column align-items-center justify-content-center h-100"
-                             style="border: 2px dashed rgba(114, 47, 55, 0.4); border-radius: 4px; background: rgba(255,255,255,0.8);">
+                             class="text-muted text-center d-flex flex-column align-items-center justify-content-center h-100 foto-empty">
                             <i class="fas fa-camera fa-2x mb-1" style="color: rgba(114, 47, 55, 0.5);"></i>
                             <small style="font-size: 0.65rem; color: rgba(114, 47, 55, 0.6);">Capturar foto</small>
                         </div>
                     </div>
 
                     <!-- NÚMERO DE EMPLEADO -->
-                    <div class="campo-num-empleado" style="position: absolute; top: 38.5%; right: 3.2%; width: 45%;">
+                    <div class="campo-num-empleado">
                         <ng-container *ngIf="isPrintMode">
-                            <span style="color: #000000; font-size: 21px; font-family: 'NotoSans-Black', Arial, sans-serif; font-weight: 900 !important; display: block; text-align: center;">{{ empleado.num_empleado }}</span>
+                            <span class="prov-print-text prov-print-num-empleado d-block text-center">{{ empleado.num_empleado }}</span>
                         </ng-container>
                         <ng-container *ngIf="!isPrintMode">
                             <input type="text" [disabled]="!editable" 
-                                   class="campo-credencial text-center" 
-                                   style="color: #000000;"
+                                   class="campo-credencial text-center prov-input-num-empleado" 
                                    [(ngModel)]="empleado.num_empleado" 
                                    placeholder="No. Empleado">
                         </ng-container>
                     </div>
 
                     <!-- ÁREA DE ADSCRIPCIÓN -->
-                    <div class="campo-adscripcion" style="position: absolute; top: 57%; right: 3.2%; width: 45%;">
+                    <div class="campo-adscripcion">
                         <ng-container *ngIf="isPrintMode">
-                            <span style="color: #000000; font-size: 21px; display: block; line-height: 1.1; word-wrap: break-word; font-family: 'NotoSans-Black', Arial, sans-serif; font-weight: 900 !important; text-align: center;">{{ empleado.adscripcion }}</span>
+                            <span class="prov-print-text prov-print-adscripcion d-block text-center line-height-11 break-word">{{ empleado.adscripcion }}</span>
                         </ng-container>
                         <ng-container *ngIf="!isPrintMode">
                             <textarea [disabled]="!editable" 
-                                   class="campo-credencial text-center" 
-                                   style="color: #000000; resize: none; overflow: hidden; height: auto; min-height: 1.5em; font-size: 0.85rem; line-height: 1.1;"
+                                   class="campo-credencial text-center prov-input-adscripcion" 
                                    rows="2"
                                    [(ngModel)]="empleado.adscripcion" 
                                    placeholder="Adscripción"></textarea>
@@ -148,14 +142,13 @@
                     </div>
 
                     <!-- PUESTO -->
-                    <div class="campo-puesto" style="position: absolute; top: 48.2%; right: 3.6%; width: 45%;">
+                    <div class="campo-puesto">
                         <ng-container *ngIf="isPrintMode">
-                            <span style="color: #000000; font-size: 21px; display: block; line-height: 1.1; word-wrap: break-word; font-family: 'NotoSans-Black', Arial, sans-serif; font-weight: 900 !important; text-align: center;">{{ empleado.puesto }}</span>
+                            <span class="prov-print-text prov-print-puesto d-block text-center line-height-11 break-word">{{ empleado.puesto }}</span>
                         </ng-container>
                         <ng-container *ngIf="!isPrintMode">
                             <textarea [disabled]="!editable" 
-                                   class="campo-credencial text-center" 
-                                   style="color: #000000; resize: none; overflow: hidden; height: auto; min-height: 1.5em; font-size: 0.85rem; line-height: 1.1;"
+                                   class="campo-credencial text-center prov-input-puesto" 
                                    rows="2"
                                    [(ngModel)]="empleado.puesto" 
                                    placeholder="Puesto"></textarea>
@@ -163,60 +156,55 @@
                     </div>
 
                     <!-- FIRMA -->
-                    <div class="campo-firma" 
-                         style="position: absolute; bottom: 12.8%; left: 7%; width: 45%; height: 19%; cursor: pointer;"
+                    <div class="campo-firma cursor-pointer" 
                          (click)="abrirFirma()">
                         <img *ngIf="empleado.firma" 
                              [src]="empleado.firma" 
-                                style="width: 96%; height: 96%; object-fit: contain; object-position: center; display: block; margin: 2% auto 0; transform: translateY(-8%);">
+                             class="firma-img">
                     </div>
 
                     <!-- LABEL DE FIRMA BOX BLANCO DASHED -->
 
-                    <div class="label-firma" style="position: absolute; bottom: 19.45%; left: 8.2%; width: 42%; height: 8%; pointer-events: none;">
+                    <div class="label-firma pointer-events-none">
                         <div *ngIf="!empleado.firma && !isPrintMode" 
-                             class="text-muted text-center d-flex align-items-center justify-content-center h-100"
-                             style="border: 2px dashed rgba(114, 47, 55, 0.3); border-radius: 4px; background: rgba(255,255,255,0.7);">
+                             class="text-muted text-center d-flex align-items-center justify-content-center h-100 firma-empty">
                             <small><i class="fas fa-signature"></i> Firmar</small>        
                         </div>
                     </div>
 
                     <!-- CÓDIGO QR  -->
-                    <div class="campo-qr" style="position: absolute; bottom: 16%; right: 12.35%; width: 26.6%; aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; ">
+                    <div class="campo-qr align-items-center justify-content-center flex">
                         <img *ngIf="qrCodeDataUrl" 
                              [src]="qrCodeDataUrl" 
-                             style="max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain;"
+                             class="qr-img"
                              alt="QR Code">
                         <div *ngIf="!qrCodeDataUrl && !isPrintMode" 
-                             class="text-white text-center"
-                             style="font-size: 0.6rem;">
+                             class="text-white text-center font-size-06">
                             <i class="fas fa-qrcode"></i>
                             <br>QR
                         </div>
                     </div>
 
                     <!-- VIGENCIA -->
-                    <div class="campo-vigencia" style="position: absolute; bottom: 8.8%; right: 4%; width: 25%;">
+                    <div class="campo-vigencia">
                         <ng-container *ngIf="isPrintMode">
-                            <span style="color: #000000; font-size: 18px; font-family: 'NotoSans-Black', Arial, sans-serif; font-weight: 900 !important; display: block; text-align: right;">{{ empleado.fin_vig | date:'dd/MM/yyyy' }}</span>
+                            <span class="prov-print-text prov-print-vigencia d-block text-right">{{ empleado.fin_vig | date:'dd/MM/yyyy' }}</span>
                         </ng-container>
                         <ng-container *ngIf="!isPrintMode">
                             <input type="date" [disabled]="!editable" 
-                                   class="campo-credencial text-center" 
-                                   style="font-size: 0.55rem;"
+                                   class="campo-credencial text-center prov-input-vigencia" 
                                    [(ngModel)]="empleado.fin_vig">
                         </ng-container>
                     </div>
 
                     <!-- FOLIO -->
-                    <div class="campo-folio" style="position: absolute; bottom: 3.5%; right: 4%; width: 25%;">
+                    <div class="campo-folio">
                         <ng-container *ngIf="isPrintMode">
-                            <span style="color: #000000; font-size: 18px; font-family: 'NotoSans-Black', Arial, sans-serif; font-weight: 900 !important; display: block; text-align: right;">{{ empleado.folio}}</span>
+                            <span class="prov-print-text prov-print-folio d-block text-right">{{ empleado.folio}}</span>
                         </ng-container>
                         <ng-container *ngIf="!isPrintMode">
                             <input type="text" [disabled]="!editable" 
-                                   class="campo-credencial text-right" 
-                                   style="color: #000000; background: transparent; font-size: 0.55rem;"
+                                   class="campo-credencial text-right prov-input-folio" 
                                    [(ngModel)]="empleado.folio"
                                    placeholder="Folio">
                         </ng-container>
@@ -228,75 +216,70 @@
             <!-- ======================= REVERSO - CREDENCIAL HACIENDA ======================= -->
             <div *ngIf="vistaCredencial === 'reverso'" 
                  class="credencial-reverso mx-auto"
-                 [class.print-mode]="isPrintMode"
-                 [ngStyle]="isPrintMode ? {'width': '638px', 'height': '1001px', 'border-radius': '0', 'box-shadow': 'none', 'margin': '0'} : {'width': '400px', 'height': '628px', 'border-radius': '10px', 'box-shadow': '0 8px 20px rgba(0,0,0,0.2)'}"
-                 style="position: relative; overflow: hidden;">
+                 [class.print-mode]="isPrintMode">
                 
                 <!-- Imagen de fondo -->
                  <img [src]="obtenerImagenReverso()" 
                      alt="Credencial Reverso" 
-                     style="width: 100%; height: 100%; object-fit: fill; position: absolute; top:1%; left: 0; ">
+                     class="credencial-bg">
                 
                 <!-- Campos editables posicionados sobre la imagen -->
-                <div class="campos-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                <div class="campos-overlay">
                     
                     <!-- CURP  -->
-                    <div class="campo-curp" style="position: absolute; bottom: 65%; left: 50.5%; transform: translateX(-50%); width: 80%; text-align: center;">
+                    <div class="campo-curp">
                         <ng-container *ngIf="isPrintMode">
-                            <span style="color: #000000; font-size: 20px; font-family: 'NotoSans-Black', Arial, sans-serif; font-weight: 900 !important;">{{ empleado.curp }}</span>
+                            <span class="prov-print-text prov-print-curp">{{ empleado.curp }}</span>
                         </ng-container>
                         <ng-container *ngIf="!isPrintMode">
                             <input type="text" [disabled]="!editable" 
-                                   class="campo-credencial text-center" 
-                                   style="color: #000000; background: transparent;"
+                                   class="campo-credencial text-center prov-input-curp" 
                                    [(ngModel)]="empleado.curp" 
                                    placeholder="CURP">
                         </ng-container>
                     </div>
 
                     <!-- LABEL: FECHA DE EXPEDICIÓN -->
-                    <div class="label-fecha" style="position: absolute; bottom: 3.8%; left: 2.5%; width: 45%;">
+                    <!-- <div class="label-fecha">
                         <ng-container *ngIf="isPrintMode">
-                            <span style="color: #00000000; font-size: 18px; font-family: 'NotoSans-Black', Arial, sans-serif; font-weight: 900 !important; display: block; text-align: left; position: relative; top: 8px;">FECHA DE EXPEDICIÓN:</span>
+                            <span class="prov-print-text prov-print-label-fecha d-block text-left" style="position: relative; top: 8px;">FECHA DE EXPEDICIÓN:</span>
                         </ng-container>
                         <ng-container *ngIf="!isPrintMode">
-                            <span style="color: #00000000; font-size: 8px; font-family: 'NotoSans-Black', Arial, sans-serif; font-weight: 900 !important; display: block; text-align: left;">FECHA DE EXPEDICIÓN:</span>
+                            <span class="prov-input-label-fecha d-block text-left">FECHA DE EXPEDICIÓN:</span>
                         </ng-container>
-                    </div>
+                    </div> -->
 
                     <!-- VALOR: FECHA DE EXPEDICIÓN -->
-                    <div class="campo-fecha-expedicion" style="position: absolute; bottom: 1%; left: 10.7%; width: 35%;">
+                    <!-- <div class="campo-fecha-expedicion">
                         <ng-container *ngIf="isPrintMode">
-                            <span style="color: #00000000; font-size: 18px; font-family: 'NotoSans-Black', Arial, sans-serif; font-weight: 900 !important; display: block; text-align: left;">{{ empleado.fecha_expedicion | date:'dd/MM/yyyy' }}</span>
+                            <span class="prov-print-text prov-print-fecha-exp d-block text-left">{{ empleado.fecha_expedicion | date:'dd/MM/yyyy' }}</span>
                         </ng-container>
                         <ng-container *ngIf="!isPrintMode">
                             <input type="date" [disabled]="!editable" 
-                                   class="campo-credencial text-left" 
-                                   style="color: #00000000; background: transparent; font-size: 0.7rem;"
+                                   class="campo-credencial text-left prov-input-fecha-exp" 
                                    [(ngModel)]="empleado.fecha_expedicion"
                                    placeholder="Fecha Expedición">
                         </ng-container>
-                    </div>
+                    </div> -->
 
                     <!-- LABEL: FOLIO -->
-                    <!-- <div class="label-folio" style="position: absolute; bottom: 3.8%; right: 2.5%; width: 35%;">
+                    <!-- <div class="label-folio">
                         <ng-container *ngIf="isPrintMode">
-                            <span style="color: #ffffff; font-size: 18px; font-family: 'NotoSans-Black', Arial, sans-serif; font-weight: 900 !important; display: block; text-align: right; position: relative; top: 8px;">FOLIO:</span>
+                            <span class="prov-print-text d-block text-right" style="position: relative; top: 8px;">FOLIO:</span>
                         </ng-container>
                         <ng-container *ngIf="!isPrintMode">
-                            <span style="color: #ffffff; font-size: 8px; font-family: 'NotoSans-Black', Arial, sans-serif; font-weight: 900 !important; display: block; text-align: right;">FOLIO:</span>
+                            <span class="prov-input-label-folio d-block text-right">FOLIO:</span>
                         </ng-container>
                     </div> -->
 
                     <!-- VALOR: FOLIO -->
-                    <!-- <div class="campo-folio" style="position: absolute; bottom: .35%; right: 4%; width: 25%;">
+                    <!-- <div class="campo-folio">
                         <ng-container *ngIf="isPrintMode">
-                            <span style="color: #ffffff; font-size: 18px; font-family: 'NotoSans-Black', Arial, sans-serif; font-weight: 900 !important; display: block; text-align: right;">{{ empleado.folio}}</span>
+                            <span class="prov-print-text d-block text-right">{{ empleado.folio}}</span>
                         </ng-container>
                         <ng-container *ngIf="!isPrintMode">
                             <input type="text" [disabled]="!editable" 
-                                   class="campo-credencial text-right" 
-                                   style="color: #ffffff; background: transparent; font-size: 0.7rem;"
+                                   class="campo-credencial text-right prov-input-folio" 
                                    [(ngModel)]="empleado.folio"
                                    placeholder="Folio">
                         </ng-container>

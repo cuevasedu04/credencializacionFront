@@ -6,9 +6,9 @@ import { environment } from '../../../src/environments/environment';
 @Injectable({ providedIn: 'root' })
 export class EnrolamientoService {
   
-  private apiUrl = `/api-sicre/expedientes/`;
-  private apiFamiliaresUrl = `/api-sicre/expedientes-familiares/`;
-  private apiCredencializacionUrl = `/api-sicre/credencializacion/`;
+  private apiUrl = `http://127.0.0.1:8080/api/expedientes/`;
+  private apiFamiliaresUrl = `http://127.0.0.1:8080/api/expedientes-familiares/`;
+  private apiCredencializacionUrl = `http://127.0.0.1:8080/api/credencializacion/`;
 
   constructor(private http: HttpClient) { }
 

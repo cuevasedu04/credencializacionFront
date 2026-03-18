@@ -115,61 +115,13 @@ export class PlantillaAnamComponent extends ProvisionalComponent implements OnIn
   override async guardarEnrolamiento() {
     if (!this.empleado) return;
 
-    const id = this.empleado.id_enrolamiento;
-    if (!id) {
-      await super.guardarEnrolamiento();
-      this.enrolamientoCompletado.emit();
-      return;
-    }
+    // Asegurarse de que el empleado tenga los valores más recientes de layout antes de llamar al super
+    this.empleado.layout_credencial = this.getLayoutActual();
+    this.empleado.nivel_credencial = this.empleado.nivel_credencial || cargoANivel(this.empleado.puesto);
 
-    if (!this.empleado.foto || !this.empleado.firma) {
-      return;
-    }
-
-    this.guardando = true;
-    await this.generarQR();
-
-    let fechaExpedicionFormateada = this.empleado.fecha_expedicion;
-    if (fechaExpedicionFormateada instanceof Date) {
-      fechaExpedicionFormateada = fechaExpedicionFormateada.toISOString().split('T')[0];
-    } else if (typeof fechaExpedicionFormateada === 'string' && fechaExpedicionFormateada.includes('T')) {
-      fechaExpedicionFormateada = fechaExpedicionFormateada.split('T')[0];
-    }
-
-    const payload: any = {
-      nombre: this.empleado.nombre,
-      paterno: this.empleado.paterno,
-      materno: this.empleado.materno,
-      apellidos: `${this.empleado.paterno || ''} ${this.empleado.materno || ''}`.trim(),
-      num_empleado: this.empleado.num_empleado,
-      adscripcion: this.empleado.adscripcion,
-      puesto: this.empleado.puesto,
-      curp: this.empleado.curp,
-      rfc: this.empleado.rfc,
-      folio: this.empleado.folio,
-      fin_vig: this.empleado.fin_vig || null,
-      inicio_vig: this.empleado.inicio_vig || null,
-      eladia: this.empleado.eladia || null,
-      fecha_expedicion: fechaExpedicionFormateada,
-      fecha_enrolamiento: this.empleado.fecha_enrolamiento || new Date().toISOString(),
-      foto: this.empleado.foto,
-      firma: this.empleado.firma,
-      activo: 1,
-      provisional: 1,
-      impreso: this.empleado.impreso ?? 0,
-      nuevo_laredo: 0,
-      nivel_credencial: this.empleado.nivel_credencial || cargoANivel(this.empleado.puesto),
-      layout_credencial: this.getLayoutActual(),
-    };
-
-    this.enrolamientoApi.actualizarExpediente(id, payload).subscribe({
-      next: () => {
-        this.guardando = false;
-        this.enrolamientoCompletado.emit();
-      },
-      error: () => {
-        this.guardando = false;
-      }
-    });
+    // Llamar al guardado y validaciones de la clase padre
+    // Importante: No llamamos this.enrolamientoCompletado.emit() de inmediato, 
+    // porque el request es asíncrono y lo emite el subscriber del padre.
+    await super.guardarEnrolamiento();
   }
 }

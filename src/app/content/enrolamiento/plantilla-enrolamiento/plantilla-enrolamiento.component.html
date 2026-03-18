@@ -71,7 +71,7 @@
                         <ng-container *ngIf="!isPrintMode">
                             <input type="text" [disabled]="!editable" 
                                    class="campo-credencial text-black" 
-                                   [ngModel]="empleado.paterno + ' ' + empleado.materno"
+                                   [ngModel]="(empleado.paterno || '') + (empleado.materno ? ' ' + empleado.materno : '')"
                                    (ngModelChange)="separarApellidos($event)"
                                    placeholder="Apellidos">
                         </ng-container>

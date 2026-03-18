@@ -36,6 +36,7 @@ export class FamiliarComponent extends ProvisionalComponent {
   override async guardarEnrolamiento() {
     if (this.empleado) {
       this.empleado.puesto = 'FAMILIAR';
+      this.empleado.rfc = this.empleado.num_empleado || 'S/N';
     }
     await super.guardarEnrolamiento();
   }

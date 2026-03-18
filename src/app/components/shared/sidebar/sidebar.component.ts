@@ -44,13 +44,13 @@ export class SidebarComponent implements OnInit, OnDestroy {
       link: '/enrolamiento',
       rol: [1,2,3,4,9999],
     },
-    {
-      id: 'credencializacion',
-      label: 'Impresión',      
-      icon: 'fas fa-id-card',
-      link: '/credencializacion',
-      rol: [1,2,3,9999],
-    },
+    // {
+    //   id: 'credencializacion',
+    //   label: 'Impresión',      
+    //   icon: 'fas fa-id-card',
+    //   link: '/credencializacion',
+    //   rol: [1,2,3,9999],
+    // },
     {
       id: 'provisional',
       label: 'Carga manual - NL',      

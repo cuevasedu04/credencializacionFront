@@ -426,13 +426,16 @@ export class PlantillaEnrolamientoComponent implements AfterViewInit, OnChanges,
   // ==========================================
   separarApellidos(valor: string) {
     if (!this.empleado) return;
-    const partes = (valor || '').trim().split(/\s+/);
-    if (partes.length >= 2) {
-      this.empleado.paterno = partes[0];
-      this.empleado.materno = partes.slice(1).join(' ');
-    } else {
+    if (!valor.trim().includes(' ')) {
       this.empleado.paterno = valor;
       this.empleado.materno = '';
+    } else {
+      const valorTrimmedStart = valor.trimStart();
+      const firstSpaceIndex = valorTrimmedStart.indexOf(' ');
+      if (firstSpaceIndex !== -1) {
+        this.empleado.paterno = valorTrimmedStart.substring(0, firstSpaceIndex);
+        this.empleado.materno = valorTrimmedStart.substring(firstSpaceIndex + 1);
+      }
     }
   }
 

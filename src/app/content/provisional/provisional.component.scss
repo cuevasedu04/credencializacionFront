@@ -61,11 +61,173 @@
 .credencial-frente.print-mode,
 .credencial-reverso.print-mode {
     box-shadow: none !important;
+    width: 638px;
+    height: 1001px;
+    border-radius: 0;
+    margin: 0;
     
     .campo-credencial {
         border: none !important;
         background: transparent !important;
     }
+}
+
+.credencial-frente:not(.print-mode),
+.credencial-reverso:not(.print-mode) {
+    width: 400px;
+    height: 628px;
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+.credencial-frente, .credencial-reverso {
+    position: relative;
+    overflow: hidden;
+}
+
+.credencial-bg {
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+    position: absolute;
+    top: 1%;
+    left: 0;
+}
+
+.credencial-frente .credencial-bg {
+    width: 102%;
+}
+
+.campos-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    
+    // Front fields
+    .campo-nombre { position: absolute; top: 28.1%; left: 4%; width: 44%; ::placeholder { color: rgba(0,0,0,0.5); } }
+    .campo-apellidos { position: absolute; top: 28.1%; left: 50%; width: 52%; ::placeholder { color: rgba(0,0,0,0.5); } }
+    .campo-foto { 
+        position: absolute; top: 36.8%; left: 7.2%; width: 40.3%; height: 33.1%; padding: 1.5px;
+        
+        .foto-print {
+            width: 100%; height: 100%; background-size: cover; background-position: center top; border-radius: 2px; background-repeat: no-repeat;
+        }
+        .foto-view {
+            width: 100%; height: 100%; object-fit: cover; object-position: center top; border-radius: 2px; display: block;
+        }
+        .foto-empty {
+            border: 2px dashed rgba(114, 47, 55, 0.4); border-radius: 4px; background: rgba(255,255,255,0.8);
+        }
+    }
+    .campo-num-empleado { position: absolute; top: 38.5%; right: 3.2%; width: 45%; ::placeholder { color: rgba(0,0,0,0.5); } }
+    .campo-adscripcion { position: absolute; top: 57%; right: 3.2%; width: 45%; ::placeholder { color: rgba(0,0,0,0.5); } }
+    .campo-puesto { position: absolute; top: 48.2%; right: 3.6%; width: 45%; ::placeholder { color: rgba(0,0,0,0.5); } }
+    .campo-firma { 
+        position: absolute; bottom: 12.8%; left: 7%; width: 45%; height: 19%; 
+        .firma-img { width: 96%; height: 96%; object-fit: contain; object-position: center; display: block; margin: 2% auto 0; transform: translateY(-8%); }
+    }
+    .label-firma { 
+        position: absolute; bottom: 19.45%; left: 8.2%; width: 42%; height: 8%; 
+        .firma-empty { border: 2px dashed rgba(114, 47, 55, 0.3); border-radius: 4px; background: rgba(255,255,255,0.7); }
+    }
+    .campo-qr { 
+        position: absolute; bottom: 16%; right: 12.35%; width: 26.6%; aspect-ratio: 1 / 1; 
+        .qr-img { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; }
+    }
+    .campo-vigencia { position: absolute; bottom: 9.1%; right: 9.5%; width: 25%; }
+    .campo-folio { position: absolute; bottom: 3.6%; right: 19.7%; width: 15%; }
+    
+    // Back fields
+    .campo-curp { position: absolute; bottom: 65%; left: 48.7%; transform: translateX(-50%); width: 80%; text-align: center; ::placeholder { color: rgba(0,0,0,0.5); } }
+    .label-fecha { position: absolute; bottom: 3.8%; left: 2.5%; width: 45%; }
+    .campo-fecha-expedicion { position: absolute; bottom: 1%; left: 10.7%; width: 35%; color: #ffffff00;}
+}
+
+.cursor-pointer { cursor: pointer; }
+.pointer-events-none { pointer-events: none; }
+.flex { display: flex; }
+.align-items-center { align-items: center; }
+.justify-content-center { justify-content: center; }
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-left { text-align: left; }
+.d-block { display: block; }
+.text-black { color: #000000; }
+.border-radius-2 { border-radius: 2px; }
+.line-height-11 { line-height: 1.1; }
+.break-word { word-wrap: break-word; }
+.font-size-06 { font-size: 0.6rem; }
+
+// Styles analogous to layout
+.prov-print-text {
+    font-family: 'NotoSans-Black', Arial, sans-serif !important;
+    font-weight: 900 !important;
+    color: #000000;
+}
+
+.prov-print-nombre, .prov-print-apellidos, .prov-print-num-empleado, .prov-print-adscripcion, .prov-print-puesto {
+    font-size: 21px;
+}
+
+.prov-print-vigencia, .prov-print-folio, .prov-print-fecha-exp {
+    font-size: 18px;
+}
+
+.prov-print-curp {
+    font-size: 20px;
+}
+
+.prov-print-label-fecha {
+    font-size: 18px;
+    color: rgba(0,0,0,0); // Matches original #00000000
+}
+
+.prov-input-nombre, .prov-input-apellidos {
+    color: #000000;
+}
+
+.prov-input-num-empleado {
+    color: #000000;
+}
+
+.prov-input-adscripcion, .prov-input-puesto {
+    color: #000000;
+    resize: none;
+    overflow: hidden;
+    height: auto;
+    min-height: 1.5em;
+    font-size: 0.85rem;
+    line-height: 1.1;
+}
+
+.prov-input-vigencia {
+    font-size: 0.55rem;
+}
+
+.prov-input-folio {
+    color: #000000;
+    background: transparent;
+    font-size: 0.55rem;
+}
+
+.prov-input-curp {
+    color: #000000;
+    background: transparent;
+}
+
+.prov-input-label-fecha {
+    font-size: 8px;
+    font-family: 'NotoSans-Black', Arial, sans-serif;
+    font-weight: 900 !important;
+    color: rgba(0,0,0,0);
+}
+
+.prov-input-fecha-exp {
+    color: rgba(0,0,0,0);
+    background: transparent;
+    font-size: 0.7rem;
 }
 
 /* En provisional todos los textos impresos deben usar NotoSans-Black */

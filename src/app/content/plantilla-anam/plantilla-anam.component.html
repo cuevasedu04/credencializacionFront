@@ -100,7 +100,7 @@
 						<ng-container *ngIf="!isPrintMode">
 							<input type="text" [disabled]="!editable" 
 								   class="campo-credencial anam-input-text anam-input-apellidos" style="color: white;" 
-								   [ngModel]="(empleado.paterno || '') + ' ' + (empleado.materno || '')"
+								   [ngModel]="(empleado.paterno || '') + (empleado.materno ? ' ' + empleado.materno : '')"
 								   (ngModelChange)="separarApellidos($event)"
 								   placeholder="Apellidos">
 						</ng-container>
@@ -270,7 +270,7 @@
 					</div>
 
 					<!-- VIGENCIA (layout nuevo en reverso) -->
-					<div class="campo-vigencia-reverso">
+					<!-- <div class="campo-vigencia-reverso">
 						<ng-container *ngIf="isPrintMode">
 							<span class="anam-print-text anam-print-vigencia">{{ empleado.fin_vig | date:'dd/MM/yyyy' }}</span>
 						</ng-container>
@@ -280,7 +280,7 @@
 								   [(ngModel)]="empleado.fin_vig"
 								   placeholder="Vigencia">
 						</ng-container>
-					</div>
+					</div> -->
 
 					<!-- LABEL: FOLIO -->
 					<div class="label-folio">

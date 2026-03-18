@@ -54,65 +54,61 @@
 			<!-- ======================= FRENTE - CREDENCIAL ADUANAS ======================= -->
 			<div *ngIf="vistaCredencial === 'frente'" 
 				 class="credencial-frente mx-auto"
-				 [class.print-mode]="isPrintMode"
-				 [ngStyle]="isPrintMode ? {'width': '638px', 'height': '1001px', 'border-radius': '0', 'box-shadow': 'none', 'margin': '0'} : {'width': '400px', 'height': '628px', 'border-radius': '10px', 'box-shadow': '0 8px 20px rgba(0,0,0,0.2)'}"
-				 style="position: relative; overflow: hidden;">
+				 [class.print-mode]="isPrintMode">
                 
 				<!-- Imagen de fondo -->
 				<img src="img/frente_familiar.jpg" 
 					 alt="Credencial Frente" 
-					 style="width: 102%; height: 100%; object-fit: fill; position: absolute; top: 1%; left: 0%;">
+					 class="credencial-bg">
                 
 				<!-- Campos editables posicionados sobre la imagen -->
-				<div class="campos-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+				<div class="campos-overlay">
 <!-- NOMBRE -->
-<div class="campo-nombre" style="position: absolute; top: 59.3%; left: 26%; width: 62%;">
+<div class="campo-nombre">
 <ng-container *ngIf="isPrintMode">
-<span class="text-black" style="font-size: 16px; font-family: 'NotoSans-Bold', Arial, sans-serif; display: block; text-align: left;">{{ empleado.nombre }}</span>
+<span class="fam-print-text">{{ empleado.nombre }}</span>
 </ng-container>
 <ng-container *ngIf="!isPrintMode">
-<input type="text" [disabled]="!editable" class="campo-credencial text-black text-left" style="font-size: 0.75rem; background: transparent; border: none; outline: none; padding-left: 5px; width: 100%;" [(ngModel)]="empleado.nombre" placeholder="Nombre">
+<input type="text" [disabled]="!editable" class="campo-credencial fam-input-text" [(ngModel)]="empleado.nombre" placeholder="Nombre">
 </ng-container>
 </div>
 
 <!-- APELLIDOS -->
-<div class="campo-apellidos" style="position: absolute; top: 63.8%; left: 34%; width: 58%;">
+<div class="campo-apellidos">
 <ng-container *ngIf="isPrintMode">
-<span class="text-black" style="font-size: 16px; font-family: 'NotoSans-Bold', Arial, sans-serif; display: block; text-align: left;">{{ empleado.paterno }} {{ empleado.materno }}</span>
+<span class="fam-print-text">{{ empleado.paterno }} {{ empleado.materno }}</span>
 </ng-container>
 <ng-container *ngIf="!isPrintMode">
-<input type="text" [disabled]="!editable" class="campo-credencial text-black text-left" style="font-size: 0.75rem; background: transparent; border: none; outline: none; padding-left: 5px; width: 100%;" [ngModel]="(empleado.paterno || '') + ' ' + (empleado.materno || '')" (ngModelChange)="separarApellidos($event)" placeholder="Apellidos">
+<input type="text" [disabled]="!editable" class="campo-credencial fam-input-text" [ngModel]="(empleado.paterno || '') + (empleado.materno ? ' ' + empleado.materno : '')" (ngModelChange)="separarApellidos($event)" placeholder="Apellidos">
 </ng-container>
 </div>
 
 <!-- NÚMERO DE EMPLEADO -->
-<div class="campo-num-empleado" style="position: absolute; top: 69%; left: 53%; width: 40%;">
+<div class="campo-num-empleado">
 <ng-container *ngIf="isPrintMode">
-<span style="color: #000000; font-size: 16px; font-family: 'NotoSans-Bold', Arial, sans-serif; font-weight: 700; display: block; text-align: left;">{{ empleado.num_empleado }}</span>
+<span class="fam-print-text-num-emp">{{ empleado.num_empleado }}</span>
 </ng-container>
 <ng-container *ngIf="!isPrintMode">
-<input type="text" [disabled]="!editable" class="campo-credencial text-left" style="color: #000000; font-size: 0.75rem; background: transparent; border: none; outline: none; padding-left: 5px; width: 100%;" [(ngModel)]="empleado.num_empleado" placeholder="No. Empleado">
+<input type="text" [disabled]="!editable" class="campo-credencial fam-input-text" [(ngModel)]="empleado.num_empleado" placeholder="No. Empleado">
 </ng-container>
 </div>
 
 <!-- FOTO DEL EMPLEADO -->
 <div class="campo-foto" 
- style="position: absolute; top: 25.5%; left: 27.2%; width: 45.4%; height: 31%; padding: 0;"
  [style.cursor]="isPrintMode ? 'default' : 'pointer'"
  (click)="abrirCamara()">
 <!-- Modo impresión: usa background-image para mejor compatibilidad con html2canvas -->
 <div *ngIf="empleado.foto && isPrintMode" 
- [style.background-image]="'url(' + empleado.foto + ')'"
- style="width: 100%; height: 100%; background-size: cover; background-position: center top; border-radius: 2px; background-repeat: no-repeat;">
+ class="foto-print"
+ [style.background-image]="'url(' + empleado.foto + ')'">
 </div>
 <!-- Modo visualización-->
 <img *ngIf="empleado.foto && !isPrintMode" 
  [src]="empleado.foto" 
- style="width: 100%; height: 100%; object-fit: cover; object-position: center top; border-radius: 2px; display: block;">
+ class="foto-view" style="width: 100%; height: 100%; object-fit: cover; object-position: center top; border-radius: 2px; display: block;">
 
 <div *ngIf="!empleado.foto && !isPrintMode" 
- class="text-muted text-center d-flex flex-column align-items-center justify-content-center h-100"
- style="border: 2px dashed rgba(114, 47, 55, 0.4); border-radius: 4px; background: rgba(255,255,255,0.8);">
+ class="text-muted text-center d-flex flex-column align-items-center justify-content-center h-100 foto-empty">
 <i class="fas fa-camera fa-2x mb-1" style="color: rgba(114, 47, 55, 0.5);"></i>
 <small style="font-size: 0.65rem; color: rgba(114, 47, 55, 0.6);">Capturar foto</small>
 </div>
@@ -123,88 +119,85 @@
 <!-- ======================= REVERSO - CREDENCIAL HACIENDA ======================= -->
 			<div *ngIf="vistaCredencial === 'reverso'" 
 				 class="credencial-reverso mx-auto"
-				 [class.print-mode]="isPrintMode"
-				 [ngStyle]="isPrintMode ? {'width': '638px', 'height': '1001px', 'border-radius': '0', 'box-shadow': 'none', 'margin': '0'} : {'width': '400px', 'height': '628px', 'border-radius': '10px', 'box-shadow': '0 8px 20px rgba(0,0,0,0.2)'}"
-				 style="position: relative; overflow: hidden;">
+				 [class.print-mode]="isPrintMode">
                 
 				<!-- Imagen de fondo -->
 				<img src="img/reverso_familiar.jpg" 
 					 alt="Credencial Reverso" 
-					 style="width: 100%; height: 100%; object-fit: fill; position: absolute; top:1%; left: 0; ">
+					 class="credencial-bg">
                 
 				<!-- Campos editables posicionados sobre la imagen -->
-				<div class="campos-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+				<div class="campos-overlay">
                                         
 <!-- CÓDIGO QR EN EL REVERSO -->
-<div class="campo-qr-reverso" style="position: absolute; top: 11%; left: 34%; width: 42%; aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; ">
+<div class="campo-qr-reverso">
 <img *ngIf="qrCodeDataUrl" 
  [src]="qrCodeDataUrl" 
- style="max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain;"
+ style="width: 100%; height: 100%; object-fit: contain;"
  alt="QR Code">
 <div *ngIf="!qrCodeDataUrl && !isPrintMode"
- class="text-muted text-center"
- style="font-size: 0.6rem; color: white !important;">
+ class="text-muted text-center fam-qr-empty">
 <i class="fas fa-qrcode"></i><br>QR
 </div>
 </div>
 
 <!-- NOMBRE (EN EL REVERSO) -->
-<div class="campo-nombre-reverso" style="position: absolute; top: 43.5%; left: 63%; width: 33%;">
+<div class="campo-nombre-reverso">
 <ng-container *ngIf="isPrintMode">
-<span style="color: white; font-size: 14px; font-family: 'NotoSans-Bold', Arial, sans-serif; display: block; text-align: left;">{{ empleado.nombre_reverso || empleado.nombre }}</span>
+<span class="fam-print-text-white-bold">{{ empleado.nombre_reverso || empleado.nombre }}</span>
 </ng-container>
 <ng-container *ngIf="!isPrintMode">
-<input type="text" [disabled]="!editable" class="campo-credencial" style="color: white; font-size: 0.70rem; background: transparent; width: 100%; padding-left: 5px; border: none; outline: none;" [(ngModel)]="empleado.nombre_reverso" placeholder="Nombre (Manual)">
+<textarea [disabled]="!editable" class="campo-credencial fam-input-text-white" rows="2" [(ngModel)]="empleado.nombre_reverso" placeholder="Nombre"></textarea>
 </ng-container>
 </div>
 
 <!-- VIVIENDA -->
-<div class="campo-vivienda" style="position: absolute; top: 49%; left: 32%; width: 60%;">
+<div class="campo-vivienda">
 <ng-container *ngIf="isPrintMode">
-<span style="color: white; font-size: 14px; font-family: 'NotoSans', Arial, sans-serif; display: block; text-align: left;">{{ empleado.vivienda }}</span>
+<span class="fam-print-text-white">{{ empleado.vivienda }}</span>
 </ng-container>
 <ng-container *ngIf="!isPrintMode">
-<input type="text" [disabled]="!editable" class="campo-credencial" style="color: white; font-size: 0.7rem; background: transparent; width: 100%; padding-left: 5px; border: none; outline: none;" [(ngModel)]="empleado.vivienda" placeholder="Vivienda">
+<input type="text" [disabled]="!editable" class="campo-credencial fam-input-text-white" [(ngModel)]="empleado.vivienda" placeholder="Vivienda">
 </ng-container>
 </div>
 
 <!-- MARCA -->
-<div class="campo-marca" style="position: absolute; top: 60%; left: 26%; width: 22%;">
+<div class="campo-marca">
 <ng-container *ngIf="isPrintMode">
-<span style="color: white; font-size: 14px; font-family: 'NotoSans', Arial, sans-serif; display: block; text-align: left;">{{ empleado.marca }}</span>
+<span class="fam-print-text-white">{{ empleado.marca }}</span>
 </ng-container>
 <ng-container *ngIf="!isPrintMode">
-<input type="text" [disabled]="!editable" class="campo-credencial" style="color: white; font-size: 0.7rem; background: transparent; width: 100%; padding-left: 5px; border: none; outline: none;" [(ngModel)]="empleado.marca" placeholder="Marca">
+<input type="text" [disabled]="!editable" class="campo-credencial fam-input-text-white" [(ngModel)]="empleado.marca" placeholder="Marca">
 </ng-container>
 </div>
 
 <!-- MODELO -->
-<div class="campo-modelo" style="position: absolute; top: 60%; left: 71%; width: 23%;">
+<div class="campo-modelo">
 <ng-container *ngIf="isPrintMode">
-<span style="color: white; font-size: 14px; font-family: 'NotoSans', Arial, sans-serif; display: block; text-align: left;">{{ empleado.modelo }}</span>
+<span class="fam-print-text-white">{{ empleado.modelo }}</span>
 </ng-container>
 <ng-container *ngIf="!isPrintMode">
-<input type="text" [disabled]="!editable" class="campo-credencial" style="color: white; font-size: 0.7rem; background: transparent; width: 100%; padding-left: 5px; border: none; outline: none;" [(ngModel)]="empleado.modelo" placeholder="Modelo">
+<input type="text" [disabled]="!editable" class="campo-credencial fam-input-text-white" [(ngModel)]="empleado.modelo" placeholder="Modelo">
 </ng-container>
 </div>
 
 <!-- COLOR -->
-<div class="campo-color" style="position: absolute; top: 63.5%; left: 26%; width: 22%;">
+<div class="campo-color">
 <ng-container *ngIf="isPrintMode">
-<span style="color: white; font-size: 14px; font-family: 'NotoSans', Arial, sans-serif; display: block; text-align: left;">{{ empleado.color }}</span>
+<span class="fam-print-text-white">{{ empleado.color }}</span>
 </ng-container>
 <ng-container *ngIf="!isPrintMode">
-<input type="text" [disabled]="!editable" class="campo-credencial" style="color: white; font-size: 0.7rem; background: transparent; width: 100%; padding-left: 5px; border: none; outline: none;" [(ngModel)]="empleado.color" placeholder="Color">
+<input type="text" [disabled]="!editable" class="campo-credencial fam-input-text-white" [(ngModel)]="empleado.color" placeholder="Color">
 </ng-container>
 </div>
 
 <!-- PLACAS -->
-<div class="campo-placas" style="position: absolute; top: 63.5%; left: 70%; width: 23%;">
+<div class="campo-placas">
 <ng-container *ngIf="isPrintMode">
-<span style="color: white; font-size: 14px; font-family: 'NotoSans', Arial, sans-serif; display: block; text-align: left;">{{ empleado.placas }}</span>
+<span class="fam-print-text-white">{{ empleado.placas }}</span>
 </ng-container>
 <ng-container *ngIf="!isPrintMode">
-<input type="text" [disabled]="!editable" class="campo-credencial" style="color: white; font-size: 0.7rem; background: transparent; width: 100%; padding-left: 5px; border: none; outline: none;" [(ngModel)]="empleado.placas" placeholder="Placas">
+<input type="text" [disabled]="!editable" class="campo-credencial fam-input-text-white" [(ngModel)]="empleado.placas" placeholder="Placas">
 </ng-container>
 </div>
 </div>

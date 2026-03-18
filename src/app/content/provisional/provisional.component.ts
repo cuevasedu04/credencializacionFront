@@ -20,7 +20,7 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy, O
 
   // En provisional, el empleado se inicializa vacío
   @Input() empleado: any = null;
-  
+
   // Siempre es editable en provisional
   @Input() editable: boolean = true;
   @Input() isPrintMode: boolean = false;
@@ -32,7 +32,7 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy, O
   @ViewChild('modalFirma', { static: false }) modalFirma!: TemplateRef<any>;
   @ViewChild('videoElement') videoElement!: ElementRef;
   @ViewChild('canvasElement') canvasElement!: ElementRef;
-  
+
   // Referencia al Canvas de Firma (dentro del modal)
   @ViewChild('firmaCanvas') firmaCanvas!: ElementRef<HTMLCanvasElement>;
 
@@ -50,19 +50,19 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy, O
   protected esFamiliar = false;
 
   // Variables Camara
-  dispositivosVideo: MediaDeviceInfo[] = []; 
+  dispositivosVideo: MediaDeviceInfo[] = [];
   camaraSeleccionadaId: string = '';
-  
+
   // Variables para la Firma
   private cx!: CanvasRenderingContext2D | null;
   private isDrawing = false;
-  
+
   // Variables Wacom
   private wacomSub: Subscription | null = null;
   public isWacomSupported = false;
   public wacomConnected = false;
   public debugInfo: string = 'Wacom: Desconectado';
-  
+
   // Suavizado
   private lastX = 0;
   private lastY = 0;
@@ -121,7 +121,7 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy, O
         eladia: '',
         fecha_registro: ''
     };
-    
+
     this.inicializarFechaExpedicion();
     this.asignarFolioSiguiente();
   }
@@ -200,7 +200,6 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy, O
 
     // Construir el texto del QR
     const datosQR = [
-      this.qrPrefix,
       this.empleado.num_empleado || '',
       this.empleado.rfc || '',
       this.empleado.curp || '',
@@ -239,13 +238,16 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy, O
 
   separarApellidos(valor: string) {
     if (!this.empleado) return;
-    const partes = (valor || '').trim().split(/\s+/);
-    if (partes.length >= 2) {
-      this.empleado.paterno = partes[0];
-      this.empleado.materno = partes.slice(1).join(' ');
-    } else {
+    if (!valor.trim().includes(' ')) {
       this.empleado.paterno = valor;
       this.empleado.materno = '';
+    } else {
+      const valorTrimmedStart = valor.trimStart();
+      const firstSpaceIndex = valorTrimmedStart.indexOf(' ');
+      if (firstSpaceIndex !== -1) {
+        this.empleado.paterno = valorTrimmedStart.substring(0, firstSpaceIndex);
+        this.empleado.materno = valorTrimmedStart.substring(firstSpaceIndex + 1);
+      }
     }
   }
 
@@ -272,19 +274,19 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy, O
 
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       try {
-        const constraints = { 
-            video: deviceId ? { deviceId: { exact: deviceId } } : true 
+        const constraints = {
+            video: deviceId ? { deviceId: { exact: deviceId } } : true
         };
 
         this.stream = await navigator.mediaDevices.getUserMedia(constraints);
-        
+
         setTimeout(() => {
           if(this.videoElement) this.videoElement.nativeElement.srcObject = this.stream;
         }, 100);
 
         const devices = await navigator.mediaDevices.enumerateDevices();
         this.dispositivosVideo = devices.filter(d => d.kind === 'videoinput');
-        
+
         const track = this.stream?.getVideoTracks()[0];
         if (track) {
             const settings = track.getSettings();
@@ -316,11 +318,11 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy, O
   onArchivoSeleccionado(event: any) {
     const file = event.target.files[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) { 
+      if (file.size > 5 * 1024 * 1024) {
         this.utils.MuestrasToast(TipoToast.Warning, 'La imagen es muy pesada. Máximo 5MB.');
         return;
       }
-      
+
       const reader = new FileReader();
       reader.onload = () => {
         this.fotoCapturada = reader.result as string;
@@ -353,17 +355,17 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy, O
   // ==========================================
   // LÓGICA DE FIRMA
   // ==========================================
-  
+
   async conectarWacom() {
     this.wacomConnected = await this.wacomService.conectar();
-    
+
     if (this.wacomConnected) {
       if (this.wacomSub) this.wacomSub.unsubscribe();
-      
+
       this.wacomSub = this.wacomService.getPenData().subscribe((data) => {
         this.procesarTrazoWacom(data);
       });
-      
+
       this.utils.MuestrasToast(TipoToast.Success, 'Tableta Wacom Conectada');
     } else {
        this.utils.MuestrasToast(TipoToast.Error, 'No se pudo conectar la tableta. Verifique conexión USB y permisos.');
@@ -374,10 +376,10 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy, O
     if (!this.cx || !data) return;
     const isPenDown = data.pressure > 0;
     const tabletW = 9750;
-    const tabletH = 6100; 
+    const tabletH = 6100;
 
     const canvasEl = this.firmaCanvas.nativeElement;
-    
+
     // Mapeo de coordenadas
     const x = (data.x / tabletW) * canvasEl.width;
     const y = (data.y / tabletH) * canvasEl.height;
@@ -399,7 +401,7 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy, O
        }
     } else {
        if (this.isDrawing) {
-           this.cx.lineTo(this.lastX, this.lastY); 
+           this.cx.lineTo(this.lastX, this.lastY);
            this.cx.stroke();
            this.isDrawing = false;
            this.cx.closePath();
@@ -431,13 +433,13 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy, O
   inicializarCanvasFirma() {
     const canvasEl = this.firmaCanvas.nativeElement;
     const scale = Math.max(window.devicePixelRatio || 1, 1);
-    
+
     this.cx = canvasEl.getContext('2d', { desynchronized: true });
     canvasEl.width = canvasEl.offsetWidth * scale;
     canvasEl.height = canvasEl.offsetHeight * scale;
 
     if (this.cx) {
-      this.cx.lineWidth = 3 * scale; 
+      this.cx.lineWidth = 3 * scale;
       this.cx.lineCap = 'round';
       this.cx.lineJoin = 'round';
       this.cx.strokeStyle = '#000000';
@@ -606,7 +608,7 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy, O
       img.src = dataUrl;
     });
   }
-  
+
   startDrawing(event: MouseEvent | TouchEvent): void {
     if (this.wacomConnected || !this.cx) return;
     this.isDrawing = true;
@@ -616,15 +618,15 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy, O
   }
 
   moveDrawing(event: MouseEvent | TouchEvent): void {
-    if(this.wacomConnected) return; 
+    if(this.wacomConnected) return;
     if (!this.isDrawing) return;
     const { x, y } = this.getCoordinates(event);
     this.draw(x, y);
-    event.preventDefault(); 
+    event.preventDefault();
   }
 
   stopDrawing(): void {
-    if(this.wacomConnected) return; 
+    if(this.wacomConnected) return;
     if (!this.isDrawing) return;
     this.isDrawing = false;
     this.cx?.closePath();
@@ -641,7 +643,7 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy, O
   private getCoordinates(event: MouseEvent | TouchEvent): { x: number, y: number } {
     const canvasEl = this.firmaCanvas.nativeElement;
     const rect = canvasEl.getBoundingClientRect();
-    
+
     let clientX, clientY;
     if (event instanceof TouchEvent) {
       clientX = event.touches[0].clientX;
@@ -681,7 +683,7 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy, O
 
   async guardarEnrolamiento() {
     if (!this.empleado) return;
-    
+
     if(!this.empleado.foto || (!this.empleado.firma && !this.esFamiliar)) {
       this.utils.MuestrasToast(TipoToast.Warning, this.esFamiliar ? 'Falta capturar foto' : 'Falta capturar foto o firma');
       return;
@@ -705,7 +707,7 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy, O
 
     // Construir campo apellidos (concatenación de paterno y materno) y asegurar RFC
     const apellidosConcatenados = `${this.empleado.paterno || ''} ${this.empleado.materno || ''}`.trim();
-    
+
     // Regla de Negocio: Si no hay RFC, usar CURP
     let rfcFinal = this.empleado.rfc;
     if ((!rfcFinal || rfcFinal.trim() === '') && this.empleado.curp) {
@@ -723,19 +725,19 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy, O
         num_empleado: this.empleado.num_empleado,
         adscripcion: this.empleado.adscripcion,
         puesto: this.empleado.puesto,
-        
+
         // Identificadores
         curp: this.empleado.curp,
-        rfc: rfcFinal, 
+        rfc: rfcFinal,
         folio: this.empleado.folio,
-        
+
         // Fechas
         fin_vig: this.empleado.fin_vig || null,
         inicio_vig: this.empleado.inicio_vig || null,
         eladia: this.empleado.eladia || null,
         fecha_expedicion: fechaExpedicionFormateada,
         fecha_enrolamiento: fechaEnrolamientoActual,
-        
+
         // Imagenes
         foto: this.empleado.foto,
         firma: this.empleado.firma,
@@ -754,13 +756,18 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy, O
 
     if (this.esFamiliar) {
       payload.folio_familiares = this.empleado.folio;
+      payload.nombre_reverso = this.empleado.nombre_reverso;
+      payload.vivienda = this.empleado.vivienda;
+      payload.marca = this.empleado.marca;
+      payload.modelo = this.empleado.modelo;
+      payload.color = this.empleado.color;
+      payload.placas = this.empleado.placas;
     }
-    
     // Limpieza final de campos opcionales
     if (!payload.rfc) delete payload.rfc;
     if (!payload.curp) delete payload.curp;
     if (!payload.layout_credencial) delete payload.layout_credencial;
-    if (!payload.materno) payload.materno = '';   
+    if (!payload.materno) payload.materno = '';
 
     console.log(`Enviando payload ${this.tipoCredencialLabel}:`, payload);
 
