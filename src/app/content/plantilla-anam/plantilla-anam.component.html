@@ -1,6 +1,6 @@
 <!-- Para calibrar: agrega `modo-calibracion` al class de este div -->
 <div class="anam-template container p-4 h-100 d-flex flex-column animate__animated animate__fadeIn"
-	[ngClass]="obtenerClaseLayout()">
+	[ngClass]="[obtenerClaseLayout(), getLayoutActual() === 'ANAM_2025' ? 'layout-anam-2025' : '']">
 
 <header *ngIf="mostrarHeader" class="bg-white border-bottom mb-4 rounded shadow-sm">
 		<div class="container py-3 px-4">
@@ -341,6 +341,23 @@
 						<i *ngIf="!empleado.firma" class="fas fa-times-circle text-danger"></i>
 					</div>
 				</div>
+			</div>
+
+			<!-- Botón Guardar -->
+			<div class="mt-4" *ngIf="!isPrintMode">
+				<button class="btn btn-success btn-lg btn-block w-100"
+						(click)="guardarEnrolamiento()"
+						[disabled]="!empleado.foto || !empleado.firma || guardando">
+					<span *ngIf="!guardando">
+						<i class="fas fa-save mr-2"></i> Guardar y Terminar
+					</span>
+					<span *ngIf="guardando">
+						<i class="fas fa-spinner fa-spin mr-2"></i> Guardando...
+					</span>
+				</button>
+				<small class="text-muted d-block text-center mt-2">
+					Se requiere foto y firma para completar el enrolamiento
+				</small>
 			</div>
 
 		<!-- Selector de Diseño de Plantilla -->
