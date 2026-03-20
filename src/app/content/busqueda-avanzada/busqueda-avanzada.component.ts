@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, TemplateRef, ElementRef } from '@angular/core';
+﻿import { Component, OnInit, OnDestroy, ViewChild, TemplateRef, ElementRef } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ColDef, GridApi, GridReadyEvent, ValueFormatterParams } from 'ag-grid-community';
@@ -24,7 +24,7 @@ import { firstValueFrom } from 'rxjs';
   providers: [FechaMexicoPipe] 
 })
 export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
-  // Configuración de AG-Grid
+  // ConfiguraciÃ³n de AG-Grid
   private gridApi!: GridApi;
   
   // Datos
@@ -35,15 +35,17 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
   startDate: string = '';
   endDate: string = '';
   
-  // Variables para modal y visualización
+  // Variables para modal y visualizaciÃ³n
   @ViewChild('modalVisualizar') modalVisualizar!: TemplateRef<any>;
   empleadoSeleccionado: any = null;
   esEditable: boolean = false;
+  activeTab: 'busqueda' | 'impresion' = 'busqueda';
+  
   fotoFirmaLoading: boolean = false;
 
   private readonly apiFotoFirmaUrl = 'http://127.0.0.1:8080/api/foto-firma/';
   
-  // Variables para impresión
+  // Variables para impresiÃ³n
   empleadoImprimir: any = null;
   @ViewChild('plantillaModalAnam') plantillaModalAnam!: PlantillaAnamComponent;
   @ViewChild('plantillaModalNuevoLaredo') plantillaModalNuevoLaredo!: ProvisionalComponent;
@@ -53,7 +55,7 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
   @ViewChild('plantillaImprimirFamiliar') plantillaImprimirFamiliar!: FamiliarComponent;
   @ViewChild('printContainer') printContainer!: ElementRef;
   
-  // Paginación y Estado
+  // PaginaciÃ³n y Estado
   currentPage: number = 1;
   paginationPageSize: number = 50;
   totalRecords: number = 0;
@@ -62,7 +64,7 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
   
   showColumnPanel: boolean = false;
   
-  // Configuración por defecto
+  // ConfiguraciÃ³n por defecto
   defaultColDef: ColDef = {
     sortable: true,
     filter: true,
@@ -92,7 +94,7 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {}
 
-  // formateador para celdas vacías
+  // formateador para celdas vacÃ­as
   emptyCellFormatter(params: ValueFormatterParams): string {
     if (params.value === null || params.value === undefined || params.value === '') {
       return '---'; 
@@ -124,7 +126,7 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
       textCol({ headerName: 'Apellido Paterno', field: 'paterno', width: 150, hide: false, lockVisible: true }),
       textCol({ headerName: 'Apellido Materno', field: 'materno', width: 150, hide: false, lockVisible: true }),
       textCol({ headerName: 'Puesto', field: 'puesto', width: 200, hide: false }),
-      textCol({ headerName: 'Adscripción', field: 'adscripcion', width: 220, hide: false }),
+      textCol({ headerName: 'AdscripciÃ³n', field: 'adscripcion', width: 220, hide: false }),
       textCol({ headerName: 'Folio', field: 'folio', width: 120, hide: false }),
       {
         headerName: 'Tipo',
@@ -145,10 +147,10 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
           if (params.value === 1) return { ...baseStyle, color: '#1c5f3fff' }; 
           return { ...baseStyle, color: '#6d2626ff' };
         },
-        valueFormatter: (params) => params.value === 1 ? 'Sí' : 'No'
+        valueFormatter: (params) => params.value === 1 ? 'SÃ­' : 'No'
       },
       { 
-        headerName: 'Fecha Expedición', 
+        headerName: 'Fecha ExpediciÃ³n', 
         field: 'fecha_expedicion', 
         width: 160, 
         hide: false,
@@ -302,6 +304,17 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
   loadInitialData(): void { 
     this.buscarCredenciales(); 
   }
+
+
+  selectTab(tab: 'busqueda' | 'impresion'): void {
+    if (this.activeTab !== tab) {
+      this.activeTab = tab;
+      this.buscarCredenciales();
+    }
+  }
+
+
+
   
   applyFilter(): void { 
     if (this.startDate && this.endDate) {
@@ -328,7 +341,11 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
     if (this.startDate) filtros.fecha_registro_desde = this.startDate;
     if (this.endDate) filtros.fecha_registro_hasta = this.endDate;
 
-    this.enrolamientoService.busquedaAvanzada(filtros).subscribe({
+    const requestObservable = this.activeTab === 'busqueda' 
+      ? this.enrolamientoService.busquedaAvanzada(filtros)
+      : this.enrolamientoService.pendientesDeImprimir(filtros);
+
+    requestObservable.subscribe({
       next: (response: any) => {
         this.rowData = response || [];
         this.totalRecords = this.rowData.length;
@@ -523,7 +540,7 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
     const target = printRoot?.querySelector(`${selectorPlantilla} ${selectorCredencial}`) as HTMLElement | null;
 
     if (!host || !target) {
-      throw new Error(`No se encontró el nodo para captura: ${selectorCredencial}`);
+      throw new Error(`No se encontrÃ³ el nodo para captura: ${selectorCredencial}`);
     }
 
     const hostRect = host.getBoundingClientRect();
@@ -550,7 +567,7 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
 
   async imprimirCredencial(persona: any) {
     if (!persona.num_empleado) {
-      this.utils.MuestrasToast(TipoToast.Warning, 'No se puede imprimir: Falta número de empleado.');
+      this.utils.MuestrasToast(TipoToast.Warning, 'No se puede imprimir: Falta nÃºmero de empleado.');
       return;
     }
 
@@ -607,7 +624,7 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
 
                 const element = printRoot?.querySelector(`${selectorPlantilla} .credencial-frente`) as HTMLElement | null;
                 if (!element) {
-                  throw new Error('No se encontró el frente de la plantilla para impresión');
+                  throw new Error('No se encontrÃ³ el frente de la plantilla para impresiÃ³n');
                 }
                 const imgDataFront = await htmlToImage.toPng(element, options); 
                 
@@ -620,7 +637,7 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
 
                 const elementReverso = printRoot?.querySelector(`${selectorPlantilla} .credencial-reverso`) as HTMLElement | null;
                 if (!elementReverso) {
-                  throw new Error('No se encontró el reverso de la plantilla para impresión');
+                  throw new Error('No se encontrÃ³ el reverso de la plantilla para impresiÃ³n');
                 }
                 const imgDataBack = await htmlToImage.toPng(elementReverso, options);
                 
