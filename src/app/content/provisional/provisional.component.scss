@@ -31,7 +31,15 @@
     padding: 2px 4px;
     margin: 0;
     transition: all 0.2s;
-    
+
+    &[rows] {
+        resize: none;
+        overflow: hidden;
+        height: auto;
+        min-height: 1.5em;
+        line-height: 1.1;
+    }
+
     &:hover:not(:disabled), &:focus {
         border-bottom-color: rgba(255,255,255,0.5);
         background: rgba(255,255,255,0.2);
@@ -106,8 +114,8 @@
     height: 100%;
     
     // Front fields
-    .campo-nombre { position: absolute; top: 28.1%; left: 4%; width: 44%; ::placeholder { color: rgba(0,0,0,0.5); } }
-    .campo-apellidos { position: absolute; top: 28.1%; left: 50%; width: 52%; ::placeholder { color: rgba(0,0,0,0.5); } }
+    .campo-nombre { position: absolute; top: 28.8%; left: 4%; width: 44%; ::placeholder { color: rgba(0,0,0,0.5); } }
+    .campo-apellidos { position: absolute; top: 28.8%; left: 50%; width: 52%; ::placeholder { color: rgba(0,0,0,0.5); } }
     .campo-foto { 
         position: absolute; top: 36.8%; left: 7.2%; width: 40.3%; height: 33.1%; padding: 1.5px;
         
@@ -121,26 +129,29 @@
             border: 2px dashed rgba(114, 47, 55, 0.4); border-radius: 4px; background: rgba(255,255,255,0.8);
         }
     }
-    .campo-num-empleado { position: absolute; top: 38.5%; right: 3.2%; width: 45%; ::placeholder { color: rgba(0,0,0,0.5); } }
+    .campo-num-empleado { position: absolute; top: 39%; right: 3.2%; width: 45%; ::placeholder { color: rgba(0,0,0,0.5); } }
     .campo-adscripcion { position: absolute; top: 57%; right: 3.2%; width: 45%; ::placeholder { color: rgba(0,0,0,0.5); } }
     .campo-puesto { position: absolute; top: 48.2%; right: 3.6%; width: 45%; ::placeholder { color: rgba(0,0,0,0.5); } }
-    .campo-firma { 
-        position: absolute; bottom: 12.8%; left: 7%; width: 45%; height: 19%; 
-        .firma-img { width: 96%; height: 96%; object-fit: contain; object-position: center; display: block; margin: 2% auto 0; transform: translateY(-8%); }
+    .campo-firma {
+        position: absolute; bottom: 18.8%; left: 6.5%; width: 45%; height: 10%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        .firma-img { width: 100%; height: 100%; object-fit: contain; object-position: center; display: block; margin: 0; padding: 0; transform: none; }
     }
-    .label-firma { 
-        position: absolute; bottom: 19.45%; left: 8.2%; width: 42%; height: 8%; 
+    .label-firma {
+        position: absolute; bottom: 20%; left: 8.1%; width: 42%; height: 8%; 
         .firma-empty { border: 2px dashed rgba(114, 47, 55, 0.3); border-radius: 4px; background: rgba(255,255,255,0.7); }
     }
     .campo-qr { 
         position: absolute; bottom: 16%; right: 12.35%; width: 26.6%; aspect-ratio: 1 / 1; 
         .qr-img { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; }
     }
-    .campo-vigencia { position: absolute; bottom: 9.1%; right: 9.5%; width: 25%; }
-    .campo-folio { position: absolute; bottom: 3.6%; right: 19.7%; width: 15%; }
+    .campo-vigencia { position: absolute; bottom: 9.5%; right: 9.3%; width: 25%; }
+    .campo-folio { position: absolute; bottom: 4%; right: 19.7%; width: 15%; }
     
     // Back fields
-    .campo-curp { position: absolute; bottom: 65%; left: 48.7%; transform: translateX(-50%); width: 80%; text-align: center; ::placeholder { color: rgba(0,0,0,0.5); } }
+    .campo-curp { position: absolute; bottom: 65%; left: 49.1%; transform: translateX(-50%); width: 80%; text-align: center; ::placeholder { color: rgba(0,0,0,0.5); } }
     .label-fecha { position: absolute; bottom: 3.8%; left: 2.5%; width: 45%; }
     .campo-fecha-expedicion { position: absolute; bottom: 1%; left: 10.7%; width: 35%; color: #ffffff00;}
 }
@@ -168,7 +179,7 @@
 }
 
 .prov-print-nombre, .prov-print-apellidos, .prov-print-num-empleado, .prov-print-adscripcion, .prov-print-puesto {
-    font-size: 21px;
+    font-size: 22px;
 }
 
 .prov-print-vigencia, .prov-print-folio, .prov-print-fecha-exp {
@@ -235,6 +246,10 @@
 .credencial-reverso.print-mode .campos-overlay span {
     font-family: 'NotoSans-Black', Arial, sans-serif !important;
     font-weight: 900 !important;
+    word-wrap: break-word;
+    word-break: break-word;
+    white-space: pre-wrap;
+    line-height: 1.1;
 }
 
 .foto-container, .firma-container {

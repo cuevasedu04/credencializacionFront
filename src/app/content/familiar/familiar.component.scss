@@ -13,7 +13,7 @@
 
     // Familiar Back Fields
     .campo-qr-reverso { position: absolute; top: 11.8%; left: 28.1%; width: 44.5%; height: 28.3%; display: flex; align-items: center; justify-content: center; }
-    .campo-nombre-reverso { position: absolute; top: 42.4%; left: 53%; width: 33%; }
+    .campo-nombre-reverso { position: absolute; top: 41.7%; left: 53%; width: 33%; }
     .campo-vivienda { position: absolute; top: 47.2%; left: 28%; width: 60%; }
     .campo-marca { position: absolute; top: 58%; left: 24%; width: 22%; }
     .campo-modelo { position: absolute; top: 58%; left: 68.8%; width: 23%; }
@@ -26,23 +26,27 @@
 .credencial-reverso.print-mode .campos-overlay span.fam-print-text {
     font-family: 'NotoSans-Black', Arial, sans-serif !important;
     font-weight: 900 !important;
-    font-size: 18px;
+    font-size: 22px;
     color: #000000;
     display: block;
     text-align: left;
-    padding-top: 8px;
+    padding-top: 9px;
     padding-left: 6px;
+    word-wrap: break-word;
+    word-break: break-word;
+    white-space: pre-wrap;
+    line-height: 1.1;
 }
 
 .credencial-frente.print-mode .campos-overlay span.fam-print-text-num-emp,
 .credencial-reverso.print-mode .campos-overlay span.fam-print-text-num-emp {
     font-family: 'NotoSans-Black', Arial, sans-serif !important;
     font-weight: 900 !important;
-    font-size: 18px;
+    font-size: 22px;
     color: #000000;
     display: block;
     text-align: left;
-    padding-top: 8px;
+    padding-top: 9px;
     padding-left: 6px;
 }
 
@@ -50,7 +54,7 @@
 .credencial-reverso.print-mode .campos-overlay span.fam-print-text-white-bold {
     font-family: 'NotoSans-Black', Arial, sans-serif !important;
     font-weight: 900 !important;
-    font-size: 18px;
+    font-size: 22px;
     color: #ffffff;
     display: block;
     text-align: left;
@@ -58,7 +62,7 @@
     word-break: break-word;
     white-space: pre-wrap;
     line-height: 1.1;
-    padding-top: 8px;
+    padding-top: 9px;
     padding-left: 6px;
 }
 
@@ -66,17 +70,25 @@
 .credencial-reverso.print-mode .campos-overlay span.fam-print-text-white {
     font-family: 'NotoSans-Black', Arial, sans-serif !important;
     font-weight: 900 !important;
-    font-size: 18px;
+    font-size: 22px;
     color: #ffffff;
     display: block;
     text-align: left;
-    padding-top: 8px;
+    padding-top: 9px;
     padding-left: 6px;
 }
 
 .fam-input-text {
     font-size: 0.75rem;
     color: #000000;
+
+    &[rows] {
+        resize: none;
+        overflow: hidden;
+        height: auto;
+        min-height: 1.5em;
+        line-height: 1.1;
+    }
 }
 
 .fam-input-text-white {

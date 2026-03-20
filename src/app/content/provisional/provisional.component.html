@@ -70,10 +70,11 @@
                             <span class="prov-print-text prov-print-nombre">{{ empleado.nombre }}</span>
                         </ng-container>
                         <ng-container *ngIf="!isPrintMode">
-                            <input type="text" [disabled]="!editable" 
-                                   class="campo-credencial prov-input-nombre" 
-                                   [(ngModel)]="empleado.nombre" 
-                                   placeholder="Nombre">
+                            <textarea [disabled]="!editable"
+                                   class="campo-credencial prov-input-nombre"
+                                   rows="2"
+                                   [(ngModel)]="empleado.nombre"
+                                   placeholder="Nombre"></textarea>
                         </ng-container>
                     </div>
 
@@ -83,16 +84,17 @@
                             <span class="prov-print-text prov-print-apellidos">{{ empleado.paterno }} {{ empleado.materno }}</span>
                         </ng-container>
                         <ng-container *ngIf="!isPrintMode">
-                            <input type="text" [disabled]="!editable" 
-                                   class="campo-credencial prov-input-apellidos" 
+                            <textarea [disabled]="!editable"
+                                   class="campo-credencial prov-input-apellidos"
+                                   rows="2"
                                    [ngModel]="(empleado.paterno || '') + (empleado.materno ? ' ' + empleado.materno : '')"
                                    (ngModelChange)="separarApellidos($event)"
-                                   placeholder="Apellidos">
+                                   placeholder="Apellidos"></textarea>
                         </ng-container>
                     </div>
 
                     <!-- FOTO DEL EMPLEADO -->
-                    <div class="campo-foto" 
+                    <div class="campo-foto"
                          [style.cursor]="isPrintMode ? 'default' : 'pointer'"
                          (click)="abrirCamara()">
                         
@@ -428,3 +430,5 @@
 </ng-template>
 
     </div>
+
+

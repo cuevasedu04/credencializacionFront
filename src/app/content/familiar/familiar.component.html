@@ -69,7 +69,7 @@
 <span class="fam-print-text">{{ empleado.nombre }}</span>
 </ng-container>
 <ng-container *ngIf="!isPrintMode">
-<input type="text" [disabled]="!editable" class="campo-credencial fam-input-text" [(ngModel)]="empleado.nombre" placeholder="Nombre">
+<textarea [disabled]="!editable" class="campo-credencial fam-input-text" rows="2" [(ngModel)]="empleado.nombre" placeholder="Nombre"></textarea>
 </ng-container>
 </div>
 
@@ -79,7 +79,7 @@
 <span class="fam-print-text">{{ empleado.paterno }} {{ empleado.materno }}</span>
 </ng-container>
 <ng-container *ngIf="!isPrintMode">
-<input type="text" [disabled]="!editable" class="campo-credencial fam-input-text" [ngModel]="(empleado.paterno || '') + (empleado.materno ? ' ' + empleado.materno : '')" (ngModelChange)="separarApellidos($event)" placeholder="Apellidos">
+<textarea [disabled]="!editable" class="campo-credencial fam-input-text" rows="2" [ngModel]="(empleado.paterno || '') + (empleado.materno ? ' ' + empleado.materno : '')" (ngModelChange)="separarApellidos($event)" placeholder="Apellidos"></textarea>
 </ng-container>
 </div>
 

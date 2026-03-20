@@ -85,31 +85,33 @@
 							<span class="anam-print-text anam-print-nombre" style="color: white;">{{ empleado.nombre }}</span>
 						</ng-container>
 						<ng-container *ngIf="!isPrintMode">
-							<input type="text" [disabled]="!editable" 
-								   class="campo-credencial anam-input-text anam-input-nombre" style="color: white;"
-								   [(ngModel)]="empleado.nombre" 
-								   placeholder="Nombre">
-						</ng-container>
-					</div>
+                                                        <textarea [disabled]="!editable"
+                                                               class="campo-credencial anam-input-text anam-input-nombre" style="color: white;"
+                                                               rows="2"
+                                                               [(ngModel)]="empleado.nombre"
+                                                               placeholder="Nombre"></textarea>
+                                                </ng-container>
+                                        </div>
 
-					<!-- APELLIDOS -->
-					<div class="campo-apellidos">
-						<ng-container *ngIf="isPrintMode">
-							<span class="anam-print-text anam-print-apellidos" style="color: white;">{{ empleado.paterno }} {{ empleado.materno }}</span>
-						</ng-container>
-						<ng-container *ngIf="!isPrintMode">
-							<input type="text" [disabled]="!editable" 
-								   class="campo-credencial anam-input-text anam-input-apellidos" style="color: white;" 
-								   [ngModel]="(empleado.paterno || '') + (empleado.materno ? ' ' + empleado.materno : '')"
-								   (ngModelChange)="separarApellidos($event)"
-								   placeholder="Apellidos">
-						</ng-container>
-					</div>
+                                        <!-- APELLIDOS -->
+                                        <div class="campo-apellidos">
+                                                <ng-container *ngIf="isPrintMode">
+                                                        <span class="anam-print-text anam-print-apellidos" style="color: white;">{{ empleado.paterno }} {{ empleado.materno }}</span>
+                                                </ng-container>
+                                                <ng-container *ngIf="!isPrintMode">
+                                                        <textarea [disabled]="!editable"
+                                                               class="campo-credencial anam-input-text anam-input-apellidos" style="color: white;"
+                                                               rows="2"
+                                                               [ngModel]="(empleado.paterno || '') + (empleado.materno ? ' ' + empleado.materno : '')"
+                                                               (ngModelChange)="separarApellidos($event)"
+                                                               placeholder="Apellidos"></textarea>
+                                                </ng-container>
+                                        </div>
 
-					<!-- FOTO DEL EMPLEADO -->
-					<div class="campo-foto" 
-						 [class.campo-clickable]="!isPrintMode"
-						 (click)="abrirCamara()">
+                                        <!-- FOTO DEL EMPLEADO -->
+                                        <div class="campo-foto"
+                                                 [class.campo-clickable]="!isPrintMode"
+                                                 (click)="abrirCamara()">
                         
 						<!-- Modo impresión: usa background-image para mejor compatibilidad con html2canvas -->
 						<div *ngIf="empleado.foto && isPrintMode" 
@@ -485,3 +487,5 @@
 </ng-template>
 
 	</div>
+
+

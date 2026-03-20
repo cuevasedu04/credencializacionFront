@@ -37,7 +37,7 @@ export class CargaMasivaComponent implements OnInit {
   @ViewChild('modalDuplicados') modalDuplicados!: TemplateRef<any>;
   @ViewChild('modalResumen') modalResumen!: TemplateRef<any>;
 
-  private apiUrl = `/api-sicre/empleados-sig/`;
+  private apiUrl = `http://127.0.0.1:8080/api/empleados-sig/`;
 
   constructor(
     private http: HttpClient,
