@@ -126,7 +126,7 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
       textCol({ headerName: 'Apellido Paterno', field: 'paterno', width: 150, hide: false, lockVisible: true }),
       textCol({ headerName: 'Apellido Materno', field: 'materno', width: 150, hide: false, lockVisible: true }),
       textCol({ headerName: 'Puesto', field: 'puesto', width: 200, hide: false }),
-      textCol({ headerName: 'AdscripciÃ³n', field: 'adscripcion', width: 220, hide: false }),
+      textCol({ headerName: 'Adscripción', field: 'adscripcion', width: 220, hide: false }),
       textCol({ headerName: 'Folio', field: 'folio', width: 120, hide: false }),
       {
         headerName: 'Tipo',
@@ -147,10 +147,10 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
           if (params.value === 1) return { ...baseStyle, color: '#1c5f3fff' }; 
           return { ...baseStyle, color: '#6d2626ff' };
         },
-        valueFormatter: (params) => params.value === 1 ? 'SÃ­' : 'No'
+        valueFormatter: (params) => params.value === 1 ? 'Sí' : 'No'
       },
       { 
-        headerName: 'Fecha ExpediciÃ³n', 
+        headerName: 'Fecha Expedición', 
         field: 'fecha_expedicion', 
         width: 160, 
         hide: false,
