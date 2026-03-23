@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import * as CryptoJS from 'crypto-js';
 import { UtilsService } from './utils.service';
 import { TipoToast } from '../../api/entidades/enumeraciones';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class SessionService {
@@ -10,7 +12,8 @@ export class SessionService {
   private readonly secretKey = '4n4m@r00t-s3cr3t!';
 
   constructor(
-	private utils: UtilsService
+	private utils: UtilsService,
+    private modalService: NgbModal
   ) {}
 
   /**
@@ -33,6 +36,16 @@ export class SessionService {
    * Si caducó, la destruye y devuelve null.
    */
   getUsuario(): any | null {
+    if (!environment.production && environment.bypassLogin) {
+      return {
+        idUsuarioRol: environment.bypassRole || 4, // Toma el rol de environment.ts (por defecto 4)
+        nombres: 'Desarrollador',
+        apellidos: 'Dev',
+        tokenWs: 'dummy-token',
+        expiraEn: Date.now() + 1000 * 60 * 60 * 24 // No expira en 24h
+      };
+    }
+
     const encrypted = localStorage.getItem(this.sessionKey);
     if (!encrypted) return null;
 
@@ -63,7 +76,17 @@ export class SessionService {
 
   /** Borra la sesión */
   logout(): void {
+    if (!environment.production && environment.bypassLogin) {
+      console.warn('Bypass Login activado: Evitando el cierre de sesión forzado.');
+      return;
+    }
+
     localStorage.removeItem(this.sessionKey);
+    // Destruir modales y componentes flotantes
+    this.modalService.dismissAll();
+    
+    // Redirigir al login del SIORH
+    window.location.href = 'https://siorh-anam.ddns.net/auth/login';
   }
 
   /** Verifica sin eliminar si la sesión está expirada */

@@ -1,6 +1,6 @@
 <!-- Para calibrar: agrega `modo-calibracion` al class de este div -->
 <div class="anam-template container p-4 h-100 d-flex flex-column animate__animated animate__fadeIn"
-	[ngClass]="[obtenerClaseLayout(), getLayoutActual() === 'ANAM_2025' ? 'layout-anam-2025' : '']">
+	[ngClass]="[obtenerClaseLayout(), getLayoutActual() === 'ANAM_2025' ? 'layout-anam-2025' : '']">>
 
 <header *ngIf="mostrarHeader" class="bg-white border-bottom mb-4 rounded shadow-sm">
 		<div class="container py-3 px-4">
@@ -57,10 +57,8 @@
 			<div *ngIf="vistaCredencial === 'frente'" 
 				 class="credencial-frente mx-auto"
 				 [class.print-mode]="isPrintMode"
-				 [ngStyle]="isPrintMode ? {'width': '638px', 'height': '1001px', 'border-radius': '0', 'box-shadow': 'none', 'margin': '0'} : {'width': '400px', 'height': '628px', 'border-radius': '10px', 'box-shadow': '0 8px 20px rgba(0,0,0,0.2)'}"
-				>
-                
-				<!-- Imagen de fondo -->
+				 [ngClass]="[obtenerClaseLayout(), getLayoutActual() === 'ANAM_2025' ? 'layout-anam-2025' : '']"
+				 [ngStyle]="isPrintMode ? {'width': '638px', 'height': '1001px', 'border-radius': '0', 'box-shadow': 'none', 'margin': '0'} : {'width': '400px', 'height': '628px', 'border-radius': '10px', 'box-shadow': '0 8px 20px rgba(0,0,0,0.2)'}" style="position: relative; overflow: hidden;">
 				 <img [src]="obtenerImagenFrente()" 
 					 (error)="$any($event.target).src='img/frontal_credencial.png'"
 					 alt="Credencial Frente" 
@@ -224,10 +222,8 @@
 			<div *ngIf="vistaCredencial === 'reverso'" 
 				 class="credencial-reverso mx-auto"
 				 [class.print-mode]="isPrintMode"
-				 [ngStyle]="isPrintMode ? {'width': '638px', 'height': '1001px', 'border-radius': '0', 'box-shadow': 'none', 'margin': '0'} : {'width': '400px', 'height': '628px', 'border-radius': '10px', 'box-shadow': '0 8px 20px rgba(0,0,0,0.2)'}"
-				>
-                
-				<!-- Imagen de fondo -->
+				 [ngClass]="[obtenerClaseLayout(), getLayoutActual() === 'ANAM_2025' ? 'layout-anam-2025' : '']"
+				 [ngStyle]="isPrintMode ? {'width': '638px', 'height': '1001px', 'border-radius': '0', 'box-shadow': 'none', 'margin': '0'} : {'width': '400px', 'height': '628px', 'border-radius': '10px', 'box-shadow': '0 8px 20px rgba(0,0,0,0.2)'}" style="position: relative; overflow: hidden;">
 				 <img [src]="obtenerImagenReverso()" 
 					 alt="Credencial Reverso" 
 					 (error)="$any($event.target).src='img/reverso.jpg'"
@@ -272,7 +268,7 @@
 					</div>
 
 					<!-- VIGENCIA (layout nuevo en reverso) -->
-					<!-- <div class="campo-vigencia-reverso">
+					<div class="campo-vigencia-reverso">
 						<ng-container *ngIf="isPrintMode">
 							<span class="anam-print-text anam-print-vigencia">{{ empleado.fin_vig | date:'dd/MM/yyyy' }}</span>
 						</ng-container>
@@ -282,7 +278,7 @@
 								   [(ngModel)]="empleado.fin_vig"
 								   placeholder="Vigencia">
 						</ng-container>
-					</div> -->
+					</div>
 
 					<!-- LABEL: FOLIO -->
 					<div class="label-folio">
@@ -377,7 +373,7 @@
 		</div>
 
 		<!-- Selector de Nivel de Credencial -->
-		<div class="mt-3" *ngIf="!isPrintMode">
+		<div class="mt-3" *ngIf="!isPrintMode && getLayoutActual() === 'ANAM_2025'">
 			<label class="form-label small font-weight-bold mb-1">
 				<i class="fas fa-id-badge mr-1"></i> Tipo de Credencial
 			</label>

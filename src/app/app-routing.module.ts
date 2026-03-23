@@ -19,11 +19,6 @@ import { BlockAccessGuard } from './services/block-access.guard';
 
 const routes: Routes = [
   {
-    path: 'auth',
-    loadChildren: () =>
-      import('./content/cuenta/cuenta.module').then((m) => m.CuentaModule),
-  },
-  {
     path: '',
     component: GeneralComponent,
     canActivate: [AuthGuard],
@@ -60,13 +55,13 @@ const routes: Routes = [
         path: 'reportes',
         component: ReportesComponent,
         canActivate: [AuthGuard],
-        data: { rolesPermitidos: [1, 2, 3, 9999] },
+        data: { rolesPermitidos: [1, 2, 3, 4, 9999] },
       },
       {
         path: 'registro-empleado',
         component: RegistroEmpleadoComponent,
         canActivate: [AuthGuard],
-        data: { rolesPermitidos: [1, 9999] },
+        data: { rolesPermitidos: [1, 2, 3, 4, 9999] },
       },
       {
         path: 'enrolamiento',
@@ -78,13 +73,13 @@ const routes: Routes = [
         path: 'credencializacion',
         component: CredencializacionComponent,
         canActivate: [AuthGuard],
-        data: { rolesPermitidos: [1, 2, 3, 9999] },
+        data: { rolesPermitidos: [1, 2, 3, 4, 9999] },
       },
       {
         path: 'carga-masiva',
         component: CargaMasivaComponent,
         canActivate: [AuthGuard],
-        data: { rolesPermitidos: [1, 2, 9999] },
+        data: { rolesPermitidos: [1, 2, 3, 4, 9999] },
       },
       {
         path: 'test',
@@ -98,7 +93,7 @@ const routes: Routes = [
     path: 'acceso-denegado',
     component: AccesoDenegadoComponent,
   },
-  { path: '**', redirectTo: 'auth/login' },
+  { path: '**', redirectTo: '' },
   {
     path: 'ux-design',
     component: UxDesignComponent,

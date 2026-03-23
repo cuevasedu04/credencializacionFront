@@ -7,7 +7,7 @@ import jsPDF from 'jspdf';
 import * as htmlToImage from 'html-to-image';
 import { PlantillaEnrolamientoComponent } from '../enrolamiento/plantilla-enrolamiento/plantilla-enrolamiento.component';
 import { PlantillaAnamComponent } from '../plantilla-anam/plantilla-anam.component';
-import { cargoANivel } from '../../shared/nivel-credencial.const';
+import { cargoANivel } from '../../components/shared/nivel-credencial.const';
 import { firstValueFrom } from 'rxjs';
 
 @Component({

@@ -8,7 +8,7 @@ import { Router } from '@angular/router';
 import { WacomService } from '../../services/wacom.service';
 import { Subscription } from 'rxjs';
 import * as QRCode from 'qrcode';
-import { cargoANivel } from '../../shared/nivel-credencial.const';
+import { cargoANivel, LAYOUTS_CREDENCIAL, LayoutCredencial, getLayoutCredencial } from '../../components/shared/nivel-credencial.const';
 
 @Component({
   standalone: false,
@@ -66,6 +66,34 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy, O
   // Suavizado
   private lastX = 0;
   private lastY = 0;
+
+  readonly layouts: LayoutCredencial[] = LAYOUTS_CREDENCIAL;
+
+  onLayoutCambio(nuevoLayout: string): void {
+    if (!this.empleado) return;
+    this.empleado.nuevo_laredo = 0;
+    this.empleado.familiar = 0;
+    
+    if (nuevoLayout === 'NUEVO_LAREDO') {
+      this.empleado.nuevo_laredo = 1;
+      this.empleado.layout_credencial = 'NUEVO_LAREDO';
+    } else if (nuevoLayout === 'FAMILIAR') {
+      this.empleado.familiar = 1;
+      this.empleado.layout_credencial = 'FAMILIAR';
+    } else {
+      this.empleado.layout_credencial = getLayoutCredencial(nuevoLayout);
+    }
+  }
+
+  getLayoutActual(): string {
+    if (this.empleado?.familiar == 1) return 'FAMILIAR';
+    if (this.empleado?.nuevo_laredo == 1) return 'NUEVO_LAREDO';
+    const current = String(this.empleado?.layout_credencial || '').toUpperCase();
+    if (current === 'ANAM_2025' || current === 'ANAM_CLASICA' || current === 'NUEVO_LAREDO' || current === 'FAMILIAR') {
+      return current;
+    }
+    return this.empleado?.nivel_credencial ? 'ANAM_2025' : 'ANAM_CLASICA';
+  }
 
   constructor(
     private modalManager: ModalManagerService,
@@ -188,6 +216,12 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy, O
     if (!this.empleado.fecha_expedicion) {
       const hoy = new Date();
       this.empleado.fecha_expedicion = hoy.toISOString().split('T')[0];
+    }
+
+    if (!this.empleado.fin_vig && this.empleado.fecha_expedicion) {
+      const fechaExp = new Date(this.empleado.fecha_expedicion);
+      fechaExp.setFullYear(fechaExp.getFullYear() + 4);
+      this.empleado.fin_vig = fechaExp.toISOString().split('T')[0];
     }
   }
 
@@ -724,24 +758,14 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy, O
         // Datos Laborales
         num_empleado: this.empleado.num_empleado,
         adscripcion: this.empleado.adscripcion,
-        puesto: this.empleado.puesto,
+          puesto: this.esFamiliar ? 'FAMILIAR' : this.empleado.puesto,
 
-        // Identificadores
-        curp: this.empleado.curp,
-        rfc: rfcFinal,
-        folio: this.empleado.folio,
-
-        // Fechas
-        fin_vig: this.empleado.fin_vig || null,
-        inicio_vig: this.empleado.inicio_vig || null,
-        eladia: this.empleado.eladia || null,
-        fecha_expedicion: fechaExpedicionFormateada,
-        fecha_enrolamiento: fechaEnrolamientoActual,
-
-        // Imagenes
+          // Identificadores
+          curp: this.empleado.curp,
+          rfc: this.esFamiliar ? (this.empleado.num_empleado || 'S/N') : rfcFinal,
         foto: this.empleado.foto,
-        firma: this.empleado.firma,
-
+        firma: this.empleado.firma,          fecha_expedicion: fechaExpedicionFormateada || fechaEnrolamientoActual,
+          fin_vig: this.empleado.fin_vig,
         // Metadatos y Flags
         activo: 1,
         provisional: 1,
@@ -772,8 +796,24 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy, O
     console.log(`Enviando payload ${this.tipoCredencialLabel}:`, payload);
 
     const id = this.empleado.id_enrolamiento;
-    if (id) {
-      this.enrolamientoApi.actualizarExpediente(id, payload).subscribe({
+    const isFamiliarSource = this.empleado.source_table === 'familiar';
+
+    let esActualizacion = !!id;
+    
+    // Si cambia de tipo de credencial (ej. de ANAM a Familiar), no podemos hacer PATCH en la tabla original,
+    // debemos crear un registro nuevo en la tabla de destino correspondiente.
+    if (this.esFamiliar && !isFamiliarSource) {
+      esActualizacion = false;
+    } else if (!this.esFamiliar && isFamiliarSource) {
+      esActualizacion = false;
+    }
+
+    if (esActualizacion) {
+      const updateRequest$ = this.esFamiliar 
+        ? this.enrolamientoApi.actualizarExpedienteFamiliar(id, payload)
+        : this.enrolamientoApi.actualizarExpediente(id, payload);
+
+      updateRequest$.subscribe({
         next: () => {
           this.guardando = false;
           this.utils.MuestrasToast(TipoToast.Success, `Credencial ${this.tipoCredencialLabel} actualizada exitosamente`);
@@ -797,6 +837,7 @@ export class ProvisionalComponent implements OnInit, AfterViewInit, OnDestroy, O
         this.guardando = false;
         this.utils.MuestrasToast(TipoToast.Success, `Credencial ${this.tipoCredencialLabel} guardada exitosamente`);
         this.empleado = null;
+        this.enrolamientoCompletado.emit();
         setTimeout(() => {
           this.inicializarEmpleado();
         }, 1000);

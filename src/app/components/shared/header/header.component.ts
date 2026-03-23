@@ -51,10 +51,9 @@ export class HeaderComponent {
 
   logout() {
     this.isDropdownOpen = false;
-    localStorage.removeItem('session');
     this.onLogout.emit();
-    this.router.navigate(['/login']);
     this.utils.MuestrasToast(TipoToast.Info, "Se ha finalizado la sesión.");
+    this.sessionS.logout();
   }
 
   // Cerrar dropdown al hacer click fuera
@@ -83,5 +82,6 @@ export class HeaderComponent {
 
   volverASiorh() {
     window.location.href = '/dashboard'; 
-}
+  }
+
 }

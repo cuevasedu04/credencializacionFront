@@ -14,15 +14,19 @@ export interface LayoutCredencial {
 export const LAYOUTS_CREDENCIAL: LayoutCredencial[] = [
   {
     valor: 'ANAM_2025',
-    label: 'Credencial ANAM 2026',
+    label: 'Credencial ANAM nueva',
   },
   {
     valor: 'ANAM_CLASICA',
-    label: 'Credencial ANAM clásica',
+    label: 'Credencial ANAM roja',
   },
   {
     valor: 'NUEVO_LAREDO',
     label: 'Credencial Nuevo Laredo',
+  },
+  {
+    valor: 'FAMILIAR',
+    label: 'Credencial Familiar',
   },
 ];
 
@@ -94,6 +98,7 @@ export function getLayoutCredencial(layout: string | null | undefined): string {
   if (valor === 'ANAM_2025') return 'ANAM_2025';
   if (valor === 'ANAM_CLASICA') return 'ANAM_CLASICA';
   if (valor === 'NUEVO_LAREDO') return 'NUEVO_LAREDO';
+  if (valor === 'FAMILIAR') return 'FAMILIAR';
   return 'ANAM_2025';
 }
 

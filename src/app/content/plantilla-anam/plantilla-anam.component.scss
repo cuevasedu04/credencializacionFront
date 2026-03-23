@@ -1,7 +1,7 @@
 @use '../provisional/provisional.component.scss' as *;
 
 
-.anam-template {
+// Wrapper removido para html-to-image
 	.credencial-frente,
 
 	.credencial-reverso {
@@ -245,7 +245,7 @@
 		pointer-events: none;
 	}
 
-	&.modo-calibracion {
+.modo-calibracion {
 		.credencial-frente::before,
 		.credencial-reverso::before {
 			content: '';
@@ -268,7 +268,6 @@
 			z-index: 3;
 		}
 	}
-}
 
 .credencial-frente {
 	.label-nombre,
@@ -309,7 +308,7 @@
 		line-height: 1;
 	}
 
-	&.print-mode {
+.print-mode {
 		.anam-label-text {
 			font-size: 14px;
 			letter-spacing: 0.3px;
@@ -411,7 +410,7 @@
 		background-position: center top !important;
 	}
 
-}
+// Removed closing brace for wrapper
 
 /* Modal de firma: fuera de .anam-template por render en overlay */
 .anam-firma-box {
@@ -491,3 +490,5 @@
 
 
 
+
+}

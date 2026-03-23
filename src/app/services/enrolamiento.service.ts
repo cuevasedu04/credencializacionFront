@@ -44,7 +44,10 @@ export class EnrolamientoService {
     // La URL final serÃ¡ tipo: http://.../api/expedientes/37/
     return this.http.patch(`${this.apiUrl}${id}/`, datos);
   }
-
+  // Actualizar un expediente familiar existente (PATCH)
+  actualizarExpedienteFamiliar(id: number, datos: any): Observable<any> {
+    return this.http.patch(`${this.apiFamiliaresUrl}${id}/`, datos);
+  }
 
   // Obtener lista de expedientes listos para credencializar
   getListosParaImprimir(): Observable<any[]> {

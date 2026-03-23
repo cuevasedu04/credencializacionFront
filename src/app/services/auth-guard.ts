@@ -15,7 +15,8 @@ export class AuthGuard implements CanActivate {
 
     // No hay sesión activa → al login
     if (!session) {
-      return this.router.parseUrl('/auth/login');
+      window.location.href = 'https://siorh-anam.ddns.net/auth/login';
+      return false;
     }
 	
     const rolesPermitidos = route.data['rolesPermitidos'] as number[] | undefined;

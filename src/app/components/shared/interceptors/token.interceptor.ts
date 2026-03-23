@@ -145,11 +145,10 @@ export class TokenInterceptor implements HttpInterceptor {
         if (err instanceof HttpErrorResponse) {
           if (err.status === 401 || err.status === 403) {
             try {
-              localStorage.removeItem('session');
+              this.sessionS.logout();
             } catch (e) {
-              console.error('Error removiendo session:', e);
+              console.error('Error cerrando sesión:', e);
             }
-            this.router.navigate(['/cuenta/login']);
           }
         }
         

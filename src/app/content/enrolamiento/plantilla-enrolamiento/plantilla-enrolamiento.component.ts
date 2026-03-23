@@ -8,7 +8,7 @@ import { Router } from '@angular/router';
 import { WacomService } from '../../../services/wacom.service';
 import { Subscription } from 'rxjs';
 import * as QRCode from 'qrcode';
-import { NIVELES_CREDENCIAL, NivelCredencial, cargoANivel, getNivel, IMAGEN_FRENTE_FALLBACK, IMAGEN_REVERSO_FALLBACK } from '../../../shared/nivel-credencial.const';
+import { NIVELES_CREDENCIAL, NivelCredencial, cargoANivel, getNivel, IMAGEN_FRENTE_FALLBACK, IMAGEN_REVERSO_FALLBACK } from '../../../components/shared/nivel-credencial.const';
 
 @Component({
   standalone: false,

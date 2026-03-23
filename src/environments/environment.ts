@@ -4,6 +4,8 @@
 
 export const environment = {
   production: false,
+  bypassLogin: true, // ESTA VARIABLE MANTIENE TU SESIÓN DE DESARROLLO SIEMPRE ACTIVA (BORRAR O PONER FALSE EN PRODUCCIÓN)
+  bypassRole: 4, // Puedes cambiar aquí el rol con el que quieres probar (ej. 1, 2, 3, 4, 9999)
 /*   baseurl: 'https://codecosep.sep.gob.mx:9011/', */
   baseurl: 'http://127.0.0.1:8080/',
   baseurlAssets: '',

@@ -93,7 +93,6 @@ export class IdleService {
       console.warn('⚠️ Sesión cerrada por inactividad');
       this.sessionService.logout();
       this.utils.MuestrasToast(TipoToast.Info, 'Sesión cerrada por inactividad');
-      this.router.navigate(['/auth/login']);
       this.stopWatching();
     }
   }

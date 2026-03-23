@@ -13,7 +13,7 @@ import { PlantillaEnrolamientoComponent } from '../enrolamiento/plantilla-enrola
 import { PlantillaAnamComponent } from '../plantilla-anam/plantilla-anam.component';
 import { ProvisionalComponent } from '../provisional/provisional.component';
 import { FamiliarComponent } from '../familiar/familiar.component';
-import { cargoANivel } from '../../shared/nivel-credencial.const';
+import { cargoANivel } from '../../components/shared/nivel-credencial.const';
 import { firstValueFrom } from 'rxjs';
 
 @Component({
@@ -412,7 +412,7 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
     const emplid = persona.num_empleado;
     if (!emplid) {
       // Sin EMPLID: abrir modal inmediatamente sin foto/firma
-      this.empleadoSeleccionado = { ...persona };
+      this.empleadoSeleccionado = JSON.parse(JSON.stringify(persona));
       this.esEditable = false;
       this.modalManager.openModal({
         title: 'Visualizar Credencial',
@@ -427,7 +427,7 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
     this.http.get<any>(`${this.apiFotoFirmaUrl}${emplid}/`).subscribe({
       next: (res) => {
         this.fotoFirmaLoading = false;
-        const empleado = { ...persona, foto: res.foto ?? persona.foto, firma: res.firma ?? persona.firma };
+        const empleado = JSON.parse(JSON.stringify(persona)); empleado.foto = res.foto ?? persona.foto; empleado.firma = res.firma ?? persona.firma;
         // Garantizar nivel_credencial antes de que el componente renderice
         if (!empleado.nivel_credencial && empleado.puesto) {
           empleado.nivel_credencial = cargoANivel(empleado.puesto);
@@ -443,7 +443,7 @@ export class BusquedaAvanzadaComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.fotoFirmaLoading = false;
-        const empleado = { ...persona };
+        const empleado = JSON.parse(JSON.stringify(persona));
         if (!empleado.nivel_credencial && empleado.puesto) {
           empleado.nivel_credencial = cargoANivel(empleado.puesto);
         }

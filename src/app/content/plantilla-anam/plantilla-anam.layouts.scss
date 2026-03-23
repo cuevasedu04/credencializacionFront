@@ -1,12 +1,12 @@
-.anam-template.layout-anam-2025,
-.anam-template.layout-titular,
-.anam-template.layout-director-general,
-.anam-template.layout-director-central,
-.anam-template.layout-director-de-area,
-.anam-template.layout-subdirector,
-.anam-template.layout-jefe-de-departamento,
-.anam-template.layout-enlace,
-.anam-template.layout-seguridad-institucional {
+.layout-anam-2025,
+.layout-titular,
+.layout-director-general,
+.layout-director-central,
+.layout-director-de-area,
+.layout-subdirector,
+.layout-jefe-de-departamento,
+.layout-enlace,
+.layout-seguridad-institucional {
 
 	/* fuentes para credencial nueva  */
 
@@ -36,7 +36,7 @@
 	--color-back-fecha: #333333;
 	--color-back-folio: #333333;
 
-	.credencial-frente {
+	&.credencial-frente, .credencial-frente {
 		.anam-print-text,
 		.anam-label-text,
 		.anam-print-nombre,
@@ -206,7 +206,7 @@
 		}
 	}
 
-	.credencial-reverso {
+	&.credencial-reverso, .credencial-reverso {
 		.anam-print-text,
 		.anam-print-curp,
 		.anam-print-label-fecha,

@@ -6,7 +6,6 @@ import { DashboardComponent } from './content/dashboard/dashboard.component';
 import { UxDesignComponent } from './content/ux-design/ux-design.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SharedModule } from './components/shared/shared.module';
-import { CuentaModule } from './content/cuenta/cuenta.module';
 import { LayoutsModule } from './layouts/layouts.module';
 import { BusquedaAvanzadaComponent } from './content/busqueda-avanzada/busqueda-avanzada.component';
 import { ReportesComponent } from './content/reportes/reportes.component';
@@ -58,7 +57,6 @@ import { PlantillaAnamComponent } from './content/plantilla-anam/plantilla-anam.
     FormsModule,
     ReactiveFormsModule,
     SharedModule,
-    CuentaModule,
     AppRoutingModule,
     NgbModule,  
     BrowserAnimationsModule,
