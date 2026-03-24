@@ -86,7 +86,7 @@ export class SessionService {
     this.modalService.dismissAll();
     
     // Redirigir al login del SIORH
-    window.location.href = 'https://siorh-anam.ddns.net/auth/login';
+    window.location.href = '/auth/login';
   }
 
   /** Verifica sin eliminar si la sesión está expirada */

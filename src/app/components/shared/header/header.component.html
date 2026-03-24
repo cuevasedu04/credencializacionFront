@@ -29,7 +29,7 @@
                     <div class="toolbar-siorh-btn header-right-btn" (click)="volverASiorh()">
                       <span class="toggle-icon"> <i class="fas fa-arrow-left text-white"></i> </span>
                     </div>
-          <span class="username">{{ usuario?.nombreCompleto || '' }} ( {{ usuario?.nombreRol || '' }} )<i class="fas fa-caret-right mx-1 fa-xs"></i>{{usuario.area || 'Sin área asignada'}}</span>
+          <span class="username">{{ usuario?.nombreCompleto || 'Usuario' }} <i class="fas fa-caret-right mx-1 fa-xs"></i>{{usuario?.area || 'Sin área asignada'}}</span>
           <div class="user-menu" (click)="toggleDropdown()">
             <!-- Ícono de usuario -->
             <div class="user-icon">

@@ -6,9 +6,9 @@ import { environment } from '../../../src/environments/environment';
 @Injectable({ providedIn: 'root' })
 export class EnrolamientoService {
   
-  private apiUrl = `http://127.0.0.1:8080/api/expedientes/`;
-  private apiFamiliaresUrl = `http://127.0.0.1:8080/api/expedientes-familiares/`;
-  private apiCredencializacionUrl = `http://127.0.0.1:8080/api/credencializacion/`;
+  private apiUrl = `/api-sicre/expedientes/`;
+  private apiFamiliaresUrl = `/api-sicre/expedientes-familiares/`;
+  private apiCredencializacionUrl = `/api-sicre/credencializacion/`;
 
   constructor(private http: HttpClient) { }
 
@@ -96,7 +96,7 @@ export class EnrolamientoService {
 
   // Obtener foto y firma existentes desde safirho_db.NW_EMPL_FOTO_ANAM
   getFotoFirmaExterna(numEmpleado: string | number): Observable<any> {
-    return this.http.get(`http://127.0.0.1:8080/api/foto-firma/${numEmpleado}/`);
+    return this.http.get(`/api-sicre/foto-firma/${numEmpleado}/`);
   }
 
   // BÃºsqueda avanzada con mÃºltiples filtros
