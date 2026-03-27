@@ -1,12 +1,12 @@
 <!-- Para calibrar: agrega `modo-calibracion` al class de este div -->
 <div class="anam-template container p-4 h-100 d-flex flex-column animate__animated animate__fadeIn"
-	[ngClass]="[obtenerClaseLayout(), getLayoutActual() === 'ANAM_2025' ? 'layout-anam-2025' : '']">>
+	[ngClass]="[obtenerClaseLayout(), getLayoutActual() === 'ANAM_2025' ? 'layout-anam-2025' : '']">
 
 <header *ngIf="mostrarHeader" class="bg-white border-bottom mb-4 rounded shadow-sm">
 		<div class="container py-3 px-4">
 			<div class="d-flex justify-content-between align-items-center">
 				<div class="d-flex align-items-center gap-3">
-					<div class="p-2 bg-primary bg-opacity-10 rounded">
+					<div class="p-2 bg-success bg-opacity-10 rounded">
 						<i class="fas fa-search text-white fs-4"></i>
 					</div>
 					<div>
@@ -39,13 +39,13 @@
 			<div class="text-center mb-3" *ngIf="!isPrintMode">
 				<div class="btn-group" role="group">
 					<button type="button" 
-							class="btn btn-outline-danger"
+							class="btn btn-outline-success"
 							[class.active]="vistaCredencial === 'frente'"
 							(click)="vistaCredencial = 'frente'">
 						<i class="fas fa-id-card mr-1"></i> Frente
 					</button>
 					<button type="button" 
-							class="btn btn-outline-danger" 
+							class="btn btn-outline-success" 
 							[class.active]="vistaCredencial === 'reverso'"
 							(click)="vistaCredencial = 'reverso'">
 						<i class="fas fa-address-card mr-1"></i> Reverso

@@ -1,8 +1,8 @@
 .header{
     min-height: 50px;
-    background-color: #9f2241;
+    background-color: var(--color-success);
     align-items: center;
-    border-bottom: 5px solid #b4b4b4;
+    border-bottom: 5px solid rgb(181, 154, 0);
     margin-bottom: 0px;
     position: fixed;
     width: 100%;

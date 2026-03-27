@@ -1,0 +1,226 @@
+﻿/* =======================================================
+   ESTILOS DEL MODAL UNIFICADO (CÁMARA Y FIRMA)
+   ======================================================= */
+::ng-deep .modal-width-95vw .modal-dialog {
+  max-width: 95vw !important;
+  width: 95vw !important;
+}
+
+.shadow-inner {
+  box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+}
+
+.video-container {
+  background-color: #212529;
+  img, video {
+    border-radius: 4px;
+  }
+}
+
+
+/* =======================================================
+   ESTILOS CARGA MASIVA - VISTA PRINCIPAL (ALINEACIÓN PERFECTA)
+   ======================================================= */
+
+/* Contenedor principal para bloquear el scroll de la página completa */
+.contenedor-masivo {
+  background-color: #f4f6f9; /* Fondo gris claro y moderno */
+  border-radius: 20px;
+  padding: 25px 20px;
+  /* La fórmula mágica para evitar que toda la página baje */
+  height: calc(100vh - 120px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Corta todo lo que intente salir del marco */
+}
+
+.contenedor-filas {
+  flex-grow: 1;
+  min-height: 0;
+  height: 0; /* Obliga al flex a no desbordar el alto establecido por el contendor padre */
+}
+
+/* Control rígido del alto de las columnas internas para que respeten el límite */
+.contenedor-filas > .col-md-9,
+.contenedor-filas > .col-md-3 {
+  height: 100%;
+}
+
+/* --- Títulos Fijos (Píldoras) --- */
+.titulo-pildora {
+  background: linear-gradient(135deg, #2c784c, #36905c); /* Degradado guinda institucional */
+  color: white;
+  font-weight: bold;
+  font-size: 1rem;
+  border-radius: 30px;
+  padding: 8px 10px;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  width: 90%;
+  margin: 0 auto;
+  border: 2px solid white; /* Bordecito blanco para resaltar */
+}
+
+/* --- Scroll Único y Sincronizado --- */
+.scroll-area-unificada {
+  overflow-y: auto;
+  flex-grow: 1;
+  min-height: 0;
+  height: 0; /* Punto clave para activar el scroll vertical interno, evitando que crezca infinito */
+  padding-bottom: 20px;
+}
+
+/* Estilización de la barra de scroll de la tabla */
+.scroll-area-unificada::-webkit-scrollbar { 
+  width: 8px; 
+}
+.scroll-area-unificada::-webkit-scrollbar-track { 
+  background: #e9ecef; 
+  border-radius: 10px; 
+}
+.scroll-area-unificada::-webkit-scrollbar-thumb { 
+  background-color: #adb5bd; 
+  border-radius: 10px; 
+}
+.scroll-area-unificada::-webkit-scrollbar-thumb:hover { 
+  background-color: #2c784c; /* Se pone guinda al pasar el mouse */
+}
+
+/* --- Columnas Blancas --- */
+.columna-blanca {
+  background-color: white;
+  border-radius: 16px;
+  border: 1px solid #eaeaea;
+  padding: 20px 15px;
+  height: fit-content; /* Permite que crezca con el contenido */
+  min-height: 100%; /* Si hay pocos datos, de todos modos llena el fondo blanco */
+}
+
+/* --- Magia de Alineación (El secreto de los 140px) --- */
+.item-alineado {
+  height: 140px; /* ALTO FIJO. Garantiza que la fila siempre mida lo mismo en las 3 columnas */
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.item-alineado img {
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 5px;
+  background-color: #fcfcfc;
+}
+
+/* Cuadro gris punteado si a alguien le falta la foto/firma */
+.placeholder-vacio {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa;
+  border: 2px dashed #dee2e6;
+  border-radius: 8px;
+  font-size: 2rem;
+}
+
+/* Tarjeta de datos ajustada al alto fijo */
+.dato-empleado-card {
+  height: 100%; /* Se estira para llenar los 140px exactos de su fila */
+  margin: 0;
+  background-color: #f8f9fa;
+  border-left: 4px solid #2c784c; /* Acento guinda a la izquierda */
+  border-radius: 8px;
+  padding: 12px 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: transform 0.2s;
+}
+.dato-empleado-card:hover {
+  transform: translateX(3px); /* Pequeña animación al pasar el mouse */
+  background-color: #ffffff;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.05) !important;
+}
+
+
+/* =======================================================
+   COLUMNA RESUMEN Y BOTONES
+   ======================================================= */
+.columna-resumen {
+  background-color: white;
+  border-radius: 16px;
+  padding: 25px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border: 1px solid #eaeaea;
+}
+
+.btn-comenzar { 
+  background-color: #17365d; /* Azul institucional */
+  color: white; 
+  border-radius: 30px; 
+  font-weight: 600; 
+  transition: all 0.3s; 
+}
+.btn-comenzar:hover { 
+  background-color: #102744; 
+  color: white; 
+  transform: translateY(-2px); 
+  box-shadow: 0 4px 8px rgba(23, 54, 93, 0.3) !important;
+}
+
+.btn-cancelar { 
+  background-color: white; 
+  color: #bd2a4e; 
+  border: 2px solid #bd2a4e; 
+  border-radius: 30px; 
+  font-weight: 600; 
+  transition: all 0.3s; 
+}
+.btn-cancelar:hover:not(:disabled) { 
+  background-color: #bd2a4e; 
+  color: white; 
+  transform: translateY(-2px);
+}
+
+.btn-terminar { 
+  background-color: #2b2b2b; 
+  color: white; 
+  border-radius: 30px; 
+  border: none; 
+  font-weight: 600; 
+  transition: all 0.3s;
+}
+.btn-terminar:hover:not(:disabled) { 
+  background-color: #000000; 
+  color: white; 
+  transform: translateY(-2px);
+}
+
+button:disabled { 
+  opacity: 0.6; 
+  cursor: not-allowed; 
+}
+
+
+/* =======================================================
+   SCROLL GLOBAL (Por si se usa en otras partes del componente)
+   ======================================================= */
+.global-scroll-wrapper::-webkit-scrollbar {
+  width: 8px;
+}
+.global-scroll-wrapper::-webkit-scrollbar-thumb {
+  background-color: #7b293d;
+  border-radius: 10px;
+}
+.editable-item { cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+.editable-item:hover { transform: scale(1.02); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15); }
+

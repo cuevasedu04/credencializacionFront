@@ -1,6 +1,6 @@
 <div class="card shadow-sm mb-4">
     <div class="card-body">
-        <h5 class="card-title mb-3 font-weight-bold text-primary">
+        <h5 class="card-title mb-3 font-weight-bold text-success">
             <i class="fas fa-search mr-2"></i> Buscar Empleado
         </h5>
         
@@ -21,7 +21,7 @@
             </div>
             <div class="col-md-3">
                 <button 
-                    class="btn btn-primary btn-lg btn-block shadow-sm" 
+                    class="btn btn-success btn-lg btn-block shadow-sm" 
                     (click)="consultar()"
                     [disabled]="cargando">
                     <span *ngIf="cargando"><i class="fas fa-spinner fa-spin"></i></span>
@@ -35,10 +35,10 @@
 <div class="card shadow-sm">
     <div class="card-header bg-white border-bottom-0 pt-3 pb-0">
         <div class="d-flex justify-content-between align-items-center">
-            <h6 class="font-weight-bold text-secondary">
+            <h6 class="font-weight-bold text-success">
                 <i class="fas fa-list-ul mr-2"></i> Enrolamientos
             </h6>
-            <span class="badge badge-pill badge-light border px-3 py-2" style="background-color: #9F2241; color: white;">
+            <span class="badge badge-pill badge-light border px-3 py-2" style="background-color: #1c8034; color: white;">
                 {{ listaFiltrada.length }} registros
             </span>
         </div>
@@ -75,7 +75,7 @@
 
                     <tr *ngFor="let emp of listaFiltrada" class="cursor-pointer row-hover-effect" (click)="seleccionarEmpleado(emp)" [hidden]="cargando">
                         <td class="align-middle font-weight-bold text-dark">{{ emp.num_empleado || 'S/N' }}</td>
-                        <td class="align-middle text-primary">{{ emp.curp }}</td>
+                        <td class="align-middle text-success">{{ emp.curp }}</td>
                         
                         <td class="align-middle">
                             {{ emp.nombre }} {{ emp.paterno }} {{ emp.materno }}
@@ -84,10 +84,10 @@
                         <td class="align-middle small text-muted">{{ emp.puesto || 'No especificado' }}</td>
                         
                         <td class="align-middle text-center">
-                            <span *ngIf="!emp.foto" class="badge badge-warning bg-primary me-2" title="Falta foto" >
+                            <span *ngIf="!emp.foto" class="badge badge-warning bg-success me-2" title="Falta foto" >
                                 <i class="fas fa-camera"></i>
                             </span>
-                            <span *ngIf="!emp.firma" class="badge badge-warning bg-primary" title="Falta firma">
+                            <span *ngIf="!emp.firma" class="badge badge-warning bg-success" title="Falta firma">
                                 <i class="fas fa-signature"></i>
                             </span>
                             <span *ngIf="emp.foto && emp.firma" class="badge badge-success">

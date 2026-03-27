@@ -38,6 +38,13 @@ export class SidebarComponent implements OnInit, OnDestroy {
       rol: [1,2,3,4,9999],
     },
     {
+      id: 'enrolamiento-masivo',
+      label: 'Enrolamiento masivo',
+      icon: 'fas fa-users',
+      link: '/enrolamiento-masivo',
+      rol: [1,2,3,4,9999],
+    },
+    {
       id: 'enrolamiento',
       label: 'Enrolamiento',
       icon: 'fas fa-user-plus',

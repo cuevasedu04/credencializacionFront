@@ -29,6 +29,7 @@ import { CargaMasivaComponent } from './content/carga-masiva/carga-masiva.compon
 import { ProvisionalComponent } from './content/provisional/provisional.component';
 import { FamiliarComponent } from './content/familiar/familiar.component';
 import { PlantillaAnamComponent } from './content/plantilla-anam/plantilla-anam.component';
+import { EnrolamientoMasivoComponent } from './content/enrolamiento-masivo/enrolamiento-masivo.component';
 
 @NgModule({
   declarations: [
@@ -47,7 +48,8 @@ import { PlantillaAnamComponent } from './content/plantilla-anam/plantilla-anam.
     CargaMasivaComponent,
     ProvisionalComponent,
     FamiliarComponent,
-    PlantillaAnamComponent
+    PlantillaAnamComponent,
+    EnrolamientoMasivoComponent
   ],
   imports: [
     DataTablesModule,

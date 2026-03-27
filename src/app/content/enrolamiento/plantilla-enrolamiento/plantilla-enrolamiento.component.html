@@ -19,13 +19,13 @@
             <div class="text-center mb-3" *ngIf="!isPrintMode">
                 <div class="btn-group" role="group">
                     <button type="button" 
-                            class="btn btn-outline-danger"
+                            class="btn btn-success"
                             [class.active]="vistaCredencial === 'frente'"
                             (click)="vistaCredencial = 'frente'">
                         <i class="fas fa-id-card mr-1"></i> Frente
                     </button>
                     <button type="button" 
-                            class="btn btn-outline-danger" 
+                            class="btn btn-success" 
                             [class.active]="vistaCredencial === 'reverso'"
                             (click)="vistaCredencial = 'reverso'">
                         <i class="fas fa-address-card mr-1"></i> Reverso

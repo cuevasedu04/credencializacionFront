@@ -170,12 +170,12 @@
 .module-block:hover {
     transform: translateY(-5px) scale(1.01);
     box-shadow: 0 16px 30px rgba(0, 0, 0, 0.14);
-    border-color: rgba(67, 2, 2, 0.28);
+    border-color: rgba(21, 98, 6, 0.28);
 }
 
 .module-block.active {
-    border-color: rgba(67, 2, 2, 0.5);
-    box-shadow: 0 0 0 2px rgba(67, 2, 2, 0.16);
+    border-color: rgba(30, 133, 14, 0.5);
+    box-shadow: 0 0 0 2px rgba(3, 67, 2, 0.16);
 }
 
 .module-title {
@@ -213,5 +213,9 @@
 
 .module-block.consultas .module-link {
     background: linear-gradient(45deg, #216e38, #2f9f52);
+}
+
+.module-block.enrolamiento-masivo .module-link {
+    background: linear-gradient(45deg, #c8a13d, #a18131);
 }
 

@@ -2,25 +2,19 @@
         <div class="mt-2">
 
         <!-- Main Content -->
-        <main class="d-flex justify-content-start align-items-center flex-row ">
-            <!-- mensaje de bienvenida dentro de una card  -->
-                <div>
-                <img src="img/ICONO CARPETA.svg" alt="" width="80%">
-                </div>
-            <div class="card w-100">
+        <main class="d-flex justify-content-start align-items-center flex-row gap-4">
+            
+            <div>
+                <img src="img/logo_credencial_camara.png" alt="Logo Credencial" class="img-fluid" style="width: 250px;">
+            </div>
+            
+            <div class="card flex-grow-1 shadow-sm">
                 <div class="card-body">
                     <h1 class="card-title frmlabel m-0 p-0">Sistema de Credencialización y Enrolamiento</h1>
-                    <p class="card-text"></p>
-                    <p class="card-text">Aquí podrás realizar consultas, enrolamientos e impresiones de credenciales para el personal de la ANAM.</p>
+                    <p class="card-text mt-3">Aquí podrás realizar consultas, enrolamientos e impresión de credenciales para el personal de la ANAM.</p>
                     <p class="card-text">Para empezar, selecciona alguno de los modulos a continuación.</p>
-                    <!-- <a href="/enrolamiento" class="btn btn-primary mx-2">Enrolar</a>
-        
-                    <a href="/credencializacion" class="btn btn-primary mx-2">Imprimir credenciales</a>                        
-                     -->
                 </div>
             </div>
-
-            <!-- Aquí puedes agregar más contenido -->
 
         </main>
 
@@ -56,6 +50,16 @@
                         <div class="module-title">Consultas, carga e impresión</div>
                         <div class="module-text">Búsqueda avanzada, reportes, carga excel e impresión.</div>
                         <span class="module-link">Consultas e impresión</span>
+                    </button>
+                    
+                    <button
+                        type="button"
+                        class="module-block enrolamiento-masivo"
+                        [class.active]="esBloqueActivo('enrolamiento-masivo')"
+                        (click)="seleccionarBloque('enrolamiento-masivo')">
+                        <div class="module-title">Enrolamiento masivo</div>
+                        <div class="module-text">Enrolamiento de múltiples empleados de forma simultánea.</div>
+                        <span class="module-link">Enrolamiento masivo</span>
                     </button>
                 </div>
             </div>

@@ -1,6 +1,6 @@
 import { Injectable, computed, signal } from '@angular/core';
 
-export type SidebarBlock = 'anam' | 'nuevo-laredo' | 'consultas' | null;
+export type SidebarBlock = 'anam' | 'nuevo-laredo' | 'consultas' | 'enrolamiento-masivo' | null;
 
 @Injectable({ providedIn: 'root' })
 export class ModuleContextService {
@@ -38,7 +38,7 @@ export class ModuleContextService {
     if (typeof window === 'undefined') return;
 
     const saved = window.sessionStorage.getItem(this.storageKey);
-    if (saved === 'anam' || saved === 'nuevo-laredo' || saved === 'consultas') {
+    if (saved === 'anam' || saved === 'nuevo-laredo' || saved === 'consultas' || saved === 'enrolamiento-masivo') {
       this._selectedBlock.set(saved);
     }
   }
@@ -51,6 +51,8 @@ export class ModuleContextService {
         return ['enrolamiento', 'provisional', 'familiar'];
       case 'consultas':
         return ['busquedaAvanzada', 'reportes', 'credencializacion', 'Carga masiva'];
+      case 'enrolamiento-masivo':
+        return ['enrolamiento-masivo'];
       default:
         return [];
     }
@@ -67,6 +69,10 @@ export class ModuleContextService {
 
     if (url.includes('/provisional')) {
       return 'nuevo-laredo';
+    }
+
+    if (url.includes('/Carga%20masiva') || url.includes('/enrolamiento-masivo')) {
+      return 'enrolamiento-masivo'; // Opcional si esta es la ruta, dependiento de router
     }
 
     if (url.includes('/credencializacion') || url.includes('/enrolamiento') || url.includes('/carga-masiva')) {
