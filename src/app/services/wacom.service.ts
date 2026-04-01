@@ -12,10 +12,12 @@ declare global {
   providedIn: 'root'
 })
 export class WacomService {
-  
+
   private wacomDevice: any = null;
   private penDataSubject = new Subject<any>();
+  private disconnectSubject = new Subject<void>();
   private isConnected = false;
+  private hidDisconnectListener: ((e: any) => void) | null = null;
 
   constructor(private ngZone: NgZone) { }
 
@@ -60,9 +62,20 @@ export class WacomService {
       
       if (this.isConnected) {
         console.log("Wacom conectada. Info:", this.wacomDevice.getTabletInfo());
-        // Limpiar pantalla y prepararla
         await this.limpiarPantalla();
         await this.wacomDevice.setInking(true);
+
+        // Registrar listener de desconexión física
+        if (this.hidDisconnectListener) {
+          (navigator as any).hid.removeEventListener('disconnect', this.hidDisconnectListener);
+        }
+        this.hidDisconnectListener = (event: any) => {
+          if (this.wacomDevice && this.wacomDevice.device === event.device) {
+            this.isConnected = false;
+            this.ngZone.run(() => this.disconnectSubject.next());
+          }
+        };
+        (navigator as any).hid.addEventListener('disconnect', this.hidDisconnectListener);
       }
 
       return this.isConnected;
@@ -79,6 +92,13 @@ export class WacomService {
    */
   getPenData(): Observable<any> {
     return this.penDataSubject.asObservable();
+  }
+
+  /**
+   * Observable que emite cuando la tableta se desconecta físicamente
+   */
+  getDisconnectEvent(): Observable<void> {
+    return this.disconnectSubject.asObservable();
   }
 
   /**

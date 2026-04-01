@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, OnDestroy, ViewChild, ElementRef, TemplateRef } from '@angular/core';
+﻿import { Component, OnInit, OnDestroy, ViewChild, ElementRef, TemplateRef, ChangeDetectorRef } from '@angular/core';
 import { CargaMasivaService, CargaMasivaRegistro, ProgresoLote } from '../../services/carga-masiva.service';
 import { UtilsService } from '../../services/utils.service';
 import { TipoToast } from '../../../api/entidades/enumeraciones';
@@ -56,7 +56,8 @@ export class EnrolamientoMasivoComponent implements OnInit, OnDestroy {
     private cargaMasivaService: CargaMasivaService,
     private utils: UtilsService,
     private modalManager: ModalManagerService,
-    private wacomService: WacomService
+    private wacomService: WacomService,
+    private cdRef: ChangeDetectorRef
   ) {
     this.isWacomSupported = this.wacomService.isBrowserSupported();
   }
@@ -152,11 +153,12 @@ export class EnrolamientoMasivoComponent implements OnInit, OnDestroy {
     setTimeout(() => {
       this.iniciarCamara();
       this.inicializarCanvasFirma();
-      // Dibujar la firma preexistente
+      // Dibujar la firma preexistente escalada al tamaño del canvas
       if (this.firmaCapturada && this.firmaCanvas && this.cx) {
          const img = new Image();
          img.onload = () => {
-             this.cx!.drawImage(img, 0, 0);
+             const c = this.firmaCanvas.nativeElement;
+             this.cx!.drawImage(img, 0, 0, c.width, c.height);
          };
          img.src = this.firmaCapturada;
       }
@@ -273,7 +275,7 @@ export class EnrolamientoMasivoComponent implements OnInit, OnDestroy {
   }
 
   isFotoVerde(): boolean { return !!this.fotoCapturada; }
-  isFirmaVerde(): boolean { return !!this.firmaCapturada || (this.obtenerFirmaDeCanvas() !== null && this.obtenerFirmaDeCanvas() !== this.crearCanvasVacioBase64()); }
+  isFirmaVerde(): boolean { return !!this.firmaCapturada; }
   isDatosVerde(): boolean { return !!(this.registroEnFormulario.rfc && this.registroEnFormulario.rfc.trim().length > 4); }
 
   private _emptyCanvasCache: string | null = null;
@@ -349,12 +351,19 @@ export class EnrolamientoMasivoComponent implements OnInit, OnDestroy {
   inicializarCanvasFirma() {
     if (!this.firmaCanvas) return;
     const canvasEl = this.firmaCanvas.nativeElement;
-    this.cx = canvasEl.getContext('2d');
+    const scale = Math.max(window.devicePixelRatio || 1, 1);
+
+    this.cx = canvasEl.getContext('2d', { desynchronized: true });
+    // Igualar el buffer interno al tamaño CSS real del canvas (igual que provisional)
+    canvasEl.width = canvasEl.offsetWidth * scale;
+    canvasEl.height = canvasEl.offsetHeight * scale;
+
     if (this.cx) {
-      this.cx.lineWidth = 3;
+      this.cx.lineWidth = 3 * scale;
       this.cx.lineCap = 'round';
       this.cx.lineJoin = 'round';
       this.cx.strokeStyle = '#000000';
+      this.cx.imageSmoothingEnabled = true;
     }
   }
 
@@ -384,7 +393,7 @@ export class EnrolamientoMasivoComponent implements OnInit, OnDestroy {
   }
 
   startDrawing(event: MouseEvent | TouchEvent): void {
-    if (this.wacomConnected || !this.cx) return;
+    if (!this.cx) return;
     this.isDrawing = true;
     const { x, y } = this.getCoordinates(event);
     this.cx.beginPath();
@@ -392,14 +401,14 @@ export class EnrolamientoMasivoComponent implements OnInit, OnDestroy {
   }
 
   moveDrawing(event: MouseEvent | TouchEvent): void {
-    if (this.wacomConnected || !this.isDrawing) return;
+    if (!this.isDrawing) return;
     const { x, y } = this.getCoordinates(event);
     this.draw(x, y);
     event.preventDefault();
   }
 
   stopDrawing(): void {
-    if(this.wacomConnected || !this.isDrawing) return;
+    if (!this.isDrawing) return;
     this.isDrawing = false;
     this.cx?.closePath();
     this.guardarFirmaTemporal();
@@ -409,9 +418,18 @@ export class EnrolamientoMasivoComponent implements OnInit, OnDestroy {
     this.wacomConnected = await this.wacomService.conectar();
     if (this.wacomConnected) {
       if (this.wacomSub) this.wacomSub.unsubscribe();
-      this.wacomSub = this.wacomService.getPenData().subscribe((data) => {
+
+      const penSub = this.wacomService.getPenData().subscribe((data) => {
         this.procesarTrazoWacom(data);
       });
+      const disconnectSub = this.wacomService.getDisconnectEvent().subscribe(() => {
+        this.wacomConnected = false;
+        this.utils.MuestrasToast(TipoToast.Warning, 'Tableta Wacom desconectada');
+        if (this.wacomSub) { this.wacomSub.unsubscribe(); this.wacomSub = null; }
+      });
+      this.wacomSub = penSub;
+      this.wacomSub.add(disconnectSub);
+
       this.utils.MuestrasToast(TipoToast.Success, 'Tableta Wacom Conectada');
     } else {
       this.utils.MuestrasToast(TipoToast.Error, 'No se pudo conectar la tableta.');
@@ -420,12 +438,16 @@ export class EnrolamientoMasivoComponent implements OnInit, OnDestroy {
 
   procesarTrazoWacom(data: any) {
     if (!this.cx || !data) return;
-    const isPenDown = data.pressure > 0;
+    // Usar isDown (bit de contacto del driver) en lugar de pressure que puede no leerse correctamente
+    const isPenDown: boolean = data.isDown;
+
+    // Usar valores fijos igual que provisional (capability report del driver tiene bug de endianness)
     const tabletW = 9750;
     const tabletH = 6100;
 
-    const x = (data.x / tabletW) * this.firmaCanvas.nativeElement.width;
-    const y = (data.y / tabletH) * this.firmaCanvas.nativeElement.width;
+    const canvasEl = this.firmaCanvas.nativeElement;
+    const x = (data.x / tabletW) * canvasEl.width;
+    const y = (data.y / tabletH) * canvasEl.height;
 
     if (isPenDown) {
       if (!this.isDrawing) {
@@ -441,6 +463,8 @@ export class EnrolamientoMasivoComponent implements OnInit, OnDestroy {
         this.isDrawing = false;
         this.cx.closePath();
         this.guardarFirmaTemporal();
+        // Forzar detección de cambios ya que esta función corre fuera de NgZone
+        this.cdRef.detectChanges();
       }
     }
   }

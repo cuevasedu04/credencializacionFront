@@ -17,6 +17,7 @@ import { FamiliarComponent } from './content/familiar/familiar.component';
 import { PlantillaAnamComponent } from './content/plantilla-anam/plantilla-anam.component';
 import { BlockAccessGuard } from './services/block-access.guard';
 import { EnrolamientoMasivoComponent } from './content/enrolamiento-masivo/enrolamiento-masivo.component';
+import { BusquedaEnrolamientoMasivosComponent } from './content/busqueda-enrolamiento-masivos/busqueda-enrolamiento-masivos.component';
 
 const routes: Routes = [
   {
@@ -27,6 +28,12 @@ const routes: Routes = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' 
       },
       { path: 'dashboard', component: DashboardComponent 
+      },
+      {
+        path: 'busqueda-enrolamiento-masivos',
+        component: BusquedaEnrolamientoMasivosComponent,
+        canActivate: [AuthGuard],
+        data: { rolesPermitidos: [1, 2, 3, 4, 9999] },
       },
       {
         path: 'enrolamiento-masivo',

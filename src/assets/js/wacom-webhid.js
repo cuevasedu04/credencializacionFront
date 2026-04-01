@@ -125,13 +125,13 @@ var WacomSTU = function () {
             }
         }.bind(this));
 
-        // Get Caps
+        // Get Caps (el reporte de capability viene en Big Endian)
         let dv = await this.readData(this.command.capability);
         if (dv) {
-            this.config.tabletWidth = dv.getUint16(1, true); // Little Endian
-            this.config.tabletHeight = dv.getUint16(3, true);
-            this.config.width = dv.getUint16(7, true);
-            this.config.height = dv.getUint16(9, true);
+            this.config.tabletWidth = dv.getUint16(1, false);  // Big Endian → 9600
+            this.config.tabletHeight = dv.getUint16(3, false); // Big Endian → 6000
+            this.config.width = dv.getUint16(7, false);        // Big Endian → 320
+            this.config.height = dv.getUint16(9, false);       // Big Endian → 200
         }
 
         return true;

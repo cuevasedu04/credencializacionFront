@@ -1,0 +1,419 @@
+<div class="container-fluid p-4 h-100 d-flex flex-column animate__animated animate__fadeIn">
+
+    <!-- HEADER -->
+    <header class="bg-white border-bottom mb-4 rounded shadow-sm">
+        <div class="container-fluid py-3 px-4">
+            <div class="d-flex align-items-center gap-3">
+                <div class="p-2 rounded" style="background-color: #2c784c; display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px;">
+                    <i class="fas fa-layer-group text-white fs-5"></i>
+                </div>
+                <div>
+                    <h1 class="fw-bold text-dark mb-0 h4">Consulta de Lotes de Enrolamiento Masivo</h1>
+                    <p class="text-muted mb-0 small">Visualiza y gestiona los lotes de enrolamiento capturados</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+
+    <!-- SELECTOR DE LOTES -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-3">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <i class="fas fa-boxes" style="color:#2c784c;"></i>
+                <span class="fw-bold text-dark" style="font-size:0.95rem;">Lotes disponibles</span>
+                <span *ngIf="!cargandoLotes" class="badge rounded-pill ms-1" style="background-color:#2c784c;">{{ lotesResumen.length }}</span>
+                <div *ngIf="cargandoLotes" class="spinner-border spinner-border-sm ms-2" style="color:#2c784c;" role="status"></div>
+                <button class="btn btn-sm btn-outline-secondary ms-auto" (click)="cargarLotes()" title="Recargar lotes">
+                    <i class="fas fa-sync-alt" [class.fa-spin]="cargandoLotes"></i>
+                </button>
+            </div>
+
+            <!-- Carril de tarjetas de lotes -->
+            <div *ngIf="!cargandoLotes && lotesResumen.length === 0" class="text-center text-muted py-3 small">
+                <i class="fas fa-inbox fa-2x mb-2 d-block opacity-50"></i>
+                No hay lotes registrados todavía
+            </div>
+
+            <div class="lotes-carril" *ngIf="lotesResumen.length > 0">
+                <div *ngFor="let l of lotesResumen"
+                     class="lote-card"
+                     [class.lote-card--activo]="loteSeleccionado === l.lote"
+                     (click)="seleccionarLote(l.lote)"
+                     [title]="l.lote">
+
+                    <div class="lote-card__nombre">{{ l.lote }}</div>
+
+                    <div class="lote-card__stats">
+                        <span class="lote-stat">
+                            <i class="fas fa-users"></i> {{ l.total }}
+                        </span>
+                        <span class="lote-stat">
+                            <i class="fas fa-camera"></i> {{ l.total_fotos }}
+                        </span>
+                        <span class="lote-stat">
+                            <i class="fas fa-pen-nib"></i> {{ l.total_firmas }}
+                        </span>
+                    </div>
+
+                    <div class="lote-card__fecha">
+                        <i class="far fa-calendar-alt me-1"></i>{{ l.fecha_inicio | date:'dd/MM/yy' }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABLA AG-GRID -->
+    <div class="card shadow-sm border-0 flex-grow-1 position-relative" style="min-height:400px;">
+
+        <div class="card-header bg-white pt-3 pb-0 d-flex justify-content-between align-items-center border-bottom">
+            <div class="d-flex align-items-center gap-2">
+                <span *ngIf="loteSeleccionado" class="badge px-3 py-2" style="background-color:#2c784c; font-size:0.9rem;">
+                    <i class="fas fa-box-open me-1"></i>{{ loteSeleccionado }}
+                </span>
+                <span *ngIf="loteSeleccionado" class="text-muted small">
+                    {{ totalRecords }} registros
+                </span>
+                <span *ngIf="!loteSeleccionado" class="text-muted small">
+                    Selecciona un lote para ver sus registros
+                </span>
+            </div>
+            <div class="d-flex gap-2 mb-2">
+                <button class="btn btn-sm btn-outline-secondary" (click)="refreshGrid()" title="Restablecer tabla">
+                    <i class="fa-solid fa-arrows-rotate" [class.fa-spin]="isRefreshing"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-secondary"
+                        (click)="toggleColumnPanel()"
+                        [class.active]="showColumnPanel">
+                    <i class="fas fa-columns me-1"></i> Columnas
+                </button>
+                <button class="btn btn-sm fw-bold" style="background-color:#2c784c; color:white;"
+                        (click)="abrirModalExcel()" [disabled]="!loteSeleccionado">
+                    <i class="fas fa-file-excel me-1"></i> Cargar Excel
+                </button>
+                <button class="btn btn-sm fw-bold" style="background-color:#c0392b; color:white;"
+                        (click)="abrirModalGenerarPDF()"
+                        [disabled]="!todosConNumeroEmpleado"
+                        [title]="!todosConNumeroEmpleado ? 'Todos los empleados deben tener número de empleado' : 'Generar PDF de credenciales'">
+                    <i class="fas fa-file-pdf me-1"></i> Generar PDF
+                </button>
+                <button class="btn btn-sm" style="background-color:#217346; color:white;"
+                        (click)="generarExcel()" [disabled]="!loteSeleccionado">
+                    <i class="fa-regular fa-file-excel me-1"></i> Excel
+                </button>
+            </div>
+        </div>
+
+        <div class="card-body p-0 position-relative h-100 overflow-hidden" style="min-height:400px;">
+
+            <!-- Overlay carga -->
+            <div *ngIf="isLoading || fotoFirmaLoading"
+                 class="position-absolute w-100 h-100 d-flex flex-column align-items-center justify-content-center"
+                 style="background:rgba(255,255,255,0.8); z-index:10;">
+                <div class="spinner-border mb-2" style="color:#2c784c;" role="status"></div>
+                <small class="text-muted">{{ fotoFirmaLoading ? 'Cargando registro...' : 'Cargando datos...' }}</small>
+            </div>
+
+            <div class="h-100 w-100">
+                <ag-grid-angular
+                    style="width:100%; height:100%;"
+                    class="ag-theme-alpine custom-grid"
+                    [rowData]="rowData"
+                    [columnDefs]="columnDefs"
+                    [defaultColDef]="defaultColDef"
+                    [pagination]="true"
+                    [paginationPageSize]="paginationPageSize"
+                    [paginationPageSizeSelector]="paginationPageSizeSelector"
+                    [animateRows]="true"
+                    [enableBrowserTooltips]="true"
+                    (gridReady)="onGridReady($event)"
+                    (cellClicked)="onCellClicked($event)">
+                </ag-grid-angular>
+            </div>
+
+            <!-- Panel de columnas -->
+            <div class="column-panel bg-white border-start shadow" [class.show]="showColumnPanel">
+                <div class="p-3 border-bottom d-flex justify-content-between align-items-center bg-light">
+                    <h6 class="m-0 fw-bold text-dark">Mostrar Columnas</h6>
+                    <button type="button" class="btn-close btn-sm" (click)="closeColumnPanel()"></button>
+                </div>
+                <div class="p-2 overflow-auto" style="height:calc(100% - 53px);">
+                    <div *ngFor="let col of columnDefs" class="mb-1 px-2">
+                        <div class="form-check form-switch py-2"
+                             *ngIf="col.field !== 'actions' && col.field !== 'rfc'">
+                            <input class="form-check-input" type="checkbox" role="switch"
+                                   [id]="'col-' + col.field"
+                                   [checked]="isColumnVisible(col.field!)"
+                                   (change)="toggleColumn(col.field!)"
+                                   style="cursor:pointer;">
+                            <label class="form-check-label small text-truncate d-block ps-2"
+                                   [for]="'col-' + col.field"
+                                   style="cursor:pointer; user-select:none;">{{ col.headerName }}</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Modal cargar Excel (estados: seleccion → subiendo → completado) -->
+<ng-template #modalCargarExcel>
+    <div class="modal-body p-4">
+
+        <!-- Estado: selección de archivo -->
+        <div *ngIf="estadoCargaExcel === 'seleccion'" class="text-center py-3">
+            <i class="fas fa-file-excel text-success" style="font-size:3rem;"></i>
+            <h6 class="mt-3 fw-bold text-dark">Actualizar registros del lote <span style="color:#2c784c;">{{ loteSeleccionado }}</span></h6>
+            <p class="text-muted small mb-4">
+                Se buscarán los registros del lote cuya columna <strong>RFC</strong> coincida con la columna <strong>CURP</strong> del Excel y se actualizarán sus datos.
+            </p>
+            <input type="file" #fileInputModal (change)="onArchivoSeleccionado($event)" accept=".xlsx,.xls" class="d-none" />
+            <button class="btn fw-bold" style="background-color:#2c784c; color:white;"
+                    (click)="fileInputModal.click()">
+                <i class="fas fa-folder-open me-2"></i>Seleccionar archivo Excel
+            </button>
+        </div>
+
+        <!-- Estado: subiendo / procesando -->
+        <div *ngIf="estadoCargaExcel === 'subiendo'" class="text-center py-4">
+            <div class="spinner-border mb-3" style="width:3.5rem; height:3.5rem; color:#2c784c;" role="status"></div>
+            <h6 class="fw-bold text-dark">Procesando Excel...</h6>
+            <p class="text-muted small mb-0">Actualizando registros del lote <strong>{{ loteSeleccionado }}</strong></p>
+            <p class="text-muted small">Por favor, espere un momento.</p>
+        </div>
+
+        <!-- Estado: completado / resumen -->
+        <div *ngIf="estadoCargaExcel === 'completado' && resumenCarga">
+
+            <div class="text-center mb-4">
+                <i class="fas fa-check-circle text-success" style="font-size:2.5rem;"></i>
+                <h6 class="mt-2 fw-bold text-success mb-1">Carga completada</h6>
+                <small class="text-muted">
+                    <span class="badge px-2 py-1 me-1" style="background-color:#2c784c;">{{ resumenCarga.lote }}</span>
+                    {{ resumenCarga.total }} registros procesados del Excel
+                </small>
+            </div>
+
+            <!-- Tarjetas de resumen -->
+            <div class="row g-3 mb-3">
+                <div class="col-6">
+                    <div class="border rounded p-3 text-center" style="border-color:#198754 !important; background:#f0fff4;">
+                        <div class="fs-2 fw-bold text-success">{{ resumenCarga.actualizados }}</div>
+                        <small class="text-muted"><i class="fas fa-check-circle me-1"></i>Registros actualizados</small>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="border rounded p-3 text-center"
+                         [ngStyle]="{'border-color': resumenCarga.no_encontrados?.length ? '#dc3545' : '#6c757d',
+                                     'background':    resumenCarga.no_encontrados?.length ? '#fff5f5' : '#f8f9fa'}">
+                        <div class="fs-2 fw-bold"
+                             [ngClass]="resumenCarga.no_encontrados?.length ? 'text-danger' : 'text-secondary'">
+                            {{ resumenCarga.no_encontrados?.length || 0 }}
+                        </div>
+                        <small class="text-muted"><i class="fas fa-exclamation-circle me-1"></i>No encontrados en el lote</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de no encontrados -->
+            <div *ngIf="resumenCarga.no_encontrados?.length > 0">
+                <h6 class="fw-bold text-danger mb-2">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    CURPs del Excel sin coincidencia en el lote ({{ resumenCarga.no_encontrados.length }}):
+                </h6>
+                <div class="border rounded" style="max-height:220px; overflow-y:auto;">
+                    <table class="table table-sm table-hover mb-0" style="font-size:0.82rem;">
+                        <thead style="background:#fff5f5; position:sticky; top:0; z-index:1;">
+                            <tr>
+                                <th class="text-muted fw-bold">CURP</th>
+                                <th class="text-muted fw-bold">Nombre</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let item of resumenCarga.no_encontrados">
+                                <td class="font-monospace" style="font-size:0.75rem;">{{ item.curp || '—' }}</td>
+                                <td>{{ item.nombre || '—' }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</ng-template>
+
+<!-- Modal generar PDF de credenciales por lote -->
+<ng-template #modalGenerarPDF>
+    <div class="modal-body p-4">
+
+        <!-- Estado: configuración -->
+        <div *ngIf="estadoModalPDF === 'configuracion'">
+
+            <div class="mb-4">
+                <label class="fw-semibold mb-2 d-block">Plantilla de credencial:</label>
+                <div class="d-flex gap-4">
+                    <div class="form-check">
+                        <input type="radio" id="rAnam" class="form-check-input" name="plantillaPDF"
+                               value="anam" [(ngModel)]="plantillaSeleccionada"
+                               (change)="cargarFolioMaximo()">
+                        <label class="form-check-label" for="rAnam">
+                            <i class="fas fa-id-badge me-1 text-primary"></i>ANAM
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input type="radio" id="rProvisional" class="form-check-input" name="plantillaPDF"
+                               value="provisional" [(ngModel)]="plantillaSeleccionada"
+                               (change)="cargarFolioMaximo()">
+                        <label class="form-check-label" for="rProvisional">
+                            <i class="fas fa-id-badge me-1 text-success"></i>Nuevo Laredo
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="fw-semibold mb-1 d-block">Folio inicial:</label>
+                <div class="input-group" style="max-width:220px;">
+                    <span class="input-group-text"><i class="fas fa-hashtag"></i></span>
+                    <input type="text" class="form-control font-monospace"
+                           [(ngModel)]="folioInicial"
+                           placeholder="000001"
+                           [disabled]="folioInicialLoading"
+                           style="letter-spacing:2px;">
+                    <span *ngIf="folioInicialLoading" class="input-group-text">
+                        <div class="spinner-border spinner-border-sm" role="status"></div>
+                    </span>
+                </div>
+                <small class="text-muted d-block mt-1">
+                    Cada credencial recibe el folio consecutivo a partir de este número.
+                </small>
+            </div>
+
+            <div class="alert py-2 small mb-3" style="background:#f0fff4; border-color:#198754; border-left: 4px solid #198754;">
+                <i class="fas fa-info-circle text-success me-1"></i>
+                Se generarán <strong>{{ rowData.length }}</strong> credenciales.
+                El PDF tendrá <strong>{{ rowData.length * 2 }}</strong> páginas (frente + reverso por credencial).<br>
+                Tiempo estimado: ~{{ Math.ceil(rowData.length * 1.6) }} segundos.
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-secondary" (click)="modalManager.closeModal()">
+                    Cancelar
+                </button>
+                <button type="button" class="btn fw-bold" style="background-color:#c0392b; color:white;"
+                        (click)="generarPDFLote()" [disabled]="!folioInicial || folioInicialLoading">
+                    <i class="fas fa-file-pdf me-1"></i>Generar PDF
+                </button>
+            </div>
+        </div>
+
+        <!-- Estado: generando -->
+        <div *ngIf="estadoModalPDF === 'generando'" class="py-2">
+            <div class="text-center mb-4">
+                <div class="spinner-border mb-2" style="width:3rem; height:3rem; color:#c0392b;" role="status"></div>
+                <h6 class="fw-bold text-dark">Generando PDF de credenciales...</h6>
+            </div>
+
+            <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <small class="text-muted text-truncate" style="max-width:70%;">
+                        <i class="fas fa-id-card me-1"></i>{{ empleadoActualGenerando }}
+                    </small>
+                    <span class="fw-bold" style="color:#c0392b;">{{ progresoGeneracion }}%</span>
+                </div>
+                <div class="progress" style="height:14px; border-radius:7px;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated"
+                         [style.width.%]="progresoGeneracion"
+                         style="background-color:#c0392b; border-radius:7px;">
+                    </div>
+                </div>
+                <small class="text-muted mt-1 d-block text-end">
+                    {{ Math.min(Math.ceil(progresoGeneracion * totalAGenerar / 100), totalAGenerar) }} de {{ totalAGenerar }} credenciales
+                </small>
+            </div>
+
+            <div class="alert alert-warning py-2 small mb-0">
+                <i class="fas fa-exclamation-triangle me-1"></i>
+                No cierre esta ventana durante la generación. El PDF se descargará automáticamente al terminar.
+            </div>
+            <!-- Sin botones durante generación: el usuario no debe interrumpir -->
+        </div>
+
+        <!-- Estado: completado -->
+        <div *ngIf="estadoModalPDF === 'completado'" class="text-center py-3">
+            <i class="fas fa-check-circle text-success" style="font-size:3.5rem;"></i>
+            <h5 class="mt-3 fw-bold text-success">¡PDF generado exitosamente!</h5>
+            <p class="text-muted mb-1">
+                <strong>{{ totalAGenerar }}</strong> credenciales generadas.
+            </p>
+            <p class="text-muted small">
+                El archivo se ha descargado automáticamente con frente y reverso en orden.
+            </p>
+            <button type="button" class="btn btn-success px-4" (click)="modalManager.closeModal()">
+                <i class="fas fa-check me-1"></i>Cerrar
+            </button>
+        </div>
+
+    </div>
+</ng-template>
+
+<!-- Modal visualizar -->
+<ng-template #modalVisualizar>
+    <div class="modal-body" *ngIf="empleadoSeleccionado">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="switchEditar" [(ngModel)]="esEditable">
+                <label class="form-check-label" for="switchEditar">Editar</label>
+            </div>
+            <button class="btn btn-primary btn-sm" (click)="guardarCambios()" [disabled]="!esEditable">
+                <i class="fas fa-save me-1"></i> Guardar
+            </button>
+        </div>
+
+        <app-plantilla-anam
+            *ngIf="esCredencialAnam(empleadoSeleccionado); else plantillaNuevoLaredoModal"
+            #plantillaModalAnam
+            [empleado]="empleadoSeleccionado"
+            [editable]="esEditable"
+            [mostrarHeader]="false"
+            (enrolamientoCompletado)="onEnrolamientoCompletado()">
+        </app-plantilla-anam>
+
+        <ng-template #plantillaNuevoLaredoModal>
+            <app-provisional
+                #plantillaModalNuevoLaredo
+                [empleado]="empleadoSeleccionado"
+                [editable]="esEditable"
+                [mostrarHeader]="false"
+                (enrolamientoCompletado)="onEnrolamientoCompletado()">
+            </app-provisional>
+        </ng-template>
+    </div>
+</ng-template>
+
+<!-- Contenedor oculto para impresión -->
+<div #printContainer style="position:absolute; left:-9999px; top:-9999px;">
+    <app-plantilla-anam
+        *ngIf="empleadoImprimir && esCredencialAnam(empleadoImprimir); else plantillaNLImpresion"
+        #plantillaImprimirAnam
+        [empleado]="empleadoImprimir"
+        [isPrintMode]="true"
+        [editable]="false"
+        [mostrarHeader]="false">
+    </app-plantilla-anam>
+    <ng-template #plantillaNLImpresion>
+        <app-provisional
+            *ngIf="empleadoImprimir"
+            #plantillaImprimirNuevoLaredo
+            [empleado]="empleadoImprimir"
+            [isPrintMode]="true"
+            [editable]="false"
+            [mostrarHeader]="false">
+        </app-provisional>
+    </ng-template>
+</div>

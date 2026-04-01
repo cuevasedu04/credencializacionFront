@@ -1,9 +1,9 @@
-import { Component, OnInit, ViewChild, TemplateRef } from '@angular/core';
+import { Component, OnInit, ViewChild, TemplateRef, HostListener } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { UtilsService } from '../../services/utils.service';
 import { TipoToast } from '../../../api/entidades/enumeraciones';
 import { ModalManagerService } from '../../components/shared/modal-manager.service';
-import { environment } from '../../../environments/environment.prod';
+import { CargaMasivaService } from '../../services/carga-masiva.service';
 
 @Component({
   selector: 'app-carga-masiva',
@@ -14,165 +14,199 @@ import { environment } from '../../../environments/environment.prod';
 export class CargaMasivaComponent implements OnInit {
   Math = Math;
 
-  // Tabla SIG server-side
-  sigRegistros: any[] = [];
-  sigTotal: number = 0;
-  sigPage: number = 1;
-  sigPageSize: number = 5;
+  // Lotes disponibles
+  lotes: any[] = [];
+  loteSeleccionado: string = '';
+  lotesLoading: boolean = false;
+
+  // Tabla registros del lote
+  registros: any[] = [];
+  registrosTotal: number = 0;
+  registrosPage: number = 1;
+  registrosPageSize: number = 10;
   pageSizeOptions: number[] = [5, 10, 25, 50, 100];
-  sigTotalPages: number = 0;
-  sigVisiblePages: number[] = [];
-  sigLoading: boolean = false;
-  sigSearchTerm: string = '';
+  registrosTotalPages: number = 0;
+  registrosVisiblePages: number[] = [];
+  registrosLoading: boolean = false;
+  searchTerm: string = '';
   private searchTimeout: any = null;
+
+  // Columnas visibles
+  columnasConfig = [
+    { key: 'empleado_anam',    label: 'Empleado ANAM',    visible: true  },
+    { key: 'no_empleado',      label: 'No. Empleado',     visible: true  },
+    { key: 'curp',             label: 'CURP',             visible: true  },
+    { key: 'nombres',          label: 'Nombres',          visible: true  },
+    { key: 'primer_apellido',  label: 'Primer Apellido',  visible: true  },
+    { key: 'segundo_apellido', label: 'Segundo Apellido', visible: true  },
+    { key: 'area',             label: 'Área',             visible: true  },
+    { key: 'cargo',            label: 'Cargo',            visible: true  },
+    { key: 'fecha_expedicion', label: 'Fecha Expedición', visible: true  },
+    { key: 'firma_drh',        label: 'Firma DRH',        visible: false },
+    { key: 'cargo_drh',        label: 'Cargo DRH',        visible: false },
+    { key: 'qr',               label: 'QR',               visible: false },
+    { key: 'estatus',          label: 'Estatus',          visible: true  },
+    { key: 'estado_hum',       label: 'Estado HUM',       visible: false },
+    { key: 'estado_nom',       label: 'Estado NOM',       visible: false },
+  ];
+  mostrarMenuColumnas: boolean = false;
 
   // Upload
   subiendoRegistros: boolean = false;
   archivoSeleccionado: File | null = null;
-  errorResponse: any = null;
   resumenCarga: any = null;
 
-  // ViewChild para los modales
   @ViewChild('modalConfirmacion') modalConfirmacion!: TemplateRef<any>;
-  @ViewChild('modalDuplicados') modalDuplicados!: TemplateRef<any>;
   @ViewChild('modalResumen') modalResumen!: TemplateRef<any>;
 
-  private apiUrl = `/api-sicre/empleados-sig/`;
+  private apiUrl = '/api/carga-masiva/';
 
   constructor(
     private http: HttpClient,
     private utils: UtilsService,
-    private modalManager: ModalManagerService
+    private modalManager: ModalManagerService,
+    private cargaMasivaService: CargaMasivaService
   ) {}
 
   ngOnInit(): void {
-    this.cargarSig();
+    this.cargarLotes();
   }
 
-  // --- Tabla server-side ---
-  cargarSig(page: number = 1) {
-    this.sigLoading = true;
-    this.sigPage = page;
-    const params: any = { page, page_size: this.sigPageSize };
-    if (this.sigSearchTerm.trim()) params.search = this.sigSearchTerm.trim();
-
-    this.http.get(this.apiUrl, { params }).subscribe(
-      (res: any) => {
-        this.sigLoading = false;
-        this.sigRegistros = res.results || [];
-        this.sigTotal = res.count || 0;
-        this.sigTotalPages = Math.ceil(this.sigTotal / this.sigPageSize);
-        this.updateSigVisiblePages();
+  // ── Lotes ──────────────────────────────────────────────────────────────────
+  cargarLotes() {
+    this.lotesLoading = true;
+    this.cargaMasivaService.obtenerResumenLotes().subscribe(
+      (res: any[]) => {
+        this.lotesLoading = false;
+        this.lotes = res;
       },
       (error) => {
-        this.sigLoading = false;
+        this.lotesLoading = false;
         this.utils.MuestraErrorInterno(error);
       }
     );
   }
 
-  buscarSig() {
-    clearTimeout(this.searchTimeout);
-    this.searchTimeout = setTimeout(() => this.cargarSig(1), 400);
+  seleccionarLote(lote: string) {
+    this.loteSeleccionado = lote;
+    this.searchTerm = '';
+    this.cargarRegistros(1);
   }
 
-  sigPrevPage() { if (this.sigPage > 1) this.cargarSig(this.sigPage - 1); }
-  sigNextPage() { if (this.sigPage < this.sigTotalPages) this.cargarSig(this.sigPage + 1); }
-  sigGoToPage(page: number) { this.cargarSig(page); }
-  changeSigPageSize() { this.sigPageSize = Number(this.sigPageSize); this.cargarSig(1); }
+  // ── Tabla registros ────────────────────────────────────────────────────────
+  cargarRegistros(page: number = 1) {
+    if (!this.loteSeleccionado) return;
+    this.registrosLoading = true;
+    this.registrosPage = page;
+    const params: any = { lote: this.loteSeleccionado, page, page_size: this.registrosPageSize };
+    if (this.searchTerm.trim()) params.search = this.searchTerm.trim();
 
-  updateSigVisiblePages() {
-    const total = this.sigTotalPages;
-    const current = this.sigPage;
-    const visibleCount = 5;
-    let start = Math.max(current - Math.floor(visibleCount / 2), 1);
-    let end = Math.min(start + visibleCount - 1, total);
-    start = Math.max(end - visibleCount + 1, 1);
-    this.sigVisiblePages = [];
-    for (let i = start; i <= end; i++) this.sigVisiblePages.push(i);
-  }
-
-  // --- Upload ---
-  onFileSelected(event: any) {
-    const file = event.target.files[0];
-    if (file) this.archivoSeleccionado = file;
-  }
-
-  subirRegistros() {
-    if (!this.archivoSeleccionado) {
-      this.utils.MuestrasToast(TipoToast.Warning, 'No hay archivo para subir');
-      return;
-    }
-    this.modalManager.openModal({
-      title: 'Confirmar Carga',
-      template: this.modalConfirmacion,
-      showFooter: true,
-      onAccept: () => { this.ejecutarSubidaRegistros(); }
-    });
-  }
-
-  ejecutarSubidaRegistros() {
-    this.subiendoRegistros = true;
-    const formData = new FormData();
-    formData.append('archivo', this.archivoSeleccionado!);
-
-    this.http.post(`${this.apiUrl}subir_excel/`, formData).subscribe(
-      (response: any) => {
-        this.subiendoRegistros = false;
-        this.archivoSeleccionado = null;
-
-        if (response.status === 'success') {
-          const r = response.resumen || {};
-          const sinCambios = (r.sig_creados === 0 && r.sig_actualizados === 0 &&
-                              r.enrolamiento_creados === 0 && r.enrolamiento_actualizados === 0);
-          if (sinCambios) {
-            this.utils.MuestrasToast(TipoToast.Warning, response.mensaje || 'No se encontraron cambios');
-          } else {
-            this.resumenCarga = r;
-            this.cargarSig(1);
-            setTimeout(() => {
-              this.modalManager.openModal({
-                title: 'Resumen de carga SIG',
-                template: this.modalResumen,
-                showFooter: true,
-                width: '580px'
-              });
-            }, 100);
-          }
-        } else {
-          this.utils.MuestrasToast(TipoToast.Error, response.mensaje || 'Error al subir registros');
-        }
+    this.http.get(this.apiUrl, { params }).subscribe(
+      (res: any) => {
+        this.registrosLoading = false;
+        this.registros = res.results || [];
+        this.registrosTotal = res.count || 0;
+        this.registrosTotalPages = Math.ceil(this.registrosTotal / this.registrosPageSize);
+        this.updateVisiblePages();
       },
       (error) => {
-        this.subiendoRegistros = false;
-        if (error.error && (error.error.status === 'error' || error.error.curps_duplicadas || error.error.numeros_empleado_duplicados)) {
-          this.errorResponse = error.error;
-          this.mostrarModalDuplicados();
-        } else {
-          this.utils.MuestraErrorInterno(error);
-        }
+        this.registrosLoading = false;
+        this.utils.MuestraErrorInterno(error);
       }
     );
   }
 
-  cancelarCarga() {
-    this.archivoSeleccionado = null;
-    this.utils.MuestrasToast(TipoToast.Info, 'Carga cancelada');
+  buscarRegistros() {
+    clearTimeout(this.searchTimeout);
+    this.searchTimeout = setTimeout(() => this.cargarRegistros(1), 400);
   }
 
-  cerrarModalResumen() { this.modalManager.closeModal(); }
+  prevPage() { if (this.registrosPage > 1) this.cargarRegistros(this.registrosPage - 1); }
+  nextPage() { if (this.registrosPage < this.registrosTotalPages) this.cargarRegistros(this.registrosPage + 1); }
+  goToPage(page: number) { this.cargarRegistros(page); }
+  changePageSize() { this.registrosPageSize = Number(this.registrosPageSize); this.cargarRegistros(1); }
 
-  mostrarModalDuplicados() {
+  updateVisiblePages() {
+    const total = this.registrosTotalPages;
+    const current = this.registrosPage;
+    const visibleCount = 5;
+    let start = Math.max(current - Math.floor(visibleCount / 2), 1);
+    let end = Math.min(start + visibleCount - 1, total);
+    start = Math.max(end - visibleCount + 1, 1);
+    this.registrosVisiblePages = [];
+    for (let i = start; i <= end; i++) this.registrosVisiblePages.push(i);
+  }
+
+  get columnasVisibles() {
+    return this.columnasConfig.filter(c => c.visible);
+  }
+
+  toggleMenuColumnas(event: MouseEvent) {
+    event.stopPropagation();
+    this.mostrarMenuColumnas = !this.mostrarMenuColumnas;
+  }
+
+  @HostListener('document:click')
+  cerrarMenuColumnas() {
+    this.mostrarMenuColumnas = false;
+  }
+
+  getCellValue(registro: any, key: string): string {
+    if (key === 'fecha_expedicion') return this.formatearFecha(registro[key]);
+    return registro[key] || 'N/A';
+  }
+
+  // ── Upload ─────────────────────────────────────────────────────────────────
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (!file) return;
+    // Reset input para permitir seleccionar el mismo archivo nuevamente
+    event.target.value = '';
+    if (!this.loteSeleccionado) {
+      this.utils.MuestrasToast(TipoToast.Warning, 'Seleccione un lote antes de cargar el Excel');
+      return;
+    }
+    this.archivoSeleccionado = file;
     this.modalManager.openModal({
-      title: 'Error - Duplicados Encontrados',
-      template: this.modalDuplicados,
-      showFooter: false,
-      width: '600px'
+      title: 'Confirmar carga Excel',
+      template: this.modalConfirmacion,
+      showFooter: true,
+      onAccept: () => { this.ejecutarSubida(); }
     });
   }
 
-  cerrarModalDuplicados() { this.modalManager.closeModal(); }
+  ejecutarSubida() {
+    if (!this.archivoSeleccionado || !this.loteSeleccionado) return;
+    this.subiendoRegistros = true;
+    const formData = new FormData();
+    formData.append('archivo', this.archivoSeleccionado);
+    formData.append('lote', this.loteSeleccionado);
 
+    this.http.post(`${this.apiUrl}cargar-lote-excel/`, formData).subscribe(
+      (response: any) => {
+        this.subiendoRegistros = false;
+        this.archivoSeleccionado = null;
+        this.resumenCarga = response;
+        this.cargarRegistros(1);
+        this.cargarLotes();
+        setTimeout(() => {
+          this.modalManager.openModal({
+            title: 'Resumen de carga Excel',
+            template: this.modalResumen,
+            showFooter: true,
+            width: '620px'
+          });
+        }, 100);
+      },
+      (error) => {
+        this.subiendoRegistros = false;
+        this.archivoSeleccionado = null;
+        this.utils.MuestraErrorInterno(error);
+      }
+    );
+  }
+
+  // ── Utilidades ─────────────────────────────────────────────────────────────
   formatearFecha(fecha: string): string {
     if (!fecha) return 'N/A';
     try {

@@ -52,7 +52,7 @@ export class ModuleContextService {
       case 'consultas':
         return ['busquedaAvanzada', 'reportes', 'credencializacion', 'Carga masiva'];
       case 'enrolamiento-masivo':
-        return ['enrolamiento-masivo'];
+        return ['enrolamiento-masivo', 'busqueda-enrolamiento-masivos'];
       default:
         return [];
     }

@@ -55,8 +55,10 @@
                                 <small class="text-muted fw-bold" style="font-size: 0.7rem;">CURP/RFC</small><br>
                                 <span class="text-primary fw-bold" style="color: #2c784c !important;" *ngIf="reg.rfc">{{ reg.rfc }}</span>
                                 <span class="text-danger fw-bold" *ngIf="!reg.rfc">FALTA RFC</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-
             </div>
         </div>
 
@@ -166,8 +168,7 @@
             <div class="canvas-container border rounded bg-white w-100 shadow-inner mb-3 d-flex flex-column" style="height: 380px;">
                 <div class="text-muted text-center p-2 small border-bottom bg-light">Firma en el recuadro</div>
                 <canvas #firmaCanvas
-                    width="400" height="250"
-                    style="touch-action: none; flex-grow:1; width:100%; cursor: crosshair;"
+                    style="touch-action: none; flex-grow:1; width:100%; height:100%; cursor: crosshair;"
                     (mousedown)="startDrawing($event)"
                     (mousemove)="moveDrawing($event)"
                     (mouseup)="stopDrawing()"

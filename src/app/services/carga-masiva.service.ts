@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../../src/environments/environment';
 
 export interface CargaMasivaRegistro {
     id?: number;
@@ -46,10 +45,12 @@ export class CargaMasivaService {
   }
 
   /**
-   * Consulta el progreso de un lote activo.
+   * Consulta el progreso de un lote.
+   * @param sinImagenes Si true, los registros no incluyen base64 (sólo indicadores has_foto/has_firma).
    */
-  obtenerProgresoLote(lote: string): Observable<ProgresoLote> {
+  obtenerProgresoLote(lote: string, sinImagenes: boolean = false): Observable<ProgresoLote> {
     let params = new HttpParams().set('lote', lote);
+    if (sinImagenes) params = params.set('sin_imagenes', '1');
     return this.http.get<ProgresoLote>(this.apiUrl + 'progreso-lote/', { params });
   }
 
@@ -58,5 +59,30 @@ export class CargaMasivaService {
    */
   cancelarLote(lote: string): Observable<any> {
     return this.http.post<any>(this.apiUrl + 'cancelar-lote/', { lote });
+  }
+
+  /**
+   * Devuelve un resumen de todos los lotes (nombre, total, fotos, firmas, fechas).
+   */
+  obtenerResumenLotes(): Observable<any[]> {
+    return this.http.get<any[]>(this.apiUrl + 'lotes-resumen/');
+  }
+
+  /**
+   * Carga un Excel y actualiza los registros del lote indicado que coincidan
+   * por CURP (columna CURP del Excel vs campo rfc de sicre_tbl_carga_masiva).
+   */
+  cargarLoteExcel(archivo: File, lote: string): Observable<any> {
+    const fd = new FormData();
+    fd.append('archivo', archivo);
+    fd.append('lote', lote);
+    return this.http.post<any>(this.apiUrl + 'cargar-lote-excel/', fd);
+  }
+
+  /**
+   * Obtiene un registro individual con foto y firma completas.
+   */
+  obtenerRegistro(id: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}${id}/`);
   }
 }

@@ -30,6 +30,7 @@ import { ProvisionalComponent } from './content/provisional/provisional.componen
 import { FamiliarComponent } from './content/familiar/familiar.component';
 import { PlantillaAnamComponent } from './content/plantilla-anam/plantilla-anam.component';
 import { EnrolamientoMasivoComponent } from './content/enrolamiento-masivo/enrolamiento-masivo.component';
+import { BusquedaEnrolamientoMasivosComponent } from './content/busqueda-enrolamiento-masivos/busqueda-enrolamiento-masivos.component';
 
 @NgModule({
   declarations: [
@@ -49,7 +50,8 @@ import { EnrolamientoMasivoComponent } from './content/enrolamiento-masivo/enrol
     ProvisionalComponent,
     FamiliarComponent,
     PlantillaAnamComponent,
-    EnrolamientoMasivoComponent
+    EnrolamientoMasivoComponent,
+    BusquedaEnrolamientoMasivosComponent
   ],
   imports: [
     DataTablesModule,
