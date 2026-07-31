@@ -18,6 +18,7 @@ import { PlantillaAnamComponent } from './content/plantilla-anam/plantilla-anam.
 import { BlockAccessGuard } from './services/block-access.guard';
 import { EnrolamientoMasivoComponent } from './content/enrolamiento-masivo/enrolamiento-masivo.component';
 import { BusquedaEnrolamientoMasivosComponent } from './content/busqueda-enrolamiento-masivos/busqueda-enrolamiento-masivos.component';
+import { LoginComponent } from './content/login/login.component';
 
 const routes: Routes = [
   {
@@ -104,10 +105,14 @@ const routes: Routes = [
     ],
   },
   {
+    path: 'login',
+    component: LoginComponent,
+  },
+  {
     path: 'acceso-denegado',
     component: AccesoDenegadoComponent,
   },
-  { path: '**', redirectTo: '' },
+  { path: '**', redirectTo: 'login' },
   {
     path: 'ux-design',
     component: UxDesignComponent,

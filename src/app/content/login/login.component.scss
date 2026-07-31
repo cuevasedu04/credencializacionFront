@@ -1,0 +1,196 @@
+body {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  position: relative;
+  font-family: 'Noto Sans', sans-serif;
+}
+
+/* ── PANEL IZQUIERDO ────────────────────────────────────────────── */
+.left {
+  width: 55%;
+  background-image:
+    linear-gradient(rgba(159, 34, 65, 0.92), rgba(105, 28, 50, 0.95)),
+    url('/img/Aduana.jpg');
+  background-blend-mode: multiply;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  box-shadow: inset -30px 0 80px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.left-title {
+  font-size: 34px;
+  font-family: 'Patria', serif;
+  font-weight: bold;
+  line-height: 1.2;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.left-subtitle {
+  font-size: 15px;
+  opacity: 0.82;
+  margin-top: 8px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* ── PANEL DERECHO ──────────────────────────────────────────────── */
+.right {
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 49%;
+  background-color: white;
+  border-top-left-radius: 20px;
+  border-bottom-left-radius: 20px;
+  box-shadow: inset 0 -50px 50px rgba(0, 0, 0, 0.2);
+  margin-left: -1%;
+  z-index: 2;
+  position: relative;
+}
+
+/* ── CARD DE LOGIN ──────────────────────────────────────────────── */
+.login-card {
+  max-width: 450px;
+  margin-top: 10%;
+  max-height: 100%;
+  width: 100%;
+}
+
+.login-title {
+  font-family: 'Noto Sans', sans-serif;
+  font-weight: 800;
+  font-size: 22px;
+}
+
+/* ── INPUTS ─────────────────────────────────────────────────────── */
+input.form-control-login {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  outline: none;
+  box-shadow: 0px 13px 2px -10px gray;
+  border-radius: 10px;
+  font-family: var(--font-family-text);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-regular);
+  color: var(--text-primary);
+  transition: all 0.1s ease-in-out;
+
+  &:focus {
+    outline: none;
+    border: none;
+  }
+
+  &.valid {
+    box-shadow: 0px 13px 2px -10px #22b573 !important;
+  }
+
+  &.invalid {
+    box-shadow: 0px 13px 2px -10px var(--color-primary) !important;
+  }
+}
+
+.input-icon-wrapper {
+  position: relative;
+
+  input {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .icon {
+    position: absolute;
+    top: 50%;
+    left: 93%;
+    transform: translateY(-50%);
+    font-size: 1.1rem;
+    transition: color 0.1s ease-in-out;
+
+    &.valid-icon   { color: #22b573; }
+    &.invalid-icon { color: #a33635; }
+  }
+}
+
+/* ── BOTÓN INGRESAR ─────────────────────────────────────────────── */
+.btn-primary {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 10px;
+  border-radius: 10px;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+
+  &:hover:not(:disabled) {
+    background-color: var(--color-secondary);
+    border-color: var(--color-secondary);
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+/* ── ICONO AYUDA ────────────────────────────────────────────────── */
+.info-btn-login {
+  color: #6c757d;
+  cursor: pointer;
+  transition: color 0.15s ease, filter 0.15s ease;
+
+  &:hover {
+    color: var(--color-primary);
+    filter: drop-shadow(0 0 6px rgba(159, 34, 65, 0.4));
+  }
+}
+
+/* ── SUBRAYADO HOVER (Olvidé contraseña) ────────────────────────── */
+.hover-line-right_local {
+  position: relative;
+  display: inline-block;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 0;
+    height: 3px;
+    background-color: var(--color-gold);
+    transition: width 0.2s ease;
+  }
+
+  &:hover::after { width: 100%; }
+}
+
+/* ── AUTOFILL ───────────────────────────────────────────────────── */
+input[type="password"]:-webkit-autofill,
+input[type="text"]:-webkit-autofill,
+input[type="email"]:-webkit-autofill {
+  -webkit-text-fill-color: black !important;
+  background-color: transparent !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+}
+
+input::-ms-reveal,
+input::-ms-clear { display: none; }
+
+/* ── RESPONSIVE ─────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .left { display: none !important; }
+  .right { width: 100%; border-radius: 0; margin-left: 0; }
+  .login-card { padding: 0 20px; margin-top: 20px; }
+}
+
+@media (max-height: 760px) {
+  .right img { display: none; }
+
+  .login-card {
+    margin-top: 20px;
+    width: 350px;
+  }
+}

@@ -13,7 +13,7 @@ export class UsuarioService {
   constructor(private http: HttpClient) { }
 
   logIn(data:any) {
-    return this.http.post(this.urlBase + "/logIn", data);
+    return this.http.post('/api/login/', data);
   }
   registrarUsuario(data:any) {
     return this.http.post(this.urlBase + "/registrarUsuario", data);

@@ -31,10 +31,12 @@ import { FamiliarComponent } from './content/familiar/familiar.component';
 import { PlantillaAnamComponent } from './content/plantilla-anam/plantilla-anam.component';
 import { EnrolamientoMasivoComponent } from './content/enrolamiento-masivo/enrolamiento-masivo.component';
 import { BusquedaEnrolamientoMasivosComponent } from './content/busqueda-enrolamiento-masivos/busqueda-enrolamiento-masivos.component';
+import { LoginComponent } from './content/login/login.component';
 
 @NgModule({
   declarations: [
     AppComponent,
+    LoginComponent,
     DashboardComponent,
     UxDesignComponent,
     BusquedaAvanzadaComponent,

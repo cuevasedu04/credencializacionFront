@@ -85,8 +85,7 @@ export class SessionService {
     // Destruir modales y componentes flotantes
     this.modalService.dismissAll();
     
-    // Redirigir al login del SIORH
-    window.location.href = '/auth/login';
+    window.location.href = '/login';
   }
 
   /** Verifica sin eliminar si la sesión está expirada */

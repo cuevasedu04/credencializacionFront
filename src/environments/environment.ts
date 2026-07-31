@@ -7,7 +7,7 @@ export const environment = {
   bypassLogin: true, // ESTA VARIABLE MANTIENE TU SESIÓN DE DESARROLLO SIEMPRE ACTIVA (BORRAR O PONER FALSE EN PRODUCCIÓN)
   bypassRole: 4, // Puedes cambiar aquí el rol con el que quieres probar (ej. 1, 2, 3, 4, 9999)
 /*   baseurl: 'https://codecosep.sep.gob.mx:9011/', */
-  baseurl: 'http://127.0.0.1:8080/',
+  baseurl: '',
   baseurlAssets: '',
   urlCartaConducta: "http://www.sep.gob.mx/comunicacioninterna/Codigo_de_conducta_para_las_personas_servidoras_publicas_de_la_sep_2020.pdf",
   urlAvisoPrivacidad: "http://168.255.101.89:9011/public/cartaConducta/Aviso_de_privacidad.pdf"

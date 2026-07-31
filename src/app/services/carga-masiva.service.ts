@@ -26,7 +26,7 @@ export interface ProgresoLote {
   providedIn: 'root'
 })
 export class CargaMasivaService {
-  private apiUrl = 'http://127.0.0.1:8080/api/carga-masiva/';
+  private apiUrl = '/api-sicre/carga-masiva/';
 
   constructor(private http: HttpClient) { }
 

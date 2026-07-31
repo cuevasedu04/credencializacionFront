@@ -1,0 +1,121 @@
+<div class="vh-100 d-flex">
+
+  <!-- PANEL IZQUIERDO: branding SICRE -->
+  <div class="left d-flex flex-column justify-content-center align-items-center">
+    <div class="p-4 d-flex justify-content-center align-items-center flex-grow-0 w-100 gap-4">
+      <div class="flex-shrink-0">
+        <img src="/img/aduanaLogo.png" width="100px" alt="Logo SICRE">
+      </div>
+      <div>
+        <p class="left-title text-white">Sistema de Credencialización</p>
+        <p class="left-subtitle text-white">Gestión de credenciales y enrolamiento de personal</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL DERECHO: formulario -->
+  <div class="right d-flex flex-column justify-content-start align-items-center">
+    <div style="width: 651px; padding-top: 8%">
+      <img src="/img/Logos_P_Hacienda_ANAM.png" alt="Logo Hacienda / ANAM" width="100%">
+    </div>
+
+    <div class="login-card">
+      <p class="text-center mb-2 text-dark-gray login-title">INICIAR SESIÓN</p>
+
+      <form [formGroup]="loginForm">
+        <div *ngIf="error" class="text-danger w-100 mb-2">{{ error }}</div>
+
+        <!-- Campo usuario -->
+        <div>
+          <label class="form-label fw-bolder text-dark-gray pt-3" for="usuario">Usuario</label>
+          <div class="pt-0 input-icon-wrapper">
+            <i [ngClass]="getValidationStatus('usuario') == 'valid'   ? 'fas fa-check-circle icon valid-icon' :
+                          getValidationStatus('usuario') == 'invalid' ? 'fas fa-times-circle icon invalid-icon' : 'd-none'"></i>
+            <input type="text" id="usuario" formControlName="usuario" autocomplete="off"
+              placeholder="correo@anam.gob.mx"
+              class="form-control-login"
+              [class.invalid]="getValidationStatus('usuario') == 'invalid'"
+              [class.valid]="getValidationStatus('usuario') == 'valid'" />
+          </div>
+        </div>
+
+        <!-- Campo contraseña -->
+        <div class="mb-1 position-relative">
+          <label class="form-label fw-bolder text-dark-gray pt-4" for="password">Contraseña</label>
+          <div class="pt-0 input-icon-wrapper">
+            <i [ngClass]="getValidationStatus('password') == 'valid'   ? 'fas fa-check-circle icon valid-icon' :
+                          getValidationStatus('password') == 'invalid' ? 'fas fa-times-circle icon invalid-icon' : 'd-none'"></i>
+            <input [type]="hiddenPassw ? 'text' : 'password'" id="password"
+              formControlName="password" autocomplete="off" placeholder="Contraseña" maxlength="255"
+              class="form-control-login"
+              [class.invalid]="getValidationStatus('password') == 'invalid'"
+              [class.valid]="getValidationStatus('password') == 'valid'" />
+            <i class="fas" [ngClass]="hiddenPassw ? 'fa-eye-slash' : 'fa-eye'"
+              (click)="sethidden()"
+              style="position:absolute;right:45px;top:16px;cursor:pointer;color:#6c757d;"></i>
+          </div>
+        </div>
+
+        <!-- Recordar / Olvidé contraseña -->
+        <div class="d-flex justify-content-between mt-3 mb-5">
+          <div class="d-flex align-items-center">
+            <input [(ngModel)]="recordar" [ngModelOptions]="{standalone: true}"
+              class="me-2" type="checkbox" name="recordar" id="recordar">
+            <label role="button" class="text-muted frmlabel pt-0" for="recordar">Recordarme</label>
+          </div>
+          <div role="button" (click)="openOlvidarContrasenaModal()"
+            class="hover-line-right_local text-decoration-none text-muted fw-bold text-gold">
+            Olvidé mi contraseña
+          </div>
+        </div>
+
+        <!-- Botón Ingresar -->
+        <button type="submit" (click)="login()"
+          [disabled]="loginForm.invalid || loading"
+          class="btn btn-primary w-100 mb-3">
+          <span *ngIf="loading" class="spinner-border spinner-border-sm me-2" role="status"></span>
+          Ingresar
+        </button>
+      </form>
+
+      <!-- Iconos de ayuda -->
+      <div class="m-auto pt-3 d-flex justify-content-center align-items-center gap-3">
+        <span class="tooltip-wrapper center" [attr.data-tooltip]="'Ayuda'">
+          <i (click)="openAyudaModal()" class="info-btn-login p-2 fas fa-question-circle fa-2x"></i>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Olvidé mi contraseña -->
+<ng-template #olvidarContrasenaModal let-modal>
+  <div class="modal-header">
+    <h5 class="modal-title"><i class="fas fa-user-lock me-2"></i>Recuperar contraseña</h5>
+    <button type="button" class="btn-close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    <p class="text-muted">Envía tu solicitud de recuperación de contraseña a:</p>
+    <p><strong>
+      <a href="mailto:soporte_sicre&#64;anam.gob.mx?subject=Recuperación de contraseña&body=Escribo para recuperar mi contraseña, mi usuario es: ...">
+        soporte_sicre&#64;anam.gob.mx
+      </a>
+    </strong></p>
+  </div>
+</ng-template>
+
+<!-- Modal: Ayuda -->
+<ng-template #ayudaModal let-modal>
+  <div class="modal-header">
+    <h5 class="modal-title"><i class="fas fa-question-circle me-2"></i>Ayuda</h5>
+    <button type="button" class="btn-close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    <p class="text-muted">Contacta al equipo de soporte:</p>
+    <p><strong>
+      <a href="mailto:soporte_sicre&#64;anam.gob.mx?subject=Ayuda&body=Escribo para solicitar ayuda...">
+        soporte_sicre&#64;anam.gob.mx
+      </a>
+    </strong></p>
+  </div>
+</ng-template>
