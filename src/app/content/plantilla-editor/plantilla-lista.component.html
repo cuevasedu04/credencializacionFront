@@ -1,0 +1,99 @@
+<div class="container-fluid p-4 animate__animated animate__fadeIn">
+
+  <header class="bg-white border-bottom mb-4 rounded shadow-sm">
+    <div class="container-fluid py-3 px-4">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-3">
+          <div class="p-2 bg-primary bg-opacity-10 rounded">
+            <i class="fas fa-vector-square text-primary fs-4"></i>
+          </div>
+          <div>
+            <h1 class="fw-bold text-dark mb-1 h4">Plantillas de credencial</h1>
+            <p class="text-muted mb-0 small">
+              Diseña, edita y reutiliza plantillas de credencial de forma visual
+            </p>
+          </div>
+        </div>
+
+        <button class="btn btn-success" (click)="nueva()">
+          <i class="fas fa-plus"></i> Nueva plantilla
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="row mb-3">
+    <div class="col-md-5">
+      <div class="input-group">
+        <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+        <input type="text" class="form-control" placeholder="Buscar por clave, nombre o descripcion"
+               [(ngModel)]="filtro">
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="cargando" class="text-center py-5 text-muted">
+    <i class="fas fa-spinner fa-spin fa-2x mb-2 d-block"></i>
+    Cargando plantillas...
+  </div>
+
+  <div *ngIf="!cargando && !plantillasFiltradas.length" class="text-center py-5 text-muted">
+    <i class="fas fa-vector-square fa-3x mb-3 d-block opacity-50"></i>
+    <p class="mb-3">Aun no hay plantillas creadas.</p>
+    <button class="btn btn-outline-success" (click)="nueva()">
+      <i class="fas fa-plus"></i> Crear la primera
+    </button>
+  </div>
+
+  <div class="row g-3" *ngIf="!cargando">
+    <div class="col-md-4 col-lg-3" *ngFor="let plantilla of plantillasFiltradas">
+      <div class="card h-100 shadow-sm plantilla-card" [class.inactiva]="!plantilla.activo">
+
+        <div class="plantilla-miniatura" (click)="editar(plantilla)">
+          <img *ngIf="plantilla.fondo_frente_url" [src]="plantilla.fondo_frente_url" [alt]="plantilla.nombre">
+          <div *ngIf="!plantilla.fondo_frente_url" class="sin-fondo">
+            <i class="fas fa-image"></i>
+          </div>
+          <span class="badge bg-secondary plantilla-clave">{{ plantilla.clave }}</span>
+          <span *ngIf="!plantilla.activo" class="badge bg-danger plantilla-estado">Inactiva</span>
+          <span *ngIf="plantilla.por_defecto" class="badge bg-success plantilla-estado">
+            <i class="fas fa-star"></i> Predeterminada
+          </span>
+        </div>
+
+        <div class="card-body py-2 px-3">
+          <h6 class="card-title mb-1 text-truncate" [title]="plantilla.nombre">{{ plantilla.nombre }}</h6>
+          <p class="card-text small text-muted mb-0 text-truncate">
+            {{ plantilla.descripcion || 'Sin descripcion' }}
+          </p>
+        </div>
+
+        <div class="card-footer bg-white border-top py-2 px-3">
+          <div class="btn-group btn-group-sm w-100">
+            <button class="btn btn-outline-primary" (click)="editar(plantilla)" title="Editar">
+              <i class="fas fa-pen"></i>
+            </button>
+            <button class="btn btn-outline-secondary" (click)="duplicar(plantilla)" title="Duplicar">
+              <i class="fas fa-copy"></i>
+            </button>
+            <button class="btn"
+                    [class.btn-success]="plantilla.por_defecto"
+                    [class.btn-outline-success]="!plantilla.por_defecto"
+                    (click)="marcarPorDefecto(plantilla)"
+                    [disabled]="plantilla.por_defecto"
+                    [title]="plantilla.por_defecto ? 'Ya es la plantilla predeterminada' : 'Usar como plantilla predeterminada'">
+              <i class="fas fa-star"></i>
+            </button>
+            <button class="btn btn-outline-warning" (click)="alternarActivo(plantilla)"
+                    [title]="plantilla.activo ? 'Desactivar' : 'Activar'">
+              <i class="fas" [class.fa-eye]="plantilla.activo" [class.fa-eye-slash]="!plantilla.activo"></i>
+            </button>
+            <button class="btn btn-outline-danger" (click)="eliminar(plantilla)" title="Eliminar">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

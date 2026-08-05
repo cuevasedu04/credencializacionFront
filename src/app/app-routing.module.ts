@@ -19,6 +19,9 @@ import { BlockAccessGuard } from './services/block-access.guard';
 import { EnrolamientoMasivoComponent } from './content/enrolamiento-masivo/enrolamiento-masivo.component';
 import { BusquedaEnrolamientoMasivosComponent } from './content/busqueda-enrolamiento-masivos/busqueda-enrolamiento-masivos.component';
 import { LoginComponent } from './content/login/login.component';
+import { PlantillaEditorComponent } from './content/plantilla-editor/plantilla-editor.component';
+import { PlantillaListaComponent } from './content/plantilla-editor/plantilla-lista.component';
+import { ImprimirCredencialesComponent } from './content/imprimir-credenciales/imprimir-credenciales.component';
 
 const routes: Routes = [
   {
@@ -69,6 +72,32 @@ const routes: Routes = [
       {
         path: 'reportes',
         component: ReportesComponent,
+        canActivate: [AuthGuard],
+        data: { rolesPermitidos: [1, 2, 3, 4, 9999] },
+      },
+      // Editor visual de plantillas de credencial (canvas). Independiente de
+      // plantilla-anam / provisional / familiar, que siguen funcionando igual.
+      {
+        path: 'plantillas',
+        component: PlantillaListaComponent,
+        canActivate: [AuthGuard],
+        data: { rolesPermitidos: [1, 2, 3, 4, 9999] },
+      },
+      {
+        path: 'plantillas/editor',
+        component: PlantillaEditorComponent,
+        canActivate: [AuthGuard],
+        data: { rolesPermitidos: [1, 2, 3, 4, 9999] },
+      },
+      {
+        path: 'plantillas/editor/:id',
+        component: PlantillaEditorComponent,
+        canActivate: [AuthGuard],
+        data: { rolesPermitidos: [1, 2, 3, 4, 9999] },
+      },
+      {
+        path: 'imprimir-credenciales',
+        component: ImprimirCredencialesComponent,
         canActivate: [AuthGuard],
         data: { rolesPermitidos: [1, 2, 3, 4, 9999] },
       },

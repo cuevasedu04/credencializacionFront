@@ -1,0 +1,266 @@
+<div class="imprimir-credenciales d-flex flex-column">
+
+  <!-- ===================== BARRA SUPERIOR ===================== -->
+  <header class="ic-topbar bg-white border-bottom px-3 py-2">
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+
+      <div class="d-flex align-items-center gap-2">
+        <div class="p-2 bg-success bg-opacity-10 rounded">
+          <i class="fas fa-id-card text-success"></i>
+        </div>
+        <div>
+          <h1 class="h6 fw-bold mb-0">Imprimir credenciales</h1>
+          <small class="text-muted">Selecciona un empleado para generar su credencial</small>
+        </div>
+      </div>
+
+      <div class="vr d-none d-lg-block"></div>
+
+      <!-- Buscador global -->
+      <div class="input-group input-group-sm ic-buscador">
+        <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+        <input type="text" class="form-control"
+               placeholder="Buscar en todas las columnas..."
+               [(ngModel)]="busquedaGlobal"
+               (ngModelChange)="onBusquedaGlobal()">
+        <button class="btn btn-outline-secondary" (click)="limpiarFiltros()" title="Limpiar filtros">
+          <i class="fas fa-eraser"></i>
+        </button>
+      </div>
+
+      <!-- Ultima sincronizacion del roster SIG (tarea Celery, cada 30 min) -->
+      <span class="badge bg-light text-dark border ic-actualizado"
+            *ngIf="!cargandoRoster"
+            [title]="ultimaActualizacion
+              ? 'Última sincronización del poblado de credenciales (sicre_tbl_sig)'
+              : 'No se pudo determinar la fecha de última actualización'">
+        <i class="fas fa-rotate text-muted"></i>
+        <span *ngIf="ultimaActualizacion">
+          Actualizado {{ ultimaActualizacion | date:'dd/MM/yyyy HH:mm' }}
+        </span>
+        <span *ngIf="!ultimaActualizacion" class="text-muted">Sin fecha de actualización</span>
+      </span>
+
+      <!-- Selector de plantilla (solo dura mientras no se recargue la pantalla) -->
+      <div class="ms-auto d-flex align-items-center gap-2" #selectorPlantilla>
+        <div class="ic-selector position-relative" *ngIf="!cargandoPlantilla">
+          <button type="button"
+                  class="btn btn-sm d-flex align-items-center gap-2"
+                  [class.btn-success]="plantilla"
+                  [class.btn-warning]="!plantilla"
+                  (click)="alternarSelector()"
+                  title="Cambiar la plantilla que se usará para imprimir">
+            <i class="fas fa-vector-square"></i>
+            <span class="text-truncate ic-selector-nombre">
+              {{ plantilla ? plantilla.nombre : 'Sin plantilla' }}
+            </span>
+            <i class="fas fa-caret-down"></i>
+          </button>
+
+          <div class="ic-selector-menu shadow" *ngIf="selectorAbierto">
+            <div class="ic-selector-titulo">
+              Plantilla para imprimir
+              <small class="d-block text-muted fw-normal">
+                Aplica solo mientras no salgas de esta pantalla.
+              </small>
+            </div>
+
+            <button type="button"
+                    class="ic-selector-item"
+                    *ngFor="let p of plantillasDisponibles"
+                    [class.activa]="p.id_plantilla === plantilla?.id_plantilla"
+                    (click)="usarPlantilla(p)">
+              <img *ngIf="p.fondo_frente_url" [src]="p.fondo_frente_url" class="ic-selector-mini" alt="">
+              <span *ngIf="!p.fondo_frente_url" class="ic-selector-mini ic-selector-mini-vacia">
+                <i class="fas fa-image"></i>
+              </span>
+              <span class="flex-grow-1 text-start">
+                <span class="d-block text-truncate">{{ p.nombre }}</span>
+                <small class="text-muted">{{ p.clave }}</small>
+              </span>
+              <i class="fas fa-star text-warning" *ngIf="p.por_defecto" title="Predeterminada"></i>
+              <i class="fas fa-check text-success" *ngIf="p.id_plantilla === plantilla?.id_plantilla"></i>
+            </button>
+
+            <div class="ic-selector-vacio text-muted" *ngIf="!plantillasDisponibles.length">
+              <small>No hay plantillas activas.</small>
+            </div>
+
+            <button type="button" class="ic-selector-restaurar" *ngIf="plantillaAnulada"
+                    (click)="restaurarPlantillaPorDefecto()">
+              <i class="fas fa-rotate-left"></i> Volver a la predeterminada
+            </button>
+          </div>
+        </div>
+
+        <small class="text-muted" *ngIf="origenPlantilla === 'primera_activa' && !plantillaAnulada"
+               title="Ninguna plantilla está marcada como predeterminada; se usa la primera activa.">
+          <i class="fas fa-info-circle"></i>
+        </small>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================== CUERPO ===================== -->
+  <div class="ic-cuerpo flex-grow-1 d-flex overflow-hidden">
+
+    <!-- ---------- IZQUIERDA: roster SIG ---------- -->
+    <section class="ic-tabla">
+      <div *ngIf="cargandoRoster" class="ic-cargando">
+        <i class="fas fa-spinner fa-spin fa-2x mb-2 d-block"></i>
+        <div>Cargando roster completo...</div>
+        <small class="text-muted">Se descarga una sola vez; después el filtrado es inmediato.</small>
+      </div>
+
+      <ag-grid-angular
+          *ngIf="!cargandoRoster"
+          class="ag-theme-alpine ic-grid"
+          [rowData]="rowData"
+          [columnDefs]="columnDefs"
+          [defaultColDef]="defaultColDef"
+          [rowSelection]="'single'"
+          [animateRows]="false"
+          [enableBrowserTooltips]="true"
+          [suppressCellFocus]="true"
+          (gridReady)="onGridReady($event)"
+          (rowClicked)="onFilaSeleccionada($event)"
+          (filterChanged)="onFiltroCambiado()">
+      </ag-grid-angular>
+    </section>
+
+    <!-- ---------- DERECHA: credencial ---------- -->
+    <aside class="ic-credencial border-start bg-white">
+
+      <!-- Sin selección -->
+      <div *ngIf="!empleadoSeleccionado" class="ic-vacio text-muted">
+        <i class="fas fa-hand-pointer fa-2x mb-2 d-block"></i>
+        <p class="mb-0 small">Selecciona un empleado de la tabla para ver su credencial.</p>
+      </div>
+
+      <ng-container *ngIf="empleadoSeleccionado">
+
+        <!-- Datos del empleado -->
+        <div class="ic-datos border-bottom">
+          <div class="fw-bold text-truncate" [title]="empleadoSeleccionado.nombre + ' ' + empleadoSeleccionado.apellidos">
+            {{ empleadoSeleccionado.nombre }} {{ empleadoSeleccionado.apellidos }}
+          </div>
+          <div class="small text-muted text-truncate" [title]="empleadoSeleccionado.puesto">
+            {{ empleadoSeleccionado.puesto || 'Sin cargo' }}
+          </div>
+          <div class="small text-muted">No. {{ empleadoSeleccionado.num_empleado || '—' }}</div>
+
+          <div class="d-flex flex-wrap gap-1 mt-2">
+            <span class="badge bg-danger" *ngIf="esBaja">
+              <i class="fas fa-user-slash"></i> Baja
+            </span>
+            <span class="badge bg-warning text-dark" *ngIf="sinFoto">
+              <i class="fas fa-camera"></i> Sin foto
+            </span>
+          </div>
+        </div>
+
+        <!-- Toggle frente/reverso + editar -->
+        <div class="ic-controles d-flex gap-2">
+          <div class="btn-group btn-group-sm flex-grow-1" *ngIf="tieneReverso">
+            <button class="btn btn-outline-success" [class.active]="cara === 'frente'"
+                    (click)="cambiarCara('frente')">
+              <i class="fas fa-id-card"></i> Frente
+            </button>
+            <button class="btn btn-outline-success" [class.active]="cara === 'reverso'"
+                    (click)="cambiarCara('reverso')">
+              <i class="fas fa-address-card"></i> Reverso
+            </button>
+          </div>
+
+          <button *ngIf="!modoEdicion"
+                  class="btn btn-sm btn-outline-primary"
+                  [class.flex-grow-1]="!tieneReverso"
+                  (click)="activarEdicion()"
+                  [disabled]="!plantilla || generandoPreview"
+                  title="Ajustes rápidos antes de imprimir (no se guardan en la plantilla)">
+            <i class="fas fa-pen"></i> Editar
+          </button>
+
+          <button *ngIf="modoEdicion"
+                  class="btn btn-sm btn-outline-secondary"
+                  [class.flex-grow-1]="!tieneReverso"
+                  (click)="salirDeEdicion()"
+                  title="Descartar los ajustes y volver a la plantilla original">
+            <i class="fas fa-rotate-left"></i> Descartar
+          </button>
+        </div>
+
+        <!-- Aviso de edición temporal -->
+        <div class="ic-aviso-edicion" *ngIf="modoEdicion">
+          <i class="fas fa-triangle-exclamation"></i>
+          Ajustes temporales: se pierden al cambiar de empleado o salir.
+          Para que sean permanentes, edita la plantilla en
+          <a routerLink="/plantillas">Plantillas</a>.
+        </div>
+
+        <!-- Vista previa / lienzo editable -->
+        <div class="ic-preview">
+          <div *ngIf="generandoPreview" class="text-muted text-center py-4">
+            <i class="fas fa-spinner fa-spin fa-2x mb-2 d-block"></i>
+            <small>Generando vista previa...</small>
+          </div>
+
+          <div *ngIf="!generandoPreview && !plantilla" class="text-center text-muted py-4">
+            <i class="fas fa-vector-square fa-2x mb-2 d-block opacity-50"></i>
+            <small class="d-block mb-2">No hay ninguna plantilla activa.</small>
+            <a routerLink="/plantillas" class="btn btn-sm btn-outline-success">
+              <i class="fas fa-plus"></i> Crear una plantilla
+            </a>
+          </div>
+
+          <!-- Modo lectura: imagen renderizada -->
+          <img *ngIf="!modoEdicion && !generandoPreview && previewActual"
+               [src]="previewActual"
+               class="ic-credencial-img"
+               alt="Vista previa de la credencial">
+
+          <div *ngIf="!modoEdicion && !generandoPreview && plantilla && !previewActual && cara === 'reverso'"
+               class="text-center text-muted py-4">
+            <small>Esta plantilla no tiene reverso.</small>
+          </div>
+
+          <!-- Modo edición: canvas Fabric interactivo (uno por cara) -->
+          <div class="ic-lienzo-editable" *ngIf="modoEdicion && cara === 'frente'">
+            <canvas #canvasEdicionFrente></canvas>
+          </div>
+          <div class="ic-lienzo-editable" *ngIf="modoEdicion && cara === 'reverso' && tieneReverso">
+            <canvas #canvasEdicionReverso></canvas>
+          </div>
+        </div>
+
+        <!-- Acciones -->
+        <div class="ic-acciones border-top">
+          <button class="btn btn-success w-100"
+                  (click)="imprimir()"
+                  [disabled]="!plantilla || generandoPdf || generandoPreview">
+            <i class="fas" [class.fa-print]="!generandoPdf"
+               [class.fa-spinner]="generandoPdf" [class.fa-spin]="generandoPdf"></i>
+            {{ generandoPdf ? 'Generando...' : 'Imprimir credencial' }}
+          </button>
+          <small class="text-muted d-block text-center mt-2">
+            {{ modoEdicion
+                ? 'El PDF incluirá los ajustes que hiciste aquí.'
+                : 'El PDF se genera con la misma plantilla que ves arriba.' }}
+          </small>
+        </div>
+      </ng-container>
+    </aside>
+
+    <!-- ---------- PANEL DE PROPIEDADES (solo en modo edición) ---------- -->
+    <aside class="ic-propiedades border-start bg-white" *ngIf="modoEdicion">
+      <div class="ic-propiedades-titulo border-bottom">
+        <i class="fas fa-sliders-h"></i> Ajustes rápidos
+      </div>
+      <app-credencial-panel-propiedades
+          [canvas]="canvasActivo"
+          [objeto]="objetoSeleccionado"
+          (seleccionCambiada)="objetoSeleccionado = $event">
+      </app-credencial-panel-propiedades>
+    </aside>
+  </div>
+</div>

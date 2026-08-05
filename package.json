@@ -32,6 +32,7 @@
     "datatables.net-buttons": "^3.2.4",
     "datatables.net-buttons-dt": "^3.2.4",
     "datatables.net-dt": "^2.3.3",
+    "fabric": "^6.9.1",
     "html-to-image": "^1.11.13",
     "html2canvas": "^1.4.1",
     "jquery": "^3.7.1",

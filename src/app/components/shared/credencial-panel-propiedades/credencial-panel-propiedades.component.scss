@@ -1,0 +1,22 @@
+// Estilos autonomos (Angular no propaga estilos entre componentes): estas
+// mismas clases genericas tambien viven en plantilla-editor.component.scss
+// para sus otros paneles (campos/fondos), pero cada componente necesita su
+// propia copia por el encapsulamiento de vistas.
+
+.panel-seccion {
+  padding: 0.85rem;
+}
+
+.panel-titulo {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #495057;
+  margin-bottom: 0.5rem;
+
+  i {
+    color: #6c757d;
+    margin-right: 0.25rem;
+  }
+}

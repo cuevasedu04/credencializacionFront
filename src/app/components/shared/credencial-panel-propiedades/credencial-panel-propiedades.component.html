@@ -1,0 +1,127 @@
+<div class="panel-seccion" *ngIf="objeto; else sinSeleccion">
+  <h6 class="panel-titulo">
+    <i class="fas fa-sliders-h"></i>
+    {{ datosSeleccion.etiqueta || datosSeleccion.binding || 'Elemento' }}
+  </h6>
+
+  <!-- Texto -->
+  <ng-container *ngIf="esTexto">
+    <label class="form-label small mb-1">Fuente</label>
+    <select class="form-select form-select-sm mb-2"
+            [ngModel]="propiedad('fontFamily')"
+            (ngModelChange)="actualizarPropiedad('fontFamily', $event)">
+      <option *ngFor="let f of fuentes" [value]="f">{{ f }}</option>
+    </select>
+
+    <div class="row g-2 mb-2">
+      <div class="col-6">
+        <label class="form-label small mb-1">Tamano</label>
+        <input type="number" class="form-control form-control-sm" min="6" max="200"
+               [ngModel]="propiedad('fontSize')"
+               (ngModelChange)="actualizarPropiedad('fontSize', +$event)">
+      </div>
+      <div class="col-6">
+        <label class="form-label small mb-1">Color</label>
+        <input type="color" class="form-control form-control-color form-control-sm w-100"
+               [ngModel]="propiedad('fill')"
+               (ngModelChange)="actualizarPropiedad('fill', $event)">
+      </div>
+    </div>
+
+    <label class="form-label small mb-1">Alineacion</label>
+    <div class="btn-group btn-group-sm w-100 mb-2">
+      <button *ngFor="let a of alineaciones"
+              class="btn btn-outline-secondary"
+              [class.active]="propiedad('textAlign') === a.valor"
+              (click)="actualizarPropiedad('textAlign', a.valor)"
+              [title]="a.label">
+        <i class="fas" [ngClass]="a.icono"></i>
+      </button>
+    </div>
+
+    <div class="btn-group btn-group-sm w-100 mb-2">
+      <button class="btn btn-outline-secondary"
+              [class.active]="propiedad('fontWeight') === 'bold'"
+              (click)="alternarNegrita()" title="Negrita">
+        <i class="fas fa-bold"></i>
+      </button>
+      <button class="btn btn-outline-secondary"
+              [class.active]="propiedad('fontStyle') === 'italic'"
+              (click)="alternarCursiva()" title="Cursiva">
+        <i class="fas fa-italic"></i>
+      </button>
+    </div>
+
+    <label class="form-label small mb-1">Interlineado</label>
+    <input type="number" class="form-control form-control-sm mb-2" step="0.05" min="0.5" max="3"
+           [ngModel]="propiedad('lineHeight')"
+           (ngModelChange)="actualizarPropiedad('lineHeight', +$event)">
+
+    <div class="form-check form-switch mb-2" *ngIf="datosSeleccion.tipo !== 'estatico'">
+      <input class="form-check-input" type="checkbox" id="chkMayus"
+             [ngModel]="datosSeleccion.mayusculas"
+             (ngModelChange)="actualizarDato('mayusculas', $event)">
+      <label class="form-check-label small" for="chkMayus">Forzar MAYUSCULAS</label>
+    </div>
+  </ng-container>
+
+  <!-- Marcador de imagen -->
+  <ng-container *ngIf="datosSeleccion.tipo === 'imagen' || datosSeleccion.tipo === 'qr'">
+    <div class="alert alert-info py-2 px-2 small mb-2">
+      <i class="fas fa-info-circle"></i>
+      Este recuadro se sustituye por
+      <strong>{{ datosSeleccion.etiqueta }}</strong> al generar la credencial.
+    </div>
+
+    <label class="form-label small mb-1" *ngIf="datosSeleccion.tipo === 'imagen'">Ajuste de la imagen</label>
+    <select class="form-select form-select-sm mb-2" *ngIf="datosSeleccion.tipo === 'imagen'"
+            [ngModel]="datosSeleccion.ajuste"
+            (ngModelChange)="actualizarDato('ajuste', $event)">
+      <option value="cover">Llenar recuadro (recorta)</option>
+      <option value="contain">Caber completa</option>
+    </select>
+  </ng-container>
+
+  <!-- Comunes -->
+  <hr class="my-2">
+  <label class="form-label small mb-1">Opacidad</label>
+  <input type="range" class="form-range mb-2" min="0" max="1" step="0.05"
+         [ngModel]="propiedad('opacity')"
+         (ngModelChange)="actualizarPropiedad('opacity', +$event)">
+
+  <label class="form-label small mb-1">Rotacion</label>
+  <input type="range" class="form-range mb-2" min="-180" max="180" step="1"
+         [ngModel]="propiedad('angle')"
+         (ngModelChange)="actualizarPropiedad('angle', +$event)">
+
+  <div class="btn-group btn-group-sm w-100 mb-2">
+    <button class="btn btn-outline-secondary" (click)="centrarHorizontal()" title="Centrar horizontalmente">
+      <i class="fas fa-arrows-alt-h"></i>
+    </button>
+    <button class="btn btn-outline-secondary" (click)="centrarVertical()" title="Centrar verticalmente">
+      <i class="fas fa-arrows-alt-v"></i>
+    </button>
+    <button class="btn btn-outline-secondary" (click)="traerAlFrente()" title="Traer al frente">
+      <i class="fas fa-layer-group"></i>
+    </button>
+    <button class="btn btn-outline-secondary" (click)="enviarAlFondo()" title="Enviar al fondo">
+      <i class="fas fa-clone"></i>
+    </button>
+  </div>
+
+  <div class="d-flex gap-2">
+    <button class="btn btn-sm btn-outline-secondary flex-grow-1" (click)="duplicarSeleccion()">
+      <i class="fas fa-copy"></i> Duplicar
+    </button>
+    <button class="btn btn-sm btn-outline-danger flex-grow-1" (click)="eliminarSeleccion()">
+      <i class="fas fa-trash"></i> Eliminar
+    </button>
+  </div>
+</div>
+
+<ng-template #sinSeleccion>
+  <div class="panel-seccion text-center text-muted py-4">
+    <i class="fas fa-hand-pointer fa-2x mb-2 d-block"></i>
+    <small>Selecciona un elemento del lienzo para editar sus propiedades.</small>
+  </div>
+</ng-template>

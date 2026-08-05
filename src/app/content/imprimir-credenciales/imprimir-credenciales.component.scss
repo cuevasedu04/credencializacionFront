@@ -1,0 +1,289 @@
+// Pantalla "Imprimir credenciales": roster SIG a la izquierda, credencial a la derecha.
+
+.imprimir-credenciales {
+  height: calc(100vh - 120px);
+  min-height: 600px;
+  background: #eef1f5;
+}
+
+.ic-topbar {
+  flex: 0 0 auto;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  z-index: 5;
+}
+
+.ic-buscador {
+  max-width: 380px;
+  min-width: 240px;
+}
+
+.ic-cuerpo {
+  min-height: 0; // deja que los hijos hagan scroll dentro del flex
+}
+
+// ---------- Tabla (ag-Grid) ----------
+// Mitad de la ventana; la otra mitad es la credencial.
+.ic-tabla {
+  flex: 1 1 50%;
+  width: 50%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem;
+}
+
+.ic-grid {
+  width: 100%;
+  height: 100%;
+  // ag-Grid virtualiza las filas: aunque haya 16k registros solo renderiza
+  // las visibles, por eso el scroll y el filtrado siguen siendo fluidos.
+  ::ng-deep .ag-row {
+    cursor: pointer;
+  }
+
+  ::ng-deep .ag-row-selected {
+    background-color: rgba(25, 135, 84, 0.12) !important;
+  }
+}
+
+.ic-cargando {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #6c757d;
+  text-align: center;
+}
+
+// ---------- Panel de credencial ----------
+.ic-credencial {
+  flex: 1 1 50%;
+  width: 50%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.ic-vacio {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 1.5rem;
+}
+
+.ic-datos {
+  flex: 0 0 auto;
+  padding: 0.75rem 0.85rem;
+}
+
+.ic-controles {
+  flex: 0 0 auto;
+  padding: 0.6rem 0.85rem 0;
+}
+
+.ic-preview {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.85rem;
+  min-height: 0; // permite que max-height del <img> se calcule contra este alto
+}
+
+.ic-credencial-img {
+  // Proporcion CR80 vertical. Se limita por ALTURA (no por ancho) para que la
+  // credencial siempre quepa completa sin scroll: al ser mas alta que ancha,
+  // la altura es la dimension que restringe.
+  max-height: 100%;
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  display: block;
+  border-radius: 6px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.ic-acciones {
+  flex: 0 0 auto;
+  padding: 0.85rem;
+}
+
+// ---------- Edición rápida ----------
+.ic-aviso-edicion {
+  flex: 0 0 auto;
+  margin: 0.6rem 0.85rem 0;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: #7a5b00;
+  background: #fff8e1;
+  border: 1px solid #ffe08a;
+  border-radius: 6px;
+
+  i {
+    margin-right: 0.25rem;
+  }
+
+  a {
+    color: #7a5b00;
+    font-weight: 600;
+  }
+}
+
+.ic-lienzo-editable {
+  // El escalado NO se hace aquí por CSS: se aplica con
+  // canvas.setDimensions(..., {cssOnly:true}) desde el componente (mismo
+  // mecanismo que plantilla-editor). Así Fabric mantiene la resolución de
+  // diseño internamente —las coordenadas exportadas al PDF siguen siendo las
+  // de diseño— y además mapea correctamente las coordenadas del puntero.
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-height: 100%;
+  max-width: 100%;
+  overflow: auto;
+
+  ::ng-deep .canvas-container {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+  }
+}
+
+// ---------- Panel de propiedades (modo edición) ----------
+.ic-propiedades {
+  width: 270px;
+  flex: 0 0 270px;
+  overflow-y: auto;
+}
+
+.ic-propiedades-titulo {
+  padding: 0.7rem 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #495057;
+
+  i {
+    color: #6c757d;
+    margin-right: 0.25rem;
+  }
+}
+
+.ic-actualizado {
+  font-weight: 500;
+
+  i {
+    margin-right: 0.2rem;
+  }
+}
+
+// ---------- Selector de plantilla ----------
+.ic-selector-nombre {
+  max-width: 190px;
+}
+
+.ic-selector-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 1050;
+  width: 300px;
+  max-height: 420px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 0.4rem;
+}
+
+.ic-selector-titulo {
+  padding: 0.35rem 0.5rem 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #495057;
+  border-bottom: 1px solid #f1f3f5;
+  margin-bottom: 0.35rem;
+}
+
+.ic-selector-item {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.82rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: #343a40;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: #f1f3f5;
+  }
+
+  &.activa {
+    background: rgba(25, 135, 84, 0.1);
+    border-color: rgba(25, 135, 84, 0.35);
+  }
+
+  // El <span> del nombre puede desbordar si es largo.
+  min-width: 0;
+}
+
+.ic-selector-mini {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 41px; // proporcion CR80
+  object-fit: cover;
+  border-radius: 3px;
+  border: 1px solid #dee2e6;
+  background: #f8f9fa;
+}
+
+.ic-selector-mini-vacia {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ced4da;
+  font-size: 0.7rem;
+}
+
+.ic-selector-vacio {
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+}
+
+.ic-selector-restaurar {
+  display: block;
+  width: 100%;
+  margin-top: 0.35rem;
+  padding: 0.4rem;
+  font-size: 0.78rem;
+  background: transparent;
+  border: 1px dashed #adb5bd;
+  border-radius: 6px;
+  color: #495057;
+
+  &:hover {
+    background: #f1f3f5;
+  }
+}
+
+// ---------- Responsivo ----------
+@media (max-width: 1200px) {
+  .ic-selector-nombre {
+    max-width: 120px;
+  }
+
+  .ic-propiedades {
+    width: 240px;
+    flex-basis: 240px;
+  }
+}

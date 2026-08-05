@@ -1,0 +1,187 @@
+<div class="editor-plantilla d-flex flex-column h-100">
+
+  <!-- ===================== BARRA SUPERIOR ===================== -->
+  <header class="editor-topbar bg-white border-bottom px-3 py-2">
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+
+      <button class="btn btn-sm btn-outline-secondary" (click)="volverAlListado()" title="Volver al listado">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+
+      <div class="d-flex align-items-center gap-2">
+        <div class="p-2 bg-primary bg-opacity-10 rounded">
+          <i class="fas fa-vector-square text-primary"></i>
+        </div>
+        <div>
+          <h1 class="h6 fw-bold mb-0">Editor de plantillas</h1>
+          <small class="text-muted">Disena la credencial y guarda la plantilla</small>
+        </div>
+      </div>
+
+      <div class="vr d-none d-lg-block"></div>
+
+      <div class="d-flex align-items-center gap-2 flex-grow-1">
+        <input type="text" class="form-control form-control-sm w-auto"
+               style="max-width: 140px"
+               placeholder="CLAVE"
+               [(ngModel)]="plantilla.clave">
+        <input type="text" class="form-control form-control-sm"
+               style="max-width: 260px"
+               placeholder="Nombre de la plantilla"
+               [(ngModel)]="plantilla.nombre">
+        <span *ngIf="hayCambios" class="badge bg-warning text-dark">
+          <i class="fas fa-circle fa-xs"></i> Sin guardar
+        </span>
+      </div>
+
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-sm btn-outline-primary" (click)="generarPdfPrueba()">
+          <i class="fas fa-file-pdf"></i> Probar PDF
+        </button>
+        <button class="btn btn-sm btn-success" (click)="guardar()" [disabled]="guardando">
+          <i class="fas" [class.fa-save]="!guardando" [class.fa-spinner]="guardando" [class.fa-spin]="guardando"></i>
+          {{ guardando ? 'Guardando...' : 'Guardar' }}
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================== CUERPO ===================== -->
+  <div class="editor-cuerpo flex-grow-1 d-flex overflow-hidden">
+
+    <!-- ---------- PANEL IZQUIERDO: elementos ---------- -->
+    <aside class="editor-panel border-end bg-white">
+      <div class="panel-seccion">
+        <h6 class="panel-titulo"><i class="fas fa-database"></i> Campos del empleado</h6>
+        <p class="panel-ayuda">Se rellenan con los datos reales al imprimir.</p>
+        <div class="lista-campos">
+          <button *ngFor="let campo of campos"
+                  class="btn-campo"
+                  (click)="agregarCampo(campo)"
+                  [title]="'Agregar ' + campo.label">
+            <i class="fas" [ngClass]="campo.icono"></i>
+            <span>{{ campo.label }}</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="panel-seccion">
+        <h6 class="panel-titulo"><i class="fas fa-shapes"></i> Elementos fijos</h6>
+        <div class="lista-campos">
+          <button *ngFor="let el of estaticos"
+                  class="btn-campo"
+                  (click)="agregarCampo(el)">
+            <i class="fas" [ngClass]="el.icono"></i>
+            <span>{{ el.label }}</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="panel-seccion">
+        <h6 class="panel-titulo"><i class="fas fa-image"></i> Fondo de esta cara</h6>
+        <div class="lista-fondos">
+          <button class="fondo-item fondo-ninguno"
+                  [class.activo]="!fondoActual"
+                  (click)="seleccionarFondo(null)">
+            <i class="fas fa-ban"></i>
+            <small>Sin fondo</small>
+          </button>
+          <button *ngFor="let fondo of fondos"
+                  class="fondo-item"
+                  [class.activo]="fondoActual === fondo.ruta"
+                  (click)="seleccionarFondo(fondo.ruta)"
+                  [title]="fondo.nombre">
+            <img [src]="fondo.url" [alt]="fondo.nombre">
+          </button>
+        </div>
+        <button class="btn btn-sm btn-outline-secondary w-100 mt-2" (click)="abrirSubirFondo()">
+          <i class="fas fa-upload"></i> Subir fondo
+        </button>
+        <input type="file" #inputFondo hidden accept="image/*" (change)="onFondoSeleccionado($event)">
+        <input type="file" #inputImagen hidden accept="image/*" (change)="onImagenFijaSeleccionada($event)">
+      </div>
+    </aside>
+
+    <!-- ---------- CENTRO: lienzo ---------- -->
+    <main class="editor-lienzo flex-grow-1">
+
+      <div class="lienzo-controles">
+        <div class="btn-group btn-group-sm">
+          <button class="btn btn-outline-primary" [class.active]="cara === 'frente'"
+                  (click)="cambiarCara('frente')">
+            <i class="fas fa-id-card"></i> Frente
+          </button>
+          <button class="btn btn-outline-primary" [class.active]="cara === 'reverso'"
+                  (click)="cambiarCara('reverso')">
+            <i class="fas fa-address-card"></i> Reverso
+          </button>
+        </div>
+
+        <div class="btn-group btn-group-sm ms-2">
+          <button class="btn btn-outline-secondary" (click)="cambiarZoom(-0.1)" title="Alejar">
+            <i class="fas fa-search-minus"></i>
+          </button>
+          <span class="btn btn-outline-secondary disabled">{{ (zoom * 100) | number:'1.0-0' }}%</span>
+          <button class="btn btn-outline-secondary" (click)="cambiarZoom(0.1)" title="Acercar">
+            <i class="fas fa-search-plus"></i>
+          </button>
+        </div>
+
+        <button class="btn btn-sm btn-outline-danger ms-2" (click)="limpiarCara()"
+                title="Quitar todos los elementos de esta cara">
+          <i class="fas fa-trash"></i> Limpiar cara
+        </button>
+      </div>
+
+      <div class="lienzo-area">
+        <div class="lienzo-marco">
+          <canvas #canvasEl></canvas>
+        </div>
+      </div>
+
+      <p class="lienzo-pie text-muted small">
+        Espacio de diseno {{ anchoDiseno }} x {{ altoDiseno }} px
+        ({{ plantilla.ancho_mm }} x {{ plantilla.alto_mm }} mm).
+        El PDF se genera con estas mismas coordenadas.
+      </p>
+    </main>
+
+    <!-- ---------- PANEL DERECHO: propiedades ---------- -->
+    <aside class="editor-panel editor-panel-derecho border-start bg-white">
+
+      <!-- Propiedades del objeto seleccionado -->
+      <app-credencial-panel-propiedades
+          [canvas]="canvas"
+          [objeto]="objetoSeleccionado"
+          (seleccionCambiada)="objetoSeleccionado = $event"
+          (cambio)="hayCambios = true">
+      </app-credencial-panel-propiedades>
+
+      <!-- Previsualizacion con datos reales -->
+      <div class="panel-seccion border-top">
+        <h6 class="panel-titulo"><i class="fas fa-user-check"></i> Probar con un empleado</h6>
+        <div class="input-group input-group-sm mb-2">
+          <input type="text" class="form-control" placeholder="No. de empleado"
+                 [(ngModel)]="numEmpleadoPreview"
+                 (keyup.enter)="buscarEmpleado()">
+          <button class="btn btn-outline-primary" (click)="buscarEmpleado()" [disabled]="buscandoEmpleado">
+            <i class="fas" [class.fa-search]="!buscandoEmpleado"
+               [class.fa-spinner]="buscandoEmpleado" [class.fa-spin]="buscandoEmpleado"></i>
+          </button>
+        </div>
+
+        <div *ngIf="empleadoPreview" class="preview-empleado small">
+          <div class="fw-bold">{{ empleadoPreview.nombre }} {{ empleadoPreview.paterno }}</div>
+          <div class="text-muted">{{ empleadoPreview.puesto }}</div>
+          <div class="d-flex gap-2 mt-2">
+            <img *ngIf="empleadoPreview.foto" [src]="empleadoPreview.foto" class="preview-foto" alt="foto">
+            <img *ngIf="empleadoPreview.firma" [src]="empleadoPreview.firma" class="preview-firma" alt="firma">
+          </div>
+          <div *ngIf="!empleadoPreview.foto && !empleadoPreview.firma" class="text-warning mt-1">
+            <i class="fas fa-exclamation-triangle"></i> Sin foto ni firma en /media
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>

@@ -50,7 +50,7 @@ export class ModuleContextService {
       case 'nuevo-laredo':
         return ['enrolamiento', 'provisional', 'familiar'];
       case 'consultas':
-        return ['busquedaAvanzada', 'reportes', 'credencializacion', 'Carga masiva'];
+        return ['busquedaAvanzada', 'reportes', 'credencializacion', 'Carga masiva', 'plantillas', 'imprimir-credenciales'];
       case 'enrolamiento-masivo':
         return ['enrolamiento-masivo', 'busqueda-enrolamiento-masivos'];
       default:
@@ -59,7 +59,7 @@ export class ModuleContextService {
   }
 
   resolveBlockFromRoute(url: string): SidebarBlock {
-    if (url.includes('/busqueda-avanzada') || url.includes('/reportes') || url.includes('/credencializacion') || url.includes('/carga-masiva')) {
+    if (url.includes('/busqueda-avanzada') || url.includes('/reportes') || url.includes('/credencializacion') || url.includes('/carga-masiva') || url.includes('/plantillas') || url.includes('/imprimir-credenciales')) {
       return 'consultas';
     }
 

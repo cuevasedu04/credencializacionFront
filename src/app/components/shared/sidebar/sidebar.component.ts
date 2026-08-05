@@ -100,6 +100,20 @@ export class SidebarComponent implements OnInit, OnDestroy {
       link: '/reportes',
       rol: [1,2,3,4,9999],
     },
+    {
+      id: 'plantillas',
+      label: 'Plantillas',
+      icon: 'fas fa-vector-square',
+      link: '/plantillas',
+      rol: [1,2,3,4,9999],
+    },
+    {
+      id: 'imprimir-credenciales',
+      label: 'Imprimir credenciales',
+      icon: 'fas fa-id-card',
+      link: '/imprimir-credenciales',
+      rol: [1,2,3,4,9999],
+    },
 
 
   ];

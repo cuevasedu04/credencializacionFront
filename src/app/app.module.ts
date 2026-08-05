@@ -29,6 +29,10 @@ import { CargaMasivaComponent } from './content/carga-masiva/carga-masiva.compon
 import { ProvisionalComponent } from './content/provisional/provisional.component';
 import { FamiliarComponent } from './content/familiar/familiar.component';
 import { PlantillaAnamComponent } from './content/plantilla-anam/plantilla-anam.component';
+import { PlantillaEditorComponent } from './content/plantilla-editor/plantilla-editor.component';
+import { PlantillaListaComponent } from './content/plantilla-editor/plantilla-lista.component';
+import { ImprimirCredencialesComponent } from './content/imprimir-credenciales/imprimir-credenciales.component';
+import { CredencialPanelPropiedadesComponent } from './components/shared/credencial-panel-propiedades/credencial-panel-propiedades.component';
 import { EnrolamientoMasivoComponent } from './content/enrolamiento-masivo/enrolamiento-masivo.component';
 import { BusquedaEnrolamientoMasivosComponent } from './content/busqueda-enrolamiento-masivos/busqueda-enrolamiento-masivos.component';
 import { LoginComponent } from './content/login/login.component';
@@ -52,6 +56,10 @@ import { LoginComponent } from './content/login/login.component';
     ProvisionalComponent,
     FamiliarComponent,
     PlantillaAnamComponent,
+    PlantillaEditorComponent,
+    PlantillaListaComponent,
+    ImprimirCredencialesComponent,
+    CredencialPanelPropiedadesComponent,
     EnrolamientoMasivoComponent,
     BusquedaEnrolamientoMasivosComponent
   ],
