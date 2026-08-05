@@ -1,0 +1,298 @@
+<!-- Confirmación genérica -->
+<ng-template #confirmDialog>
+  <div class="modal-body text-center p-4">
+    <i class="fas fa-exclamation-triangle text-warning mb-3" style="font-size: 3rem;"></i>
+    <h5 class="mb-0">{{ confirmMessage }}</h5>
+  </div>
+</ng-template>
+
+<header class="mb-4 mt-2">
+  <div class="d-flex align-items-center gap-3 px-3">
+    <div class="p-2 rounded rounded-3 shadow-sm ep-icono">
+      <i class="fas fa-user-clock text-white" style="font-size: 1.5rem;"></i>
+    </div>
+    <div>
+      <h1 class="fw-bold text-dark mb-0 h3">Enrolamiento previo</h1>
+      <p class="text-muted mb-0">
+        Captura de foto y firma de personal que aún no tiene número de empleado
+      </p>
+    </div>
+  </div>
+</header>
+
+<div class="contenedor-masivo mx-3">
+  <div class="row g-4 contenedor-filas w-100 m-0">
+
+    <div class="col-md-9 d-flex flex-column p-0" style="min-height: 0;">
+
+      <div class="d-flex w-100 gap-3 px-1 mb-2" style="padding-right: 14px !important;">
+        <div class="w-100"><div class="titulo-pildora"><i class="fas fa-camera me-2"></i> Fotografías</div></div>
+        <div class="w-100"><div class="titulo-pildora"><i class="fas fa-pen-nib me-2"></i> Firmas</div></div>
+        <div class="w-100"><div class="titulo-pildora"><i class="fas fa-id-card me-2"></i> RFC</div></div>
+      </div>
+
+      <div class="scroll-area-unificada d-flex gap-3 px-1">
+
+        <div class="columna-blanca w-100 shadow-sm">
+          <div class="item-alineado editable-item" *ngFor="let reg of registros"
+               title="Editar foto de esta persona" (click)="editarRegistro(reg)">
+            <img *ngIf="reg.foto" [src]="reg.foto" alt="Foto">
+            <div *ngIf="!reg.foto" class="placeholder-vacio bg-light text-danger">
+              <i class="fas fa-camera text-danger opacity-50"></i><br>
+              <small style="font-size: 0.6rem">Falta foto</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="columna-blanca w-100 shadow-sm">
+          <div class="item-alineado editable-item" *ngFor="let reg of registros"
+               title="Editar firma de esta persona" (click)="editarRegistro(reg)">
+            <img *ngIf="reg.firma" [src]="reg.firma" alt="Firma">
+            <div *ngIf="!reg.firma" class="placeholder-vacio bg-light text-danger">
+              <i class="fas fa-pen-nib text-danger opacity-50"></i><br>
+              <small style="font-size: 0.6rem">Falta firma</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="columna-blanca w-100 shadow-sm">
+          <div class="item-alineado" *ngFor="let reg of registros">
+            <div class="dato-empleado-card w-100 d-flex flex-row align-items-center justify-content-between">
+              <div class="flex-grow-1 overflow-hidden">
+                <small class="text-muted fw-bold" style="font-size: 0.7rem;">RFC</small><br>
+                <span class="fw-bold ep-rfc-dato">{{ reg.rfc }}</span>
+                <div class="ep-guardado mt-1">
+                  <i class="fas fa-cloud-arrow-up"></i> Guardado en servidor
+                </div>
+              </div>
+              <button class="btn btn-sm btn-outline-danger ms-2 flex-shrink-0"
+                      (click)="confirmarQuitar(reg)"
+                      title="Eliminar esta captura del servidor">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3 d-flex flex-column py-0 pe-0" style="min-height: 0;">
+      <div class="columna-resumen shadow-sm">
+        <h5 class="fw-bold text-center mb-4 mt-2" style="color: #17365d;">Resumen de<br>enrolamiento</h5>
+
+        <div class="resumen-estadisticas mb-4">
+          <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+            <span class="text-muted fw-bold">Personal enrolado</span>
+            <span class="badge rounded-pill fs-6 px-3 shadow-sm" style="background-color: #17365d !important;">{{ registros.length }}</span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+            <span class="text-muted fw-bold">Fotografías</span>
+            <span class="badge rounded-pill bg-white text-dark border fs-6 px-3 shadow-sm">{{ totalFotografias }}</span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center mb-3 pb-2">
+            <span class="text-muted fw-bold">Firmas</span>
+            <span class="badge rounded-pill bg-white text-dark border fs-6 px-3 shadow-sm">{{ totalFirmas }}</span>
+          </div>
+        </div>
+
+        <div class="ep-nota" *ngIf="registros.length">
+          <i class="fas fa-shield-halved"></i>
+          Cada captura se guarda en el servidor al instante. Puedes cerrar la página o
+          cambiar de pantalla sin perder nada.
+        </div>
+
+        <div class="ep-nota" *ngIf="!registros.length">
+          <i class="fas fa-circle-info"></i>
+          Los archivos se guardan con el <strong>RFC</strong> como nombre. Cuando se aplique
+          el movimiento de ingreso, su foto y firma se cruzarán solas en
+          <a routerLink="/imprimir-credenciales">Imprimir credenciales</a>, y al imprimir se
+          renombrarán con su número de empleado. Ver pendientes en
+          <a routerLink="/inventario-medios">Inventario de medios</a>.
+        </div>
+
+        <div class="mt-auto d-flex flex-column gap-3">
+          <button class="btn btn-comenzar py-2 shadow-sm" (click)="comenzarEnrolamiento()"
+                  [disabled]="guardando || cargandoSesion">
+            <i class="fas fa-play-circle me-2"></i> Comenzar enrolamiento
+          </button>
+          <button class="btn btn-cancelar py-2 shadow-sm"
+                  [disabled]="!registros.length || guardando"
+                  (click)="confirmarCancelar()">
+            <i class="fas fa-times-circle me-2"></i> Cancelar enrolamiento
+          </button>
+          <button class="btn btn-terminar py-2 shadow-sm"
+                  [disabled]="!registros.length || guardando || hayRegistrosIncompletos"
+                  (click)="confirmarTerminar()">
+            <i class="fas fa-check-circle me-2"></i> Terminar enrolamiento
+          </button>
+
+          <div *ngIf="cargandoSesion" class="text-center text-muted small mt-2">
+            <i class="fas fa-spinner fa-spin me-1"></i> Recuperando sesión...
+          </div>
+
+          <div *ngIf="hayRegistrosIncompletos"
+               class="alert alert-warning mt-2 mb-0 small p-2 text-center text-danger fw-bold shadow-sm"
+               style="border-radius: 10px; font-size: 0.85rem;">
+            <i class="fas fa-exclamation-triangle me-1"></i>
+            Hay capturas incompletas; no se puede finalizar el enrolamiento.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===================== MODAL DE CAPTURA CONTINUA ===================== -->
+<ng-template #modalUnificado>
+  <div class="modal-body p-4 bg-light">
+
+    <div class="row">
+
+      <!-- COLUMNA 1: FOTOGRAFÍA -->
+      <div class="col-lg-4 mb-3">
+        <div class="card shadow-sm h-100 border-0">
+          <div class="card-header bg-white border-bottom-0 pb-0">
+            <h5 class="ep-titulo-col"><i class="fas fa-camera me-2"></i> Fotografía</h5>
+          </div>
+          <div class="card-body d-flex flex-column align-items-center text-center">
+
+            <div class="ep-video-cont bg-dark rounded mb-3 overflow-hidden d-flex justify-content-center align-items-center">
+              <video #videoElement autoplay [hidden]="fotoCapturada"
+                     style="max-height: 100%; max-width: 100%; object-fit: contain;"></video>
+              <img [src]="fotoCapturada" *ngIf="fotoCapturada"
+                   style="max-height: 100%; max-width: 100%; object-fit: contain;">
+              <canvas #canvasElement style="display: none;"></canvas>
+            </div>
+
+            <select class="form-select mb-3 shadow-sm rounded-pill"
+                    [(ngModel)]="camaraSeleccionadaId" (change)="cambiarCamara($event)"
+                    *ngIf="!fotoCapturada && dispositivosVideo.length > 1">
+              <option *ngFor="let m of dispositivosVideo" [value]="m.deviceId">
+                {{ m.label || 'Cámara' }}
+              </option>
+            </select>
+
+            <input type="file" #fileInputFoto hidden accept="image/*" (change)="onArchivoFotoSeleccionado($event)">
+
+            <button class="btn w-100 btn-lg rounded-pill shadow-sm ep-btn-foto"
+                    (click)="capturarFoto()" *ngIf="!fotoCapturada">
+              <i class="fas fa-camera"></i> Tomar Foto
+            </button>
+            <button class="btn btn-outline-secondary w-100 btn-lg rounded-pill shadow-sm fw-bold"
+                    (click)="repetirFoto()" *ngIf="fotoCapturada">
+              <i class="fas fa-redo"></i> Repetir Foto
+            </button>
+            <button class="btn w-100 btn-lg btn-outline-secondary mt-2 rounded-pill shadow-sm fw-bold"
+                    (click)="fileInputFoto.click()">
+              <i class="fas fa-upload"></i> {{ fotoCapturada ? 'Cambiar archivo' : 'Subir desde archivo' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- COLUMNA 2: FIRMA -->
+      <div class="col-lg-4 mb-3">
+        <div class="card shadow-sm h-100 border-0">
+          <div class="card-header bg-white border-bottom-0 pb-0 d-flex justify-content-between align-items-center">
+            <h5 class="ep-titulo-col m-0"><i class="fas fa-pen-nib me-2"></i> Firma</h5>
+            <button class="btn btn-sm"
+                    [ngClass]="wacomConnected ? 'btn-success' : 'btn-outline-primary'"
+                    (click)="conectarWacom()" *ngIf="isWacomSupported"
+                    title="Conectar tableta Wacom STU">
+              <i class="fas" [ngClass]="wacomConnected ? 'fa-link' : 'fa-tablet-alt'"></i>
+              <span *ngIf="!wacomConnected"> Wacom</span>
+            </button>
+          </div>
+          <div class="card-body d-flex flex-column align-items-center">
+
+            <div class="ep-firma-cont border rounded bg-white w-100 mb-3 d-flex flex-column">
+              <div class="text-muted text-center p-2 small border-bottom bg-light">
+                Firme en el recuadro
+              </div>
+              <canvas #firmaCanvas
+                  class="ep-firma-canvas"
+                  (mousedown)="startDrawing($event)"
+                  (mousemove)="moveDrawing($event)"
+                  (mouseup)="stopDrawing()"
+                  (mouseleave)="stopDrawing()"
+                  (touchstart)="startDrawing($event)"
+                  (touchmove)="moveDrawing($event)"
+                  (touchend)="stopDrawing()">
+              </canvas>
+            </div>
+
+            <div class="w-100 d-flex gap-2">
+              <button class="btn btn-outline-danger w-50 btn-lg rounded-pill shadow-sm fw-bold fs-6"
+                      (click)="limpiarFirma()">
+                <i class="fas fa-eraser"></i> Limpiar
+              </button>
+              <input type="file" #fileInputFirma hidden accept="image/*" (change)="onArchivoFirmaSeleccionado($event)">
+              <button class="btn btn-outline-secondary w-50 btn-lg rounded-pill shadow-sm fw-bold fs-6"
+                      (click)="fileInputFirma.click()">
+                <i class="fas fa-upload"></i> Subir
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COLUMNA 3: DATOS -->
+      <div class="col-lg-4 mb-3">
+        <div class="card shadow-sm h-100 border-0 bg-light">
+          <div class="card-header bg-light border-bottom-0 pb-0">
+            <h5 class="ep-titulo-col"><i class="fas fa-id-card me-2"></i> Datos</h5>
+          </div>
+          <div class="card-body d-flex flex-column">
+
+            <div class="form-group mb-2">
+              <label class="form-label fw-bold">RFC (Obligatorio) *</label>
+              <input type="text" maxlength="13"
+                     class="form-control form-control-lg text-uppercase shadow-sm rounded-pill px-4"
+                     [class.is-invalid]="rfcEnFormulario && !isRfcValido()"
+                     [class.is-valid]="isRfcValido() && !rfcDuplicado"
+                     placeholder="Ej. PEGJ850315H2A"
+                     [(ngModel)]="rfcEnFormulario" (ngModelChange)="onRfcInput()">
+              <small class="text-muted d-block mt-1 px-2">
+                Con o sin homoclave. Es el nombre con el que se guardan los archivos.
+              </small>
+            </div>
+
+            <div class="alert alert-warning py-2 px-3 small mb-3" *ngIf="rfcDuplicado">
+              <i class="fas fa-triangle-exclamation"></i>
+              Ya existe una captura con este RFC. Al guardar, se <strong>reemplazará</strong>.
+            </div>
+
+            <div class="p-4 bg-white rounded-4 shadow-sm mb-4">
+              <h6 class="fw-bold mb-3 ep-titulo-col">Requisitos de captura</h6>
+
+              <div class="d-flex align-items-center mb-3">
+                <div class="ep-semaforo" [ngClass]="isFotoVerde() ? 'bg-success' : 'bg-secondary bg-opacity-25'"></div>
+                <span [ngClass]="isFotoVerde() ? 'text-success fw-bold' : 'text-muted'">Fotografía capturada</span>
+              </div>
+              <div class="d-flex align-items-center mb-3">
+                <div class="ep-semaforo" [ngClass]="isFirmaVerde() ? 'bg-success' : 'bg-secondary bg-opacity-25'"></div>
+                <span [ngClass]="isFirmaVerde() ? 'text-success fw-bold' : 'text-muted'">Firma trazada</span>
+              </div>
+              <div class="d-flex align-items-center">
+                <div class="ep-semaforo" [ngClass]="isDatosVerde() ? 'bg-success' : 'bg-secondary bg-opacity-25'"></div>
+                <span [ngClass]="isDatosVerde() ? 'text-success fw-bold' : 'text-muted'">RFC válido</span>
+              </div>
+            </div>
+
+            <button class="btn btn-lg w-100 mt-auto rounded-pill shadow ep-btn-siguiente"
+                    [disabled]="!isFotoVerde() || !isFirmaVerde() || !isDatosVerde()"
+                    (click)="siguienteEmpleado()">
+              <ng-container *ngIf="!modoEdicion">
+                Guardar y siguiente <i class="fas fa-arrow-right ms-2"></i>
+              </ng-container>
+              <ng-container *ngIf="modoEdicion">
+                Guardar cambios <i class="fas fa-save ms-2"></i>
+              </ng-container>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-template>

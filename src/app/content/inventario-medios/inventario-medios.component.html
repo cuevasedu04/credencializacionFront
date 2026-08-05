@@ -1,0 +1,181 @@
+<ng-template #confirmDialog>
+  <div class="modal-body text-center p-4">
+    <i class="fas fa-exclamation-triangle text-warning mb-3" style="font-size: 3rem;"></i>
+    <h5 class="mb-0">{{ confirmMessage }}</h5>
+  </div>
+</ng-template>
+
+<header class="mb-3 mt-2">
+  <div class="d-flex align-items-center gap-3 px-3">
+    <div class="im-icono">
+      <i class="fas fa-photo-film text-white"></i>
+    </div>
+    <div>
+      <h1 class="fw-bold text-dark mb-0 h3">Inventario de medios</h1>
+      <p class="text-muted mb-0">
+        Fotos y firmas guardadas con RFC, aún sin ligar a un número de empleado
+      </p>
+    </div>
+  </div>
+</header>
+
+<div class="im-contenedor mx-3">
+  <div class="row g-4 w-100 m-0 im-filas">
+
+    <!-- ---------- IZQUIERDA ---------- -->
+    <div class="col-md-9 d-flex flex-column p-0" style="min-height: 0;">
+
+      <!-- Filtros -->
+      <div class="d-flex align-items-center gap-2 mb-2 px-1 flex-wrap">
+        <div class="btn-group btn-group-sm im-filtros">
+          <button class="btn btn-outline-secondary" [class.active]="filtro === 'todos'"
+                  (click)="seleccionarFiltro('todos')">
+            Todos <span class="badge bg-secondary ms-1">{{ registros.length }}</span>
+          </button>
+          <button class="btn btn-outline-secondary" [class.active]="filtro === 'cruzables'"
+                  (click)="seleccionarFiltro('cruzables')"
+                  title="Ya aparecen en el roster: se pueden renombrar a su número de empleado">
+            Listos para cruzar <span class="badge bg-success ms-1">{{ totalCruzables }}</span>
+          </button>
+          <button class="btn btn-outline-secondary" [class.active]="filtro === 'sin_cruce'"
+                  (click)="seleccionarFiltro('sin_cruce')"
+                  title="Todavía no aparecen en el roster (o el nombre del archivo no es un RFC)">
+            Sin cruce <span class="badge bg-secondary ms-1">{{ totalSinCruce }}</span>
+          </button>
+          <button class="btn btn-outline-secondary" [class.active]="filtro === 'incompletos'"
+                  (click)="seleccionarFiltro('incompletos')"
+                  title="Les falta la foto o la firma">
+            Incompletos <span class="badge bg-danger ms-1">{{ totalIncompletos }}</span>
+          </button>
+        </div>
+
+        <div class="input-group input-group-sm im-buscador ms-auto">
+          <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+          <input type="text" class="form-control"
+                 placeholder="Buscar por RFC, número o nombre..."
+                 [(ngModel)]="busqueda">
+          <button class="btn btn-outline-secondary" (click)="busqueda = ''" title="Limpiar">
+            <i class="fas fa-eraser"></i>
+          </button>
+        </div>
+
+        <button class="btn btn-sm btn-outline-secondary" (click)="cargar()" [disabled]="cargando">
+          <i class="fas fa-arrows-rotate"></i> Actualizar
+        </button>
+      </div>
+
+      <div class="im-lista shadow-sm">
+
+        <div *ngIf="cargando" class="text-center text-muted py-5">
+          <i class="fas fa-spinner fa-spin fa-2x mb-2 d-block"></i>
+          <div>Leyendo el inventario y cruzándolo con el roster...</div>
+          <small class="text-muted">La primera carga tarda unos segundos.</small>
+        </div>
+
+        <div *ngIf="!cargando && !registrosFiltrados.length" class="text-center text-muted py-5">
+          <i class="fas fa-inbox fa-2x mb-2 d-block opacity-50"></i>
+          <div *ngIf="!registros.length">No hay medios pendientes de cruce.</div>
+          <div *ngIf="registros.length">Ningún registro coincide con el filtro actual.</div>
+        </div>
+
+        <div class="im-tarjetas" *ngIf="!cargando">
+          <div class="im-tarjeta" *ngFor="let reg of registrosFiltrados"
+               [class.im-tarjeta-cruzable]="reg.cruce">
+
+            <div class="im-medios">
+              <div class="im-medio" title="Fotografía">
+                <img *ngIf="reg.foto" [src]="reg.foto" alt="Foto">
+                <div *ngIf="!reg.foto" class="im-medio-vacio">
+                  <i class="fas fa-camera"></i><small>Sin foto</small>
+                </div>
+              </div>
+              <div class="im-medio im-medio-firma" title="Firma">
+                <img *ngIf="reg.firma" [src]="reg.firma" alt="Firma">
+                <div *ngIf="!reg.firma" class="im-medio-vacio">
+                  <i class="fas fa-pen-nib"></i><small>Sin firma</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="im-cuerpo">
+              <div class="im-rfc text-truncate" [title]="reg.rfc">{{ reg.rfc }}</div>
+
+              <div class="im-cruce" *ngIf="reg.cruce">
+                <i class="fas fa-arrow-right-arrow-left"></i>
+                <span class="im-num">{{ reg.cruce.num_empleado }}</span>
+                <div class="im-nombre text-truncate" [title]="reg.cruce.nombre">
+                  {{ reg.cruce.nombre }}
+                </div>
+              </div>
+
+              <div class="im-sin-cruce" *ngIf="!reg.cruce">
+                <i class="fas fa-hourglass-half"></i> Aún no está en el roster
+              </div>
+            </div>
+
+            <div class="im-acciones">
+              <button class="btn btn-sm btn-success flex-grow-1"
+                      *ngIf="reg.cruce"
+                      [disabled]="migrando"
+                      (click)="migrarUno(reg)"
+                      title="Renombrar los archivos con su número de empleado">
+                <i class="fas fa-link"></i> Cruzar
+              </button>
+              <button class="btn btn-sm btn-outline-danger"
+                      [class.flex-grow-1]="!reg.cruce"
+                      (click)="confirmarBorrado(reg)"
+                      title="Eliminar esta captura del servidor">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+
+            <div class="im-badge-incompleto" *ngIf="!reg.foto || !reg.firma">
+              <i class="fas fa-triangle-exclamation"></i> Incompleto
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---------- DERECHA: resumen ---------- -->
+    <div class="col-md-3 d-flex flex-column py-0 pe-0" style="min-height: 0;">
+      <div class="im-resumen shadow-sm">
+        <h5 class="fw-bold text-center mb-4 mt-2">Resumen</h5>
+
+        <div class="mb-4">
+          <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+            <span class="text-muted fw-bold">Total pendientes</span>
+            <span class="badge rounded-pill fs-6 px-3 shadow-sm im-badge-total">{{ registros.length }}</span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+            <span class="text-muted fw-bold">Listos para cruzar</span>
+            <span class="badge rounded-pill bg-success fs-6 px-3 shadow-sm">{{ totalCruzables }}</span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center mb-3 pb-2">
+            <span class="text-muted fw-bold">Sin cruce</span>
+            <span class="badge rounded-pill bg-white text-dark border fs-6 px-3 shadow-sm">{{ totalSinCruce }}</span>
+          </div>
+        </div>
+
+        <div class="im-nota">
+          <i class="fas fa-circle-info"></i>
+          <strong>Cruzar</strong> renombra los archivos de RFC a número de empleado. También
+          ocurre solo, uno por uno, cuando se imprime esa credencial en
+          <a routerLink="/imprimir-credenciales">Imprimir credenciales</a>. Si el empleado ya
+          tiene foto propia con su número, esa se respeta y no se sobrescribe.
+        </div>
+
+        <div class="mt-auto d-flex flex-column gap-3">
+          <button class="btn im-btn-cruzar py-2 shadow-sm"
+                  [disabled]="!totalCruzables || migrando || cargando"
+                  (click)="confirmarMigrarTodos()">
+            <i class="fas" [class.fa-link]="!migrando"
+               [class.fa-spinner]="migrando" [class.fa-spin]="migrando"></i>
+            {{ migrando ? 'Cruzando...' : 'Cruzar todos (' + totalCruzables + ')' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

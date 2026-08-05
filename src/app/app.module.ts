@@ -32,6 +32,8 @@ import { PlantillaAnamComponent } from './content/plantilla-anam/plantilla-anam.
 import { PlantillaEditorComponent } from './content/plantilla-editor/plantilla-editor.component';
 import { PlantillaListaComponent } from './content/plantilla-editor/plantilla-lista.component';
 import { ImprimirCredencialesComponent } from './content/imprimir-credenciales/imprimir-credenciales.component';
+import { EnrolamientoPrevioComponent } from './content/enrolamiento-previo/enrolamiento-previo.component';
+import { InventarioMediosComponent } from './content/inventario-medios/inventario-medios.component';
 import { CredencialPanelPropiedadesComponent } from './components/shared/credencial-panel-propiedades/credencial-panel-propiedades.component';
 import { EnrolamientoMasivoComponent } from './content/enrolamiento-masivo/enrolamiento-masivo.component';
 import { BusquedaEnrolamientoMasivosComponent } from './content/busqueda-enrolamiento-masivos/busqueda-enrolamiento-masivos.component';
@@ -59,6 +61,8 @@ import { LoginComponent } from './content/login/login.component';
     PlantillaEditorComponent,
     PlantillaListaComponent,
     ImprimirCredencialesComponent,
+    EnrolamientoPrevioComponent,
+    InventarioMediosComponent,
     CredencialPanelPropiedadesComponent,
     EnrolamientoMasivoComponent,
     BusquedaEnrolamientoMasivosComponent

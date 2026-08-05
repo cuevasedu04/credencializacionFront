@@ -41,8 +41,35 @@
         <span *ngIf="!ultimaActualizacion" class="text-muted">Sin fecha de actualización</span>
       </span>
 
+      <!-- Botón para recargar el roster SIG manualmente -->
+      <button class="btn btn-sm btn-outline-secondary ic-btn-recargar"
+              *ngIf="!cargandoRoster"
+              (click)="recargarRoster()"
+              title="Actualizar el roster (descarga los datos más recientes del servidor)">
+        <i class="fas fa-arrows-rotate"></i> Actualizar
+      </button>
+
+      <!-- Consecutivo de folio: editable, avanza solo al generar cada PDF -->
+      <div class="ms-auto d-flex align-items-center gap-2">
+        <div class="input-group input-group-sm ic-folio"
+             title="Folio de la siguiente credencial. Avanza solo al generar cada PDF; puedes fijar el que necesites.">
+          <span class="input-group-text bg-white">
+            <i class="fas fa-hashtag text-muted"></i>
+          </span>
+          <input type="text" class="form-control text-center fw-bold"
+                 [(ngModel)]="folioSiguiente"
+                 (blur)="onFolioEditado()"
+                 (keyup.enter)="onFolioEditado()"
+                 [disabled]="guardandoFolio"
+                 placeholder="Folio">
+          <span class="input-group-text bg-white" *ngIf="guardandoFolio">
+            <i class="fas fa-spinner fa-spin text-muted"></i>
+          </span>
+        </div>
+      </div>
+
       <!-- Selector de plantilla (solo dura mientras no se recargue la pantalla) -->
-      <div class="ms-auto d-flex align-items-center gap-2" #selectorPlantilla>
+      <div class="d-flex align-items-center gap-2" #selectorPlantilla>
         <div class="ic-selector position-relative" *ngIf="!cargandoPlantilla">
           <button type="button"
                   class="btn btn-sm d-flex align-items-center gap-2"
@@ -112,10 +139,38 @@
         <small class="text-muted">Se descarga una sola vez; después el filtrado es inmediato.</small>
       </div>
 
+      <!-- Tabs: Todos / Nuevos ingresos hoy -->
+      <div *ngIf="!cargandoRoster" class="ic-tabs">
+        <ul class="nav nav-tabs border-bottom-0 ic-tabs-nav">
+          <li class="nav-item">
+            <button class="nav-link"
+                    [class.active]="tabActiva === 'todos'"
+                    (click)="seleccionarTab('todos')">
+              <i class="fas fa-users me-1"></i>
+              Todos
+              <span class="badge bg-secondary ms-1">{{ rowData.length }}</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link"
+                    [class.active]="tabActiva === 'nuevos_hoy'"
+                    (click)="seleccionarTab('nuevos_hoy')">
+              <i class="fas fa-user-plus me-1"></i>
+              Nuevos ingresos hoy
+              <span class="badge ms-1"
+                    [class.bg-success]="contadorNuevosHoy > 0"
+                    [class.bg-secondary]="contadorNuevosHoy === 0">
+                {{ contadorNuevosHoy }}
+              </span>
+            </button>
+          </li>
+        </ul>
+      </div>
+
       <ag-grid-angular
           *ngIf="!cargandoRoster"
           class="ag-theme-alpine ic-grid"
-          [rowData]="rowData"
+          [rowData]="rowDataActivo"
           [columnDefs]="columnDefs"
           [defaultColDef]="defaultColDef"
           [rowSelection]="'single'"
@@ -155,6 +210,10 @@
             </span>
             <span class="badge bg-warning text-dark" *ngIf="sinFoto">
               <i class="fas fa-camera"></i> Sin foto
+            </span>
+            <span class="badge bg-info text-dark" *ngIf="mediosRequierenMigracion"
+                  title="Su foto/firma se capturaron en Enrolamiento previo (guardadas con su RFC). Al imprimir se renombrarán con su número de empleado.">
+              <i class="fas fa-user-clock"></i> Enrolamiento previo
             </span>
           </div>
         </div>
@@ -198,6 +257,13 @@
           <a routerLink="/plantillas">Plantillas</a>.
         </div>
 
+        <!-- Aviso de foto/firma capturada pero aun no guardada en disco -->
+        <div class="ic-aviso-edicion" *ngIf="hayMediosPendientes">
+          <i class="fas fa-camera-retro"></i>
+          {{ fotoPendiente && firmaPendiente ? 'Foto y firma capturadas' : (fotoPendiente ? 'Foto capturada' : 'Firma capturada') }}:
+          se guardarán al imprimir la credencial. Si cambias de empleado antes, se pierden.
+        </div>
+
         <!-- Vista previa / lienzo editable -->
         <div class="ic-preview">
           <div *ngIf="generandoPreview" class="text-muted text-center py-4">
@@ -214,23 +280,71 @@
           </div>
 
           <!-- Modo lectura: imagen renderizada -->
-          <img *ngIf="!modoEdicion && !generandoPreview && previewActual"
-               [src]="previewActual"
-               class="ic-credencial-img"
-               alt="Vista previa de la credencial">
+          <div class="ic-preview-imagen-wrap" *ngIf="!modoEdicion && !generandoPreview && previewActual">
+            <img [src]="previewActual"
+                 class="ic-credencial-img"
+                 alt="Vista previa de la credencial">
+
+            <!--
+              Hotspot clicable sobre el campo de foto: abre el mismo modal de
+              captura que "Enrolamiento" (webcam integrada o camara
+              profesional, que el navegador solo distingue como otra webcam
+              mas). La posicion/tamano salen de campoFotoRect(), leido del
+              JSON de la plantilla -- así se alinea aunque cambie la
+              plantilla o el diseño del campo.
+            -->
+            <button type="button" class="ic-foto-hotspot"
+                    *ngIf="campoFotoRect"
+                    [style.left.%]="campoFotoRect.leftPct"
+                    [style.top.%]="campoFotoRect.topPct"
+                    [style.width.%]="campoFotoRect.widthPct"
+                    [style.height.%]="campoFotoRect.heightPct"
+                    (click)="abrirCamara()"
+                    [title]="empleadoSeleccionado.foto ? 'Cambiar fotografía' : 'Capturar fotografía'">
+              <i class="fas fa-camera"></i>
+            </button>
+
+            <!-- Hotspot clicable sobre el campo de firma: mismo modal que
+                 "Enrolamiento" (canvas + mouse/touch o tableta Wacom STU). -->
+            <button type="button" class="ic-foto-hotspot"
+                    *ngIf="campoFirmaRect"
+                    [style.left.%]="campoFirmaRect.leftPct"
+                    [style.top.%]="campoFirmaRect.topPct"
+                    [style.width.%]="campoFirmaRect.widthPct"
+                    [style.height.%]="campoFirmaRect.heightPct"
+                    (click)="abrirFirma()"
+                    [title]="empleadoSeleccionado.firma ? 'Cambiar firma' : 'Capturar firma'">
+              <i class="fas fa-signature"></i>
+            </button>
+          </div>
 
           <div *ngIf="!modoEdicion && !generandoPreview && plantilla && !previewActual && cara === 'reverso'"
                class="text-center text-muted py-4">
             <small>Esta plantilla no tiene reverso.</small>
           </div>
 
-          <!-- Modo edición: canvas Fabric interactivo (uno por cara) -->
-          <div class="ic-lienzo-editable" *ngIf="modoEdicion && cara === 'frente'">
-            <canvas #canvasEdicionFrente></canvas>
-          </div>
-          <div class="ic-lienzo-editable" *ngIf="modoEdicion && cara === 'reverso' && tieneReverso">
-            <canvas #canvasEdicionReverso></canvas>
-          </div>
+          <!--
+            Modo edición: canvas Fabric interactivo (uno por cara).
+
+            IMPORTANTE: se muestran/ocultan con [style.display], NUNCA con
+            *ngIf. Fabric queda enlazado a un elemento <canvas> real del DOM;
+            si *ngIf lo destruyera al cambiar de cara, esa instancia de Fabric
+            quedaría apuntando a un nodo ya eliminado (la credencial se ve en
+            blanco) y, peor, forzaría reconstruir el canvas desde cero al
+            volver -- perdiendo cualquier ajuste que se hubiera hecho en esa
+            cara. Con [style.display] el elemento nunca se destruye: solo se
+            oculta, así que Fabric sigue mostrando el contenido correcto y
+            los ajustes de ambas caras sobreviven el cambio de cara.
+          -->
+          <ng-container *ngIf="modoEdicion">
+            <div class="ic-lienzo-editable" [style.display]="cara === 'frente' ? 'flex' : 'none'">
+              <canvas #canvasEdicionFrente></canvas>
+            </div>
+            <div class="ic-lienzo-editable" *ngIf="tieneReverso"
+                 [style.display]="cara === 'reverso' ? 'flex' : 'none'">
+              <canvas #canvasEdicionReverso></canvas>
+            </div>
+          </ng-container>
         </div>
 
         <!-- Acciones -->
@@ -264,3 +378,104 @@
     </aside>
   </div>
 </div>
+
+<!-- Modal de captura de foto (mismo flujo que Enrolamiento: webcam o subida
+     de archivo para la cámara profesional externa). La foto se guarda
+     permanentemente en MEDIA_ROOT al confirmar -- ver confirmarFoto(). -->
+<ng-template #modalCamara>
+  <div class="position-relative bg-dark text-center" style="min-height: 350px;">
+
+    <video #videoElement autoplay class="w-100" style="max-height: 400px;" *ngIf="!fotoCapturada && stream"></video>
+
+    <div *ngIf="!fotoCapturada && !stream" class="d-flex align-items-center justify-content-center text-white" style="height: 300px;">
+      <div>
+        <i class="fas fa-camera-retro fa-3x mb-3"></i>
+        <p>Cámara no detectada o externa.<br>Por favor suba el archivo.</p>
+      </div>
+    </div>
+
+    <canvas #canvasCaptura class="d-none"></canvas>
+
+    <img *ngIf="fotoCapturada" [src]="fotoCapturada" class="img-fluid" style="max-height: 400px;">
+
+    <div class="mt-3 p-3 bg-light rounded-top">
+
+      <div *ngIf="!fotoCapturada">
+        <div class="px-4 mb-2" *ngIf="dispositivosVideo.length > 1">
+          <select class="form-control form-control-sm" [(ngModel)]="camaraSeleccionadaId" (change)="cambiarCamara($event)">
+            <option *ngFor="let cam of dispositivosVideo" [value]="cam.deviceId">
+              {{ cam.label || 'Cámara ' + (dispositivosVideo.indexOf(cam) + 1) }}
+            </option>
+          </select>
+        </div>
+
+        <button *ngIf="stream" class="btn btn-primary btn-circle btn-lg mx-2" (click)="capturarFoto()" title="Tomar foto con Webcam">
+          <i class="fas fa-camera"></i>
+        </button>
+
+        <input type="file" #fileInput hidden accept="image/*" (change)="onArchivoSeleccionado($event)">
+        <button class="btn btn-secondary btn-lg mx-2" (click)="fileInput.click()" title="Subir foto de cámara externa">
+          <i class="fas fa-upload"></i> Subir Foto
+        </button>
+      </div>
+
+      <div *ngIf="fotoCapturada">
+        <button class="btn btn-secondary mr-3" (click)="fotoCapturada = null; iniciarCamara()">
+          <i class="fas fa-redo"></i> Repetir
+        </button>
+        <button class="btn btn-danger" (click)="confirmarFoto()">
+          <i class="fas fa-check"></i> Aceptar
+        </button>
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+<!-- Modal de captura de firma (canvas + mouse/touch, o tableta Wacom STU por
+     USB via WebHID). Igual que la foto, la firma capturada aqui solo vive en
+     memoria hasta que se imprime -- ver confirmarFirma() / guardarMediosPendientes(). -->
+<ng-template #modalFirma>
+  <div class="text-center py-4">
+
+    <div class="border d-inline-block bg-white shadow-sm position-relative"
+         style="width: 400px; height: 200px; border: 2px dashed #ccc; touch-action: none;">
+
+      <canvas #firmaCanvas
+          class="ic-firma-canvas"
+          (mousedown)="startDrawing($event)"
+          (mousemove)="moveDrawing($event)"
+          (mouseup)="stopDrawing()"
+          (mouseleave)="stopDrawing()"
+          (touchstart)="startDrawing($event)"
+          (touchmove)="moveDrawing($event)"
+          (touchend)="stopDrawing()"
+          style="width: 100%; height: 100%;">
+      </canvas>
+
+      <small class="text-muted position-absolute" style="bottom: 5px; left: 0; right: 0; pointer-events: none;">
+        Firme dentro del recuadro
+      </small>
+    </div>
+
+    <div class="mt-3">
+      <button class="btn btn-outline-danger btn-sm mr-2" (click)="limpiarFirma()">
+        <i class="fas fa-eraser"></i> Limpiar
+      </button>
+
+      <input type="file" #fileInputFirma hidden accept="image/*" (change)="onArchivoFirmaSeleccionado($event)">
+      <button class="btn btn-outline-secondary btn-sm mr-2" (click)="fileInputFirma.click()" title="Subir imagen de firma ya existente">
+        <i class="fas fa-upload"></i> Subir Firma
+      </button>
+
+      <button *ngIf="isWacomSupported && !wacomConnected"
+              class="btn btn-secondary btn-sm"
+              (click)="conectarWacom()">
+        <i class="fas fa-pen-nib"></i> Wacom
+      </button>
+
+      <span *ngIf="wacomConnected" class="badge badge-success p-2">
+        <i class="fas fa-plug"></i> Tableta Conectada
+      </span>
+    </div>
+  </div>
+</ng-template>

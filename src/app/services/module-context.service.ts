@@ -52,7 +52,7 @@ export class ModuleContextService {
       case 'consultas':
         return ['busquedaAvanzada', 'reportes', 'credencializacion', 'Carga masiva', 'plantillas', 'imprimir-credenciales'];
       case 'enrolamiento-masivo':
-        return ['enrolamiento-masivo', 'busqueda-enrolamiento-masivos'];
+        return ['enrolamiento-masivo', 'busqueda-enrolamiento-masivos', 'enrolamiento-previo', 'inventario-medios'];
       default:
         return [];
     }
@@ -71,7 +71,7 @@ export class ModuleContextService {
       return 'nuevo-laredo';
     }
 
-    if (url.includes('/Carga%20masiva') || url.includes('/enrolamiento-masivo')) {
+    if (url.includes('/Carga%20masiva') || url.includes('/enrolamiento-masivo') || url.includes('/enrolamiento-previo') || url.includes('/inventario-medios')) {
       return 'enrolamiento-masivo'; // Opcional si esta es la ruta, dependiento de router
     }
 

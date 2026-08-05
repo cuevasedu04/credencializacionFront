@@ -47,7 +47,15 @@ export interface EmpleadoSig {
   estatus: string | null;
   estado_hum: string | null;
   estado_nom: string | null;
+  /** Se reescribe en CADA sync para TODOS los registros -- no sirve para detectar altas nuevas. */
   fecha_actualizacion: string | null;
+  /**
+   * Se escribe UNA sola vez, la primera vez que se ve a este empleado; en
+   * syncs posteriores se conserva tal cual (ver Control_De_Plazas_Backend,
+   * _obtener_fechas_primera_deteccion). Esta es la que sí distingue altas
+   * reales de un refresco rutinario del roster.
+   */
+  fecha_primera_deteccion: string | null;
   [key: string]: any;
 }
 
@@ -129,8 +137,19 @@ export class PlantillaCredencialService {
     return this.http.get(`${this.apiEnrolamiento}buscar-empleado/?num_empleado=${encodeURIComponent(numEmpleado)}`);
   }
 
-  medios(numEmpleado: string): Observable<any> {
-    return this.http.get(`${this.apiEnrolamiento}medios/?num_empleado=${encodeURIComponent(numEmpleado)}`);
+  /**
+   * Resuelve foto/firma en MEDIA_ROOT. Si se manda `curp`, el backend
+   * reintenta con el prefijo de 10 caracteres comun a RFC y CURP cuando no
+   * hay nada guardado por num_empleado -- asi se cruzan las capturas de
+   * "Enrolamiento previo", nombradas por RFC porque se hicieron antes de que
+   * la persona tuviera numero asignado. La respuesta incluye
+   * `requiere_migracion` para saber si al imprimir hay que renombrarlas.
+   */
+  medios(numEmpleado: string, curp?: string): Observable<any> {
+    const params = new URLSearchParams();
+    if (numEmpleado) params.set('num_empleado', numEmpleado);
+    if (curp) params.set('curp', curp);
+    return this.http.get(`${this.apiEnrolamiento}medios/?${params.toString()}`);
   }
 
   listarEnrolamientos(params: { search?: string; page?: number; page_size?: number } = {}): Observable<any> {
@@ -144,6 +163,102 @@ export class PlantillaCredencialService {
 
   guardarMedios(id: number, foto?: string, firma?: string): Observable<any> {
     return this.http.post(`${this.apiEnrolamiento}${id}/guardar-medios/`, { foto, firma });
+  }
+
+  /**
+   * Igual que guardarMedios(), pero sin requerir un EnrolamientoCredencial
+   * existente -- guarda directo en MEDIA_ROOT por num_empleado. Util para
+   * capturar foto/firma de un empleado del roster SIG que aun no tiene
+   * expediente de credencial.
+   */
+  guardarMediosPorEmpleado(numEmpleado: string, foto?: string, firma?: string): Observable<any> {
+    return this.http.post(`${this.apiEnrolamiento}guardar-medios-empleado/`, {
+      num_empleado: numEmpleado, foto, firma,
+    });
+  }
+
+  /**
+   * Guarda foto/firma nombradas por RFC -- para "Enrolamiento previo", donde
+   * se captura a personal cuyo movimiento de ingreso todavia no se aplica y
+   * por tanto aun no tiene num_empleado asignado.
+   */
+  guardarMediosPorRfc(rfc: string, foto?: string, firma?: string): Observable<any> {
+    return this.http.post(`${this.apiEnrolamiento}guardar-medios-empleado/`, {
+      rfc, foto, firma,
+    });
+  }
+
+  /**
+   * Renombra los archivos guardados por RFC para que pasen a llamarse por
+   * num_empleado, una vez confirmado el cruce. Se dispara al imprimir.
+   */
+  migrarMedios(numEmpleado: string, curp: string): Observable<any> {
+    return this.http.post(`${this.apiEnrolamiento}migrar-medios/`, {
+      num_empleado: numEmpleado, curp,
+    });
+  }
+
+  /**
+   * Capturas nombradas por RFC/CURP que todavia no se cruzan con un
+   * num_empleado. Se reconstruye leyendo MEDIA_ROOT: no hay tabla en BD que
+   * las registre.
+   */
+  enrolamientosPrevios(): Observable<{ status: string; registros: any[]; total: number; cruzables: number }> {
+    return this.http.get<{ status: string; registros: any[]; total: number; cruzables: number }>(
+      `${this.apiEnrolamiento}enrolamientos-previos/`
+    );
+  }
+
+  /**
+   * Renombra en bloque las capturas que ya cruzan con el roster. Si se manda
+   * `rfcs`, solo esas; si no, todas las cruzables. El num_empleado destino lo
+   * recalcula el backend -- nunca se manda desde aqui.
+   */
+  migrarMediosLote(rfcs?: string[]): Observable<{ status: string; total_migrados: number; resultados: any[] }> {
+    return this.http.post<{ status: string; total_migrados: number; resultados: any[] }>(
+      `${this.apiEnrolamiento}migrar-medios-lote/`, rfcs ? { rfcs } : {}
+    );
+  }
+
+  /** Elimina foto y firma guardadas por RFC (p.ej. un RFC mal capturado). */
+  borrarMediosPrevio(rfc: string): Observable<any> {
+    return this.http.post(`${this.apiEnrolamiento}borrar-medios-previo/`, { rfc });
+  }
+
+  /**
+   * Resuelve foto/firma de varios RFC de golpe. Barato: solo toca disco, sin
+   * cruzar contra el roster. Sirve para reconstruir la sesion de
+   * "Enrolamiento previo" tras recargar la pagina.
+   */
+  mediosLote(rfcs: string[]): Observable<{ status: string; registros: any[] }> {
+    return this.http.post<{ status: string; registros: any[] }>(
+      `${this.apiEnrolamiento}medios-lote/`, { rfcs }
+    );
+  }
+
+  // ---- Consecutivo de folio -------------------------------------------
+  // Vive en el servidor, no en el navegador: el folio debe ser unico entre
+  // todas las estaciones de impresion.
+
+  /** Proximo folio a emitir, sin consumirlo. */
+  folioActual(): Observable<{ status: string; folio: string; valor: number; longitud: number }> {
+    return this.http.get<{ status: string; folio: string; valor: number; longitud: number }>(
+      `${this.apiEnrolamiento}folio-actual/`
+    );
+  }
+
+  /** Fija manualmente el proximo folio. */
+  folioEstablecer(folio: string): Observable<{ status: string; folio: string }> {
+    return this.http.post<{ status: string; folio: string }>(
+      `${this.apiEnrolamiento}folio-establecer/`, { folio }
+    );
+  }
+
+  /** Entrega el folio actual y avanza el contador de forma atomica. */
+  folioConsumir(): Observable<{ status: string; folio_emitido: string; folio_siguiente: string }> {
+    return this.http.post<{ status: string; folio_emitido: string; folio_siguiente: string }>(
+      `${this.apiEnrolamiento}folio-consumir/`, {}
+    );
   }
 
   marcarImpreso(id: number, fechaExpedicion?: string): Observable<any> {

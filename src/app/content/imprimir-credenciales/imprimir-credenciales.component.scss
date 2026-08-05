@@ -29,12 +29,13 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  padding: 0.5rem;
+  // Sin padding: los tabs y la grid van de borde a borde para mayor aprovechamiento.
 }
 
 .ic-grid {
   width: 100%;
-  height: 100%;
+  flex: 1 1 auto;
+  min-height: 0; // necesario en un flex-column para que ag-grid calcule el alto correctamente
   // ag-Grid virtualiza las filas: aunque haya 16k registros solo renderiza
   // las visibles, por eso el scroll y el filtrado siguen siendo fluidos.
   ::ng-deep .ag-row {
@@ -54,6 +55,56 @@
   justify-content: center;
   color: #6c757d;
   text-align: center;
+}
+
+// ---------- Tabs sobre la grid ----------
+.ic-tabs {
+  flex: 0 0 auto;
+  background: #fff;
+  border-bottom: 1px solid #dee2e6;
+  padding: 0 0.5rem;
+}
+
+.ic-tabs-nav {
+  flex-wrap: nowrap;
+  gap: 0;
+
+  .nav-link {
+    font-size: 0.82rem;
+    padding: 0.45rem 0.85rem;
+    color: #6c757d;
+    border: 1px solid transparent;
+    border-bottom: none;
+    background: transparent;
+    border-radius: 6px 6px 0 0;
+    cursor: pointer;
+    transition: color 0.15s ease, background 0.15s ease;
+
+    &:hover {
+      color: #198754;
+      background: rgba(25, 135, 84, 0.05);
+    }
+
+    &.active {
+      color: #198754;
+      font-weight: 600;
+      background: #f8f9fa;
+      border-color: #dee2e6 #dee2e6 #f8f9fa;
+    }
+  }
+}
+
+// ---------- Consecutivo de folio ----------
+.ic-folio {
+  width: 150px;
+
+  input { letter-spacing: 1px; }
+}
+
+// ---------- Botón recargar roster ----------
+.ic-btn-recargar {
+  font-size: 0.78rem;
+  white-space: nowrap;
 }
 
 // ---------- Panel de credencial ----------
@@ -95,22 +146,68 @@
   min-height: 0; // permite que max-height del <img> se calcule contra este alto
 }
 
+// Envuelve el <img> de la vista previa para que el hotspot de foto pueda
+// posicionarse con % relativos al tamaño REAL renderizado de la credencial
+// (no al contenedor .ic-preview, que suele ser más grande y la centra).
+.ic-preview-imagen-wrap {
+  position: relative;
+  display: inline-block;
+  height: 100%;
+  max-width: 100%;
+  line-height: 0;
+}
+
 .ic-credencial-img {
   // Proporcion CR80 vertical. Se limita por ALTURA (no por ancho) para que la
   // credencial siempre quepa completa sin scroll: al ser mas alta que ancha,
   // la altura es la dimension que restringe.
-  max-height: 100%;
+  height: 100%;
   max-width: 100%;
   width: auto;
-  height: auto;
   display: block;
   border-radius: 6px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
 }
 
+// Hotspot clicable sobre el campo de foto de la credencial (ver
+// campoFotoRect() en el componente). Transparente por defecto; se resalta
+// al pasar el mouse para indicar que es interactivo.
+.ic-foto-hotspot {
+  position: absolute;
+  border: none;
+  padding: 0;
+  background: rgba(0, 0, 0, 0);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.15s ease;
+
+  i {
+    opacity: 0;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+    transition: opacity 0.15s ease;
+  }
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.35);
+
+    i {
+      opacity: 1;
+    }
+  }
+}
+
 .ic-acciones {
   flex: 0 0 auto;
   padding: 0.85rem;
+}
+
+// Cursor tipo mira para el canvas de captura de firma (mouse/touch/Wacom).
+.ic-firma-canvas {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cline x1='14' y1='2' x2='14' y2='26' stroke='black' stroke-width='2'/%3E%3Cline x1='2' y1='14' x2='26' y2='14' stroke='black' stroke-width='2'/%3E%3C/svg%3E") 14 14, crosshair;
 }
 
 // ---------- Edición rápida ----------

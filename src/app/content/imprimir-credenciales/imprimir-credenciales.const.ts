@@ -22,11 +22,55 @@ export const COLUMNAS_SIG: { campo: string; titulo: string; ancho?: number }[] =
   // { campo: 'estatus', titulo: 'Estatus', ancho: 110 },
   // { campo: 'estado_hum', titulo: 'Estado HUM', ancho: 120 },
   { campo: 'estado_nom', titulo: 'Estado nómina', ancho: 130 },
-  // { campo: 'fecha_expedicion', titulo: 'Fecha expedición', ancho: 140 },
+  { campo: 'fecha_expedicion', titulo: 'Fecha expedición', ancho: 140 },
   // { campo: 'firma_drh', titulo: 'Firma DRH', ancho: 220 },
   // { campo: 'cargo_drh', titulo: 'Cargo DRH', ancho: 130 },
   // { campo: 'fecha_actualizacion', titulo: 'Actualizado', ancho: 150 },
 ];
+
+/** Ano al que vencen todas las credenciales de esta emision. */
+export const ANIO_FIN_VIGENCIA = 2030;
+
+/**
+ * Fecha de hoy en formato 'YYYY-MM-DD', en hora LOCAL.
+ *
+ * No se usa `toISOString().split('T')[0]`: ese convierte a UTC, y en Mexico
+ * (UTC-6) a partir de las 18:00 devolveria ya la fecha del dia siguiente --
+ * las credenciales impresas por la tarde saldrian fechadas manana.
+ */
+export function fechaHoyLocal(): string {
+  const hoy = new Date();
+  const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+  const dia = String(hoy.getDate()).padStart(2, '0');
+  return `${hoy.getFullYear()}-${mes}-${dia}`;
+}
+
+/**
+ * Fin de vigencia: el mismo dia y mes de la fecha de expedicion del empleado,
+ * pero del ano ANIO_FIN_VIGENCIA.
+ *
+ * Se calcula sobre el texto 'YYYY-MM-DD' que entrega el backend en vez de
+ * construir un Date: `new Date('2022-01-01')` se interpreta como UTC y, en
+ * husos al oeste como el de Mexico, al leerlo en local retrocede al dia
+ * anterior -- la credencial saldria venciendo el 31/12/2029 en lugar del
+ * 01/01/2030.
+ */
+export function calcularFinVigencia(fechaExpedicion: string | null | undefined): string {
+  if (!fechaExpedicion) return '';
+
+  const partes = String(fechaExpedicion).slice(0, 10).split('-');
+  if (partes.length !== 3) return '';
+
+  const [, mes, dia] = partes;
+  if (!/^\d{2}$/.test(mes) || !/^\d{2}$/.test(dia)) return '';
+
+  // 2030 no es bisiesto: un 29 de febrero daria una fecha inexistente, asi
+  // que se recorre al 28. Hoy no hay ninguna en el roster, pero un sync
+  // futuro podria traerla y el fallo seria silencioso.
+  const diaAjustado = (mes === '02' && dia === '29') ? '28' : dia;
+
+  return `${ANIO_FIN_VIGENCIA}-${mes}-${diaAjustado}`;
+}
 
 /**
  * Traduce una fila del roster SIG al objeto que espera
@@ -35,7 +79,8 @@ export const COLUMNAS_SIG: { campo: string; titulo: string; ancho?: number }[] =
  *
  * `rfc` no existe en el roster: se deja vacio para que el enrolador lo capture
  * a mano si su plantilla lo usa. `foto`/`firma` las resuelve aparte el
- * endpoint `medios` contra MEDIA_ROOT.
+ * endpoint `medios` contra MEDIA_ROOT. `folio` lo asigna
+ * "Imprimir credenciales" desde el consecutivo del servidor.
  */
 export function sigAEmpleadoCredencial(fila: EmpleadoSig): any {
   const paterno = fila.primer_apellido || '';
@@ -62,8 +107,8 @@ export function sigAEmpleadoCredencial(fila: EmpleadoSig): any {
 
     // Fechas y firma de autoridad
     fecha_expedicion: fila.fecha_expedicion || '',
-    inicio_vig: '',
-    fin_vig: '',
+    inicio_vig: fila.fecha_expedicion || '',
+    fin_vig: calcularFinVigencia(fila.fecha_expedicion),
     folio: '',
     firma_drh: fila.firma_drh || '',
     cargo_drh: fila.cargo_drh || '',

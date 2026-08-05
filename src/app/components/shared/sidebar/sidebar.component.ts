@@ -114,6 +114,20 @@ export class SidebarComponent implements OnInit, OnDestroy {
       link: '/imprimir-credenciales',
       rol: [1,2,3,4,9999],
     },
+    {
+      id: 'enrolamiento-previo',
+      label: 'Enrolamiento previo',
+      icon: 'fas fa-user-clock',
+      link: '/enrolamiento-previo',
+      rol: [1,2,3,4,9999],
+    },
+    {
+      id: 'inventario-medios',
+      label: 'Inventario de medios',
+      icon: 'fas fa-photo-film',
+      link: '/inventario-medios',
+      rol: [1,2,3,4,9999],
+    },
 
 
   ];
