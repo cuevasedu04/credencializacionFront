@@ -46,13 +46,20 @@ export class ModuleContextService {
   getAllowedIds(block: SidebarBlock): string[] {
     switch (block) {
       case 'anam':
-        return ['enrolamiento', 'plantilla-anam'];
+        return ['imprimir-credenciales', 'enrolamiento-previo', 'plantillas',  'inventario-medios' ];
+        // return ['enrolamiento', 'plantilla-anam'];
       case 'nuevo-laredo':
-        return ['enrolamiento', 'provisional', 'familiar'];
+                return ['imprimir-credenciales', 'enrolamiento-previo', 'plantillas',  'inventario-medios' ];
+
+        // return ['enrolamiento', 'provisional', 'familiar'];
       case 'consultas':
-        return ['busquedaAvanzada', 'reportes', 'credencializacion', 'Carga masiva', 'plantillas', 'imprimir-credenciales'];
+                return ['imprimir-credenciales', 'enrolamiento-previo', 'plantillas',  'inventario-medios' ];
+
+        // return ['busquedaAvanzada', 'reportes', 'credencializacion', 'Carga masiva', 'plantillas', 'imprimir-credenciales'];
       case 'enrolamiento-masivo':
-        return ['enrolamiento-masivo', 'busqueda-enrolamiento-masivos', 'enrolamiento-previo', 'inventario-medios'];
+                return ['imprimir-credenciales', 'enrolamiento-previo', 'plantillas',  'inventario-medios' ];
+
+        // return ['enrolamiento-masivo', 'busqueda-enrolamiento-masivos', 'enrolamiento-previo', 'inventario-medios'];
       default:
         return [];
     }
