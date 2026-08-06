@@ -13,7 +13,7 @@ import {
 import {
   CAMPOS_DISPONIBLES, CANVAS_ALTO_PX, CANVAS_ANCHO_PX,
   CaraCredencial, CampoPlantilla, CREDENCIAL_ALTO_MM, CREDENCIAL_ANCHO_MM,
-  ELEMENTOS_ESTATICOS,
+  ELEMENTOS_ESTATICOS, FUENTE_POR_DEFECTO,
 } from './plantilla-editor.const';
 
 /**
@@ -117,6 +117,14 @@ export class PlantillaEditorComponent implements OnInit, AfterViewInit, OnDestro
       backgroundColor: '#ffffff',
       preserveObjectStacking: true,
       selection: true,
+    });
+
+    // El canvas no dispara la descarga de las @font-face (ver
+    // CredencialRenderService.asegurarFuentes). Sin esto, el editor mostraria
+    // los textos con la fuente de respaldo hasta que algo mas del sistema
+    // cargara la real, y el diseno no coincidiria con lo impreso.
+    this.render.asegurarFuentes().then(() => {
+      this.canvas.requestRenderAll();
     });
 
     this.aplicarZoom();
@@ -290,7 +298,7 @@ export class PlantillaEditorComponent implements OnInit, AfterViewInit, OnDestro
       top: this.altoDiseno * 0.1,
       width: this.anchoDiseno * 0.6,
       fontSize: 28,
-      fontFamily: 'Arial',
+      fontFamily: FUENTE_POR_DEFECTO,
       fontWeight: 'bold',
       fill: '#000000',
       textAlign: 'left',

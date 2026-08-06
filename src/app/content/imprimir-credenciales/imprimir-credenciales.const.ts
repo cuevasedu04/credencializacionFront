@@ -46,8 +46,14 @@ export function fechaHoyLocal(): string {
 }
 
 /**
- * Fin de vigencia: el mismo dia y mes de la fecha de expedicion del empleado,
- * pero del ano ANIO_FIN_VIGENCIA.
+ * Fin de vigencia: mismo dia y mes de la columna `fecha_expedicion` del
+ * ROSTER SIG (sicre_tbl_sig), pero del ano ANIO_FIN_VIGENCIA. Varia por
+ * empleado.
+ *
+ * OJO: no confundir con el campo `fecha_expedicion` que se imprime al reverso
+ * de la credencial. Ese es la fecha del dia en que se genera el plastico y no
+ * guarda ninguna relacion con esta columna; son dos fechas distintas que
+ * casualmente comparten nombre (ver `sigAEmpleadoCredencial`).
  *
  * Se calcula sobre el texto 'YYYY-MM-DD' que entrega el backend en vez de
  * construir un Date: `new Date('2022-01-01')` se interpreta como UTC y, en
@@ -105,9 +111,16 @@ export function sigAEmpleadoCredencial(fila: EmpleadoSig): any {
     area: fila.area || '',
     adscripcion: fila.area || '',
 
-    // Fechas y firma de autoridad
-    fecha_expedicion: fila.fecha_expedicion || '',
-    inicio_vig: fila.fecha_expedicion || '',
+    // Fechas y firma de autoridad.
+    //
+    // `fecha_expedicion` es la de HOY: es la fecha en que se expide el
+    // plastico, no la que trae el roster (que corresponde al movimiento del
+    // empleado en el SIG). Sigue siendo editable a mano en el modo edicion.
+    // La del roster se conserva en `fecha_expedicion_sig` porque de ella se
+    // deriva la vigencia.
+    fecha_expedicion: fechaHoyLocal(),
+    fecha_expedicion_sig: fila.fecha_expedicion || '',
+    inicio_vig: fechaHoyLocal(),
     fin_vig: calcularFinVigencia(fila.fecha_expedicion),
     folio: '',
     firma_drh: fila.firma_drh || '',

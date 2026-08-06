@@ -10,6 +10,7 @@ import {
   CREDENCIAL_ANCHO_MM,
   MULTIPLICADOR_EXPORT,
   CaraCredencial,
+  FUENTES_PERSONALIZADAS,
 } from '../content/plantilla-editor/plantilla-editor.const';
 import { PlantillaCredencial } from './plantilla-credencial.service';
 
@@ -31,6 +32,35 @@ export class CredencialRenderService {
    */
   static readonly PROPS_EXTRA: string[] = ['data', 'selectable', 'evented'];
 
+  /** Una sola carga de fuentes por sesion; se reutiliza la misma promesa. */
+  private fuentesListas: Promise<void> | null = null;
+
+  /**
+   * Garantiza que las fuentes personalizadas esten cargadas ANTES de dibujar.
+   *
+   * El navegador solo descarga una @font-face cuando algun elemento del DOM la
+   * usa. Fabric dibuja sobre <canvas>, que NO dispara esa carga: si la fuente
+   * aun no esta lista, el canvas cae al tipo por omision sin ningun error, y
+   * la credencial se imprime en Arial aunque la plantilla diga NotoSans-Black.
+   * Peor aun, seria intermitente: funcionaria en cuanto algo mas del sistema
+   * hubiera usado la fuente antes.
+   */
+  async asegurarFuentes(): Promise<void> {
+    if (this.fuentesListas) return this.fuentesListas;
+
+    this.fuentesListas = (async () => {
+      const fuentes = (document as any).fonts;
+      if (!fuentes?.load) return;   // navegador sin CSS Font Loading API
+
+      await Promise.all(
+        FUENTES_PERSONALIZADAS.map(f => fuentes.load(`16px "${f}"`).catch(() => null))
+      );
+      await fuentes.ready;
+    })();
+
+    return this.fuentesListas;
+  }
+
   // ====================================================================
   // API publica
   // ====================================================================
@@ -44,6 +74,8 @@ export class CredencialRenderService {
     cara: CaraCredencial,
     empleado: any
   ): Promise<fabric.StaticCanvas> {
+    await this.asegurarFuentes();
+
     const ancho = plantilla.ancho_px || CANVAS_ANCHO_PX;
     const alto = plantilla.alto_px || CANVAS_ALTO_PX;
 
@@ -106,6 +138,8 @@ export class CredencialRenderService {
     empleado: any,
     elementoDom: HTMLCanvasElement
   ): Promise<fabric.Canvas> {
+    await this.asegurarFuentes();
+
     const ancho = plantilla.ancho_px || CANVAS_ANCHO_PX;
     const alto = plantilla.alto_px || CANVAS_ALTO_PX;
 

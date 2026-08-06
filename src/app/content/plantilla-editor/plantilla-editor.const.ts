@@ -72,7 +72,19 @@ export const ELEMENTOS_ESTATICOS: CampoPlantilla[] = [
   { binding: 'imagen_fija',  label: 'Imagen / logo', tipo: 'estatico',                        icono: 'fa-image', ancho: 200, alto: 200 },
 ];
 
+/**
+ * Fuente por omision de los campos de texto nuevos.
+ *
+ * Es la institucional (public/fonts/NotoSans-Black.ttf), ya declarada como
+ * @font-face en assets/styles.scss y usada por las credenciales antiguas
+ * (plantilla-enrolamiento). Debe ir tambien en FUENTES_DISPONIBLES o el
+ * selector del panel de propiedades apareceria vacio al seleccionar un campo.
+ */
+export const FUENTE_POR_DEFECTO = 'NotoSans-Black';
+
 export const FUENTES_DISPONIBLES = [
+  FUENTE_POR_DEFECTO,
+  'NotoSans-Bold',
   'Arial',
   'Helvetica',
   'Times New Roman',
@@ -82,6 +94,14 @@ export const FUENTES_DISPONIBLES = [
   'Tahoma',
   'Trebuchet MS',
 ];
+
+/**
+ * Fuentes que vienen de archivos propios (public/fonts, declaradas como
+ * @font-face en assets/styles.scss) y por tanto hay que precargar antes de
+ * dibujar en canvas -- ver CredencialRenderService.asegurarFuentes().
+ * Las demas de FUENTES_DISPONIBLES son del sistema y siempre estan listas.
+ */
+export const FUENTES_PERSONALIZADAS = ['NotoSans-Black', 'NotoSans-Bold'];
 
 export const ALINEACIONES = [
   { valor: 'left',   label: 'Izquierda', icono: 'fa-align-left' },
