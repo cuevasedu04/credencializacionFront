@@ -477,5 +477,16 @@
         <i class="fas fa-plug"></i> Tableta Conectada
       </span>
     </div>
+
+    <!--
+      Sin WebHID no hay forma de hablar con la tableta, y ocultar el boton sin
+      mas hace parecer que la Wacom no se detecto o que falla el cable. El
+      texto lo calcula motivoSinWacom(), que distingue "falta HTTPS" de
+      "navegador sin soporte" -- son causas distintas con arreglos distintos.
+    -->
+    <div class="mt-3 mx-4 alert alert-info py-2 px-3 small mb-0" *ngIf="avisoWacom">
+      <i class="fas fa-circle-info"></i> {{ avisoWacom }}
+      Con el mouse y la carga de archivo sí puedes firmar aquí.
+    </div>
   </div>
 </ng-template>

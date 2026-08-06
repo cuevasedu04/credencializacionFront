@@ -8,6 +8,7 @@ import { UtilsService } from '../../services/utils.service';
 import { ModalManagerService } from '../../components/shared/modal-manager.service';
 import { WacomService } from '../../services/wacom.service';
 import { PlantillaCredencialService } from '../../services/plantilla-credencial.service';
+import { motivoSinCamara, motivoSinWacom, soportaCamara } from '../../services/soporte-navegador';
 
 /** Una captura de enrolamiento previo, identificada por RFC. */
 export interface EnrolamientoPrevio {
@@ -85,6 +86,9 @@ export class EnrolamientoPrevioComponent implements OnInit, OnDestroy {
   private wacomSub: Subscription | null = null;
   isWacomSupported = false;
   wacomConnected = false;
+  /** Explica por que no hay tableta/camara; null si si estan disponibles. */
+  avisoWacom: string | null = null;
+  avisoCamara: string | null = null;
 
   // ---- Estado ----
   /**
@@ -135,6 +139,8 @@ export class EnrolamientoPrevioComponent implements OnInit, OnDestroy {
     private cdRef: ChangeDetectorRef,
   ) {
     this.isWacomSupported = this.wacomService.isBrowserSupported();
+    this.avisoWacom = motivoSinWacom();
+    this.avisoCamara = motivoSinCamara();
   }
 
   ngOnInit(): void {
@@ -457,7 +463,10 @@ export class EnrolamientoPrevioComponent implements OnInit, OnDestroy {
 
   async iniciarCamara(deviceId?: string): Promise<void> {
     this.detenerCamara();
-    if (!navigator.mediaDevices?.getUserMedia) return;
+    if (!soportaCamara()) {
+      if (this.avisoCamara) this.utils.MuestrasToast(TipoToast.Warning, this.avisoCamara);
+      return;
+    }
 
     try {
       const constraints: MediaStreamConstraints = {

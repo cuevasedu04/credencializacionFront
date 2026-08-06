@@ -222,6 +222,12 @@
               </canvas>
             </div>
 
+            <!-- Motivo real por el que no hay tableta: distingue "falta HTTPS"
+                 de "navegador sin WebHID" (ver soporte-navegador.ts). -->
+            <div class="alert alert-info py-2 px-3 small w-100 mb-2" *ngIf="avisoWacom">
+              <i class="fas fa-circle-info"></i> {{ avisoWacom }}
+            </div>
+
             <div class="w-100 d-flex gap-2">
               <button class="btn btn-outline-danger w-50 btn-lg rounded-pill shadow-sm fw-bold fs-6"
                       (click)="limpiarFirma()">

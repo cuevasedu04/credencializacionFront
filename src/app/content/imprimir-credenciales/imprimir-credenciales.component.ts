@@ -11,6 +11,7 @@ import { UtilsService } from '../../services/utils.service';
 import { CredencialRenderService } from '../../services/credencial-render.service';
 import { ModalManagerService } from '../../components/shared/modal-manager.service';
 import { WacomService } from '../../services/wacom.service';
+import { motivoSinCamara, motivoSinWacom, soportaCamara } from '../../services/soporte-navegador';
 import {
   EmpleadoSig, PlantillaCredencial, PlantillaCredencialService,
 } from '../../services/plantilla-credencial.service';
@@ -191,6 +192,9 @@ export class ImprimirCredencialesComponent implements OnInit, OnDestroy {
   private wacomSub: Subscription | null = null;
   isWacomSupported = false;
   wacomConnected = false;
+  /** Explica por que no hay tableta/camara; null si si estan disponibles. */
+  avisoWacom: string | null = null;
+  avisoCamara: string | null = null;
 
   /**
    * Foto/firma capturadas en esta sesion, pendientes de guardarse en
@@ -231,6 +235,8 @@ export class ImprimirCredencialesComponent implements OnInit, OnDestroy {
       tooltipField: col.campo,
     }));
     this.isWacomSupported = this.wacomService.isBrowserSupported();
+    this.avisoWacom = motivoSinWacom();
+    this.avisoCamara = motivoSinCamara();
   }
 
   ngOnInit(): void {
@@ -966,7 +972,11 @@ export class ImprimirCredencialesComponent implements OnInit, OnDestroy {
 
   async iniciarCamara(deviceId?: string): Promise<void> {
     this.detenerCamara();
-    if (!navigator.mediaDevices?.getUserMedia) return;
+    if (!soportaCamara()) {
+      // Antes salia en silencio: el modal quedaba en negro sin explicar nada.
+      if (this.avisoCamara) this.utils.MuestrasToast(TipoToast.Warning, this.avisoCamara);
+      return;
+    }
 
     try {
       const constraints: MediaStreamConstraints = {
@@ -1218,10 +1228,26 @@ export class ImprimirCredencialesComponent implements OnInit, OnDestroy {
   private coordenadasFirma(evento: MouseEvent | TouchEvent): { x: number; y: number } {
     const canvasEl = this.firmaCanvasRef.nativeElement;
     const rect = canvasEl.getBoundingClientRect();
-    const [clientX, clientY] = evento instanceof TouchEvent
-      ? [evento.touches[0].clientX, evento.touches[0].clientY]
-      : [evento.clientX, evento.clientY];
-    return { x: clientX - rect.left, y: clientY - rect.top };
+
+    // Se comprueba MouseEvent, NUNCA `evento instanceof TouchEvent`.
+    // Firefox de escritorio solo define TouchEvent en equipos con pantalla
+    // tactil; en el resto la clase no existe y ese instanceof lanza
+    // "TouchEvent is not defined", abortando el trazo antes de dibujar nada.
+    // Se ve exactamente como si el canvas no respondiera al mouse.
+    const esRaton = evento instanceof MouseEvent;
+    const clientX = esRaton ? evento.clientX : (evento as TouchEvent).touches[0].clientX;
+    const clientY = esRaton ? evento.clientY : (evento as TouchEvent).touches[0].clientY;
+
+    // El canvas tiene el DOBLE de resolucion interna que su tamano CSS (ver
+    // inicializarCanvasFirma). Sin convertir, el trazo se dibujaria a mitad
+    // de camino del puntero, amontonado en el cuarto superior izquierdo.
+    const escalaX = canvasEl.width / rect.width;
+    const escalaY = canvasEl.height / rect.height;
+
+    return {
+      x: (clientX - rect.left) * escalaX,
+      y: (clientY - rect.top) * escalaY,
+    };
   }
 
   limpiarFirma(): void {
