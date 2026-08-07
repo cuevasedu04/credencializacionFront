@@ -532,8 +532,11 @@ export class PlantillaEditorComponent implements OnInit, AfterViewInit, OnDestro
       materno: 'EJEMPLO',
       apellidos: 'APELLIDO EJEMPLO',
       puesto: 'PUESTO DE EJEMPLO',
-      area: 'AREA DE EJEMPLO',
-      adscripcion: 'ADSCRIPCION DE EJEMPLO',
+      // Nombre corto, como sale de sicre_cat_unidad_compactada: asi el PDF de
+      // prueba muestra el ancho real que ocupara el texto y no uno inventado.
+      area: 'DGTI',
+      adscripcion: 'DGTI',
+      area_completa: 'DIRECCION GENERAL DE TECNOLOGIAS DE LA INFORMACION',
       folio: 'FOLIO-0001',
       fecha_expedicion: '2026-01-01',
       inicio_vig: '2026-01-01',

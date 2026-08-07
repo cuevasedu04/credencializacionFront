@@ -105,11 +105,27 @@ export function sigAEmpleadoCredencial(fila: EmpleadoSig): any {
     materno,
     apellidos: `${paterno} ${materno}`.trim(),
 
-    // Puesto / adscripcion
+    // Puesto / adscripcion.
+    //
+    // `area` Y `adscripcion` llevan el nombre CORTO (catalogo
+    // sicre_cat_unidad_compactada, resuelto por el backend en
+    // `area_compactada`): el nombre oficial llega a 91 caracteres y desborda
+    // o tapa otros campos del gafete.
+    //
+    // Los DOS van compactados a proposito. Antes solo `adscripcion` lo
+    // estaba, y las plantillas reales usan el campo "Área" -- que es lo
+    // natural al disenarlas --, asi que seguian imprimiendo el nombre largo.
+    // Quien disene una plantilla no tiene por que saber cual de los dos
+    // campos casi identicos trae la version corta.
+    //
+    // El nombre oficial completo queda en `area_completa` para quien lo
+    // necesite. Si faltara el compactado se cae al largo: texto apretado es
+    // preferible a un campo vacio.
     puesto: fila.cargo || '',
     cargo: fila.cargo || '',
-    area: fila.area || '',
-    adscripcion: fila.area || '',
+    area: fila.area_compactada || fila.area || '',
+    adscripcion: fila.area_compactada || fila.area || '',
+    area_completa: fila.area || '',
 
     // Fechas y firma de autoridad.
     //

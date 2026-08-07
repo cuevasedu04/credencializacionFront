@@ -3,7 +3,8 @@ import {
 } from '@angular/core';
 import { ColDef, GridApi, GridReadyEvent, RowClickedEvent } from 'ag-grid-community';
 import { NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
-import { Subscription, firstValueFrom } from 'rxjs';
+import { Subscription, firstValueFrom, forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import * as fabric from 'fabric';
 
 import { TipoToast } from '../../../api/entidades/enumeraciones';
@@ -17,6 +18,9 @@ import {
 } from '../../services/plantilla-credencial.service';
 import { CANVAS_ALTO_PX, CANVAS_ANCHO_PX, CaraCredencial } from '../plantilla-editor/plantilla-editor.const';
 import { COLUMNAS_SIG, sigAEmpleadoCredencial } from './imprimir-credenciales.const';
+
+/** Pestañas del roster en esta pantalla. */
+export type TabRoster = 'activos' | 'bajas' | 'nuevos_hoy';
 
 /**
  * Pantalla "Imprimir credenciales".
@@ -55,8 +59,39 @@ export class ImprimirCredencialesComponent implements OnInit, OnDestroy {
   totalFiltrados = 0;
 
   // ---- Tabs ----
-  /** Pestaña activa: 'todos' muestra el roster completo; 'nuevos_hoy' filtra por fecha de hoy. */
-  tabActiva: 'todos' | 'nuevos_hoy' = 'todos';
+  /**
+   * Pestaña activa.
+   *  - 'activos'    : personal que NO esta dado de baja.
+   *  - 'bajas'      : estado_nom = 'Baja'.
+   *  - 'nuevos_hoy' : altas detectadas hoy (ver actualizarNuevosHoy).
+   */
+  tabActiva: TabRoster = 'activos';
+
+  /**
+   * Un empleado cuenta como baja solo si su estado de nomina es 'Baja'.
+   *
+   * Los demas estados que no son 'Activo' (Fallecido, Suspendido, Permiso,
+   * Permiso Retribuido: 120 personas) se quedan en la pestaña de activos a
+   * proposito. Si "Activos" se definiera como estado_nom == 'Activo', esos
+   * 120 no apareceran en NINGUNA pestaña y quedarian invisibles en el
+   * sistema, que es peor que verlos en una lista que no les corresponde del
+   * todo.
+   */
+  private esBajaFila(fila: EmpleadoSig): boolean {
+    return String(fila.estado_nom || '').trim().toLowerCase() === 'baja';
+  }
+
+  /**
+   * Cacheados, NO getters.
+   *
+   * Un getter con .filter() devuelve un arreglo NUEVO en cada ciclo de
+   * deteccion de cambios. Enlazado a [rowData] de ag-Grid, la grid ve una
+   * referencia distinta cada vez y reemplaza todas las filas sin parar: la
+   * seleccion se pierde en cuanto se hace clic y la credencial nunca llega a
+   * mostrarse. Ademas recorreria las 16 431 filas en cada ciclo.
+   */
+  activosData: EmpleadoSig[] = [];
+  bajasData: EmpleadoSig[] = [];
 
   /**
    * Caché de filas cuyo `fecha_actualizacion` es de hoy.
@@ -92,6 +127,9 @@ export class ImprimirCredencialesComponent implements OnInit, OnDestroy {
    * fecha parseada.
    */
   private actualizarNuevosHoy(): void {
+    this.activosData = this.rowData.filter(f => !this.esBajaFila(f));
+    this.bajasData = this.rowData.filter(f => this.esBajaFila(f));
+
     const hoy = new Date();
     this.nuevosHoyData = this.rowData.filter(f => {
       if (!f.fecha_primera_deteccion) return false;
@@ -145,6 +183,13 @@ export class ImprimirCredencialesComponent implements OnInit, OnDestroy {
 
   /** Evita que una preview lenta pise a otra mas reciente (race condition). */
   private tokenPreview = 0;
+
+  /**
+   * Mismo proposito, un paso antes: si el operador salta de un empleado a otro
+   * mientras la BD responde, las respuestas de la seleccion vieja se descartan
+   * en vez de escribirse encima de la nueva.
+   */
+  private tokenSeleccion = 0;
 
   // ---- Consecutivo de folio ----
   /**
@@ -215,6 +260,42 @@ export class ImprimirCredencialesComponent implements OnInit, OnDestroy {
    * que el cruce queda confirmado.
    */
   mediosRequierenMigracion = false;
+
+  // ---- Historial de impresiones ----
+  /** Resumen de la ultima impresion del empleado seleccionado, si la hubo. */
+  ultimaImpresion: any = null;
+
+  /**
+   * Plantilla efectiva con la que se dibuja: la seleccionada, o una copia con
+   * el lienzo guardado en la ultima impresion si en aquella se hicieron
+   * ajustes en modo edicion.
+   *
+   * Los objetos guardados conservan su `data.binding`, asi que al repoblar se
+   * refrescan folio y fecha SIN perder las posiciones ajustadas.
+   */
+  private get plantillaEfectiva(): PlantillaCredencial | null {
+    if (!this.plantilla) return null;
+    if (!this.usandoAjustesGuardados) return this.plantilla;
+
+    return {
+      ...this.plantilla,
+      canvas_frente: this.ultimaImpresion.canvas_frente || this.plantilla.canvas_frente,
+      canvas_reverso: this.ultimaImpresion.canvas_reverso || this.plantilla.canvas_reverso,
+    };
+  }
+
+  /** True si se esta reproduciendo el lienzo ajustado de la impresion previa. */
+  get usandoAjustesGuardados(): boolean {
+    return !!(this.ultimaImpresion?.tiene_ajustes && !this.plantillaAnulada && !this.ajustesDescartados);
+  }
+
+  /** El operador pidio volver a la plantilla limpia, sin los ajustes previos. */
+  ajustesDescartados = false;
+
+  descartarAjustesGuardados(): void {
+    this.ajustesDescartados = true;
+    this.generarPreview();
+  }
 
   get hayMediosPendientes(): boolean {
     return !!(this.fotoPendiente || this.firmaPendiente);
@@ -314,6 +395,47 @@ export class ImprimirCredencialesComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Deja constancia de la impresion. Una fila por impresion, solo desde esta
+   * pantalla: registrar al seleccionar convertiria la tabla en una copia del
+   * roster en vez de un historial.
+   *
+   * El JSON del lienzo se manda SOLO si se uso el modo edicion. En el caso
+   * normal la plantilla ya vive en sicre_tbl_plantilla_credencial y copiarla
+   * por impresion serian ~16 KB por fila sin aportar nada.
+   */
+  private async registrarImpresion(folio: string): Promise<void> {
+    const empleado = this.empleadoSeleccionado;
+    if (!empleado?.num_empleado) return;
+
+    const datos: any = {
+      num_empleado: empleado.num_empleado,
+      rfc: empleado.rfc || '',
+      folio,
+      fecha_expedicion: empleado.fecha_expedicion,
+      inicio_vig: empleado.inicio_vig || null,
+      fin_vig: empleado.fin_vig || null,
+      plantilla_credencial: this.plantilla?.clave || null,
+    };
+
+    if (this.modoEdicion) {
+      const props = CredencialRenderService.PROPS_EXTRA;
+      if (this.canvasFrenteEditable) datos.canvas_frente = this.canvasFrenteEditable.toObject(props);
+      if (this.canvasReversoEditable) datos.canvas_reverso = this.canvasReversoEditable.toObject(props);
+    }
+
+    try {
+      await firstValueFrom(this.plantillaApi.registrarImpresion(datos));
+    } catch {
+      // El PDF ya se genero: no se bloquea al operador, pero se avisa porque
+      // esa impresion quedaria fuera del historial auditable.
+      this.utils.MuestrasToast(
+        TipoToast.Warning,
+        'La credencial se generó, pero no se pudo registrar en el historial de impresiones.'
+      );
+    }
+  }
+
+  /**
    * Avanza el consecutivo tras imprimir. El incremento real ocurre en el
    * servidor de forma atomica (bloqueo de fila), asi que dos estaciones
    * imprimiendo a la vez nunca reciben el mismo folio.
@@ -377,6 +499,8 @@ export class ImprimirCredencialesComponent implements OnInit, OnDestroy {
   /** Vuelve a descargar el roster desde el servidor (actualiza datos y fecha de sincronización). */
   recargarRoster(): void {
     this.rowData = [];
+    this.activosData = [];
+    this.bajasData = [];
     this.totalFiltrados = 0;
     this.ultimaActualizacion = null;
     this.cargarRoster();
@@ -474,7 +598,7 @@ export class ImprimirCredencialesComponent implements OnInit, OnDestroy {
   }
 
   /** Cambia la pestaña activa y actualiza el dataset de la grid. */
-  seleccionarTab(tab: 'todos' | 'nuevos_hoy'): void {
+  seleccionarTab(tab: TabRoster): void {
     this.tabActiva = tab;
     // Al cambiar de tab aplicamos de nuevo el quickFilter para que funcione en ambos tabs
     if (this.gridApi) {
@@ -485,7 +609,11 @@ export class ImprimirCredencialesComponent implements OnInit, OnDestroy {
 
   /** Filas que alimentan la grid según la pestaña activa. */
   get rowDataActivo(): EmpleadoSig[] {
-    return this.tabActiva === 'nuevos_hoy' ? this.nuevosHoyData : this.rowData;
+    switch (this.tabActiva) {
+      case 'bajas':      return this.bajasData;
+      case 'nuevos_hoy': return this.nuevosHoyData;
+      default:           return this.activosData;
+    }
   }
 
   /** Buscador global: ag-Grid filtra sobre todas las columnas en memoria. */
@@ -534,6 +662,8 @@ export class ImprimirCredencialesComponent implements OnInit, OnDestroy {
     this.firmaPendiente = null;
     this.mediosRequierenMigracion = false;
 
+    this.ultimaImpresion = null;
+    this.ajustesDescartados = false;
     this.filaSeleccionada = fila;
     this.empleadoSeleccionado = sigAEmpleadoCredencial(fila);
     this.aplicarFolioAlEmpleado();
@@ -546,27 +676,78 @@ export class ImprimirCredencialesComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Resolver foto/firma en MEDIA_ROOT antes de renderizar, para que la
-    // credencial salga completa de una sola pasada.
+    const token = ++this.tokenSeleccion;
+    this.resolviendoMedios = true;
+    // El spinner se enciende YA, no hasta que empiece a dibujarse: mientras se
+    // consulta, el panel quedaria en blanco sin ninguna senal de actividad.
+    this.generandoPreview = true;
+
+    // Las dos consultas se resuelven ANTES de dibujar, y se dibuja UNA sola vez.
     //
-    // Se manda tambien el CURP: si esta persona fue capturada en
-    // "Enrolamiento previo" (antes de tener numero asignado), sus archivos
-    // estan nombrados con su RFC, y el backend los encuentra por el prefijo
-    // de 10 caracteres comun a RFC y CURP. En ese caso responde
-    // `requiere_migracion`, y al imprimir se renombran al num_empleado.
-    this.plantillaApi.medios(numEmpleado, this.empleadoSeleccionado.curp).subscribe({
-      next: (res) => {
-        this.empleadoSeleccionado.foto = res?.foto || null;
-        this.empleadoSeleccionado.firma = res?.firma || null;
-        this.mediosRequierenMigracion = !!res?.requiere_migracion;
-        this.generarPreview();
-      },
-      error: () => this.generarPreview(),
+    // Antes se lanzaban por separado y cada una renderizaba al llegar. `medios`
+    // solo lee el sistema de archivos y responde en ~3 ms, asi que pintaba la
+    // credencial con la plantilla limpia; `ultima-impresion` va a la BD remota y
+    // tardaba segundos, y al llegar volvia a pintar con el lienzo guardado. Eso
+    // era el parpadeo: la version buena aparecia varios segundos despues.
+    //
+    // A `medios` se le manda tambien el CURP: si esta persona fue capturada en
+    // "Enrolamiento previo" (antes de tener numero asignado), sus archivos estan
+    // nombrados con su RFC, y el backend los encuentra por el prefijo de 10
+    // caracteres comun a RFC y CURP. En ese caso responde `requiere_migracion`,
+    // y al imprimir se renombran al num_empleado.
+    //
+    // Ninguna de las dos debe tumbar a la otra: sin foto la credencial se
+    // dibuja igual, y sin historial simplemente se usa la plantilla limpia.
+    forkJoin({
+      medios: this.plantillaApi.medios(numEmpleado, this.empleadoSeleccionado.curp)
+        .pipe(catchError(() => of(null))),
+      historial: this.plantillaApi.ultimaImpresion(numEmpleado)
+        .pipe(catchError(() => of(null))),
+    }).subscribe(({ medios, historial }) => {
+      // Ya se selecciono a alguien mas mientras respondian: descartar.
+      if (token !== this.tokenSeleccion) return;
+
+      this.empleadoSeleccionado.foto = medios?.foto || null;
+      this.empleadoSeleccionado.firma = medios?.firma || null;
+      this.mediosRequierenMigracion = !!medios?.requiere_migracion;
+
+      this.aplicarUltimaImpresion(historial);
+
+      this.resolviendoMedios = false;
+      this.generarPreview();
     });
   }
 
+  /**
+   * Si a este empleado ya se le imprimio credencial, se recupera la plantilla
+   * que se uso para reproducirla.
+   *
+   * NO se reutiliza el folio: cada reimpresion consume uno nuevo, y el
+   * anterior queda en el historial. Solo se muestra como referencia.
+   *
+   * No dispara el render: quien llama ya lo hace despues, con foto y firma
+   * resueltas, para que la credencial se pinte una sola vez.
+   */
+  private aplicarUltimaImpresion(res: any): void {
+    if (!res?.encontrado) return;
+    this.ultimaImpresion = res;
+
+    // Cambiar de plantilla solo si el operador no eligio una a mano: su
+    // seleccion explicita manda sobre el historial.
+    const clave = res.plantilla_credencial;
+    if (clave && !this.plantillaAnulada && clave !== this.plantilla?.clave) {
+      const previa = this.plantillasDisponibles.find(p => p.clave === clave);
+      if (previa) this.plantilla = previa;
+    }
+  }
+
   async generarPreview(): Promise<void> {
-    if (!this.plantilla || !this.empleadoSeleccionado) return;
+    if (!this.plantilla || !this.empleadoSeleccionado) {
+      // Quien selecciona enciende el spinner antes de consultar; si al final no
+      // hay nada que dibujar hay que apagarlo, o se queda girando para siempre.
+      this.generandoPreview = false;
+      return;
+    }
 
     const token = ++this.tokenPreview;
     this.generandoPreview = true;
@@ -574,14 +755,15 @@ export class ImprimirCredencialesComponent implements OnInit, OnDestroy {
     try {
       // Multiplicador 1: resolucion de pantalla, suficiente para previsualizar
       // y mucho mas rapido que el x3 que usa el PDF.
+      const base = this.plantillaEfectiva!;
       const frente = await this.render.renderizarCaraComoImagen(
-        this.plantilla, 'frente', this.empleadoSeleccionado, 1
+        base, 'frente', this.empleadoSeleccionado, 1
       );
 
       let reverso: string | null = null;
-      if (this.plantilla.canvas_reverso || this.plantilla.fondo_reverso) {
+      if (base.canvas_reverso || base.fondo_reverso) {
         reverso = await this.render.renderizarCaraComoImagen(
-          this.plantilla, 'reverso', this.empleadoSeleccionado, 1
+          base, 'reverso', this.empleadoSeleccionado, 1
         );
       }
 
@@ -616,8 +798,20 @@ export class ImprimirCredencialesComponent implements OnInit, OnDestroy {
     return hum === 'inactivo' || nom === 'baja';
   }
 
+  /**
+   * True mientras se consulta al servidor si el empleado tiene foto/firma.
+   *
+   * Sin esto, `sinFoto` valia true en el instante entre elegir la fila y que
+   * respondiera `medios/`, asi que el badge "Sin foto" parpadeaba en TODOS
+   * los empleados -- incluidos los que si tienen. Es un falso negativo, no un
+   * problema de velocidad: no se arregla con un retardo, sino no opinando
+   * hasta tener el dato.
+   */
+  resolviendoMedios = false;
+
   get sinFoto(): boolean {
-    return !!this.empleadoSeleccionado && !this.empleadoSeleccionado.foto;
+    if (!this.empleadoSeleccionado || this.resolviendoMedios) return false;
+    return !this.empleadoSeleccionado.foto;
   }
 
   /** Rectangulo (en % del contenedor) del marcador de foto -- ver rectDelCampo(). */
@@ -720,7 +914,7 @@ export class ImprimirCredencialesComponent implements OnInit, OnDestroy {
     }
 
     const canvas = await this.render.construirCanvasEditable(
-      this.plantilla, cara, this.empleadoSeleccionado, elemento
+      this.plantillaEfectiva!, cara, this.empleadoSeleccionado, elemento
     );
 
     this.ajustarEscalaCanvas(canvas, elemento);
@@ -834,6 +1028,8 @@ export class ImprimirCredencialesComponent implements OnInit, OnDestroy {
     });
 
     const nombreArchivo = `Credencial_${this.empleadoSeleccionado.num_empleado || 'sin_numero'}.pdf`;
+    // Se captura antes de imprimir: consumirFolio() lo avanza despues.
+    const folioImpreso = this.folioSiguiente;
 
     try {
       // El reemplazo real en MEDIA_ROOT de una foto/firma recien capturada
@@ -866,8 +1062,12 @@ export class ImprimirCredencialesComponent implements OnInit, OnDestroy {
           { nombreArchivo }
         );
       } else {
-        await this.render.generarPdf(this.plantilla, this.empleadoSeleccionado, { nombreArchivo });
+        await this.render.generarPdf(this.plantillaEfectiva!, this.empleadoSeleccionado, { nombreArchivo });
       }
+
+      // Constancia de la impresion ANTES de avanzar el folio, para que quede
+      // registrado el folio que efectivamente llevo esta credencial.
+      await this.registrarImpresion(folioImpreso);
 
       // El folio se consume DESPUES de que el PDF salio bien: si se avanzara
       // antes y la generacion fallara, ese folio quedaria quemado sin haberse
@@ -1012,7 +1212,9 @@ export class ImprimirCredencialesComponent implements OnInit, OnDestroy {
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     canvas.getContext('2d')?.drawImage(video, 0, 0);
-    this.fotoCapturada = canvas.toDataURL('image/jpeg');
+    // PNG y no JPEG: el backend guarda todo en PNG, y capturar en JPEG para
+    // luego convertir dejaria los artefactos de compresion grabados.
+    this.fotoCapturada = canvas.toDataURL('image/png');
     this.detenerCamara();
   }
 

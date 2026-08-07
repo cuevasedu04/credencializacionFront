@@ -23,6 +23,19 @@ export interface PlantillaCredencial {
   fecha_modificacion?: string;
 }
 
+/** Fila del catalogo de unidades administrativas. */
+export interface UnidadAdministrativa {
+  id_unidad?: number;
+  nombre: string;
+  /** Lo calcula el backend a partir de `nombre`; es la clave de cruce. */
+  nombre_normalizado?: string;
+  /** Texto EXACTO que se imprime en la credencial. */
+  nombre_compactado: string;
+  activo: boolean;
+  total_empleados?: number;
+  fecha_modificacion?: string;
+}
+
 export interface FondoDisponible {
   nombre: string;
   ruta: string;
@@ -39,6 +52,12 @@ export interface EmpleadoSig {
   primer_apellido: string | null;
   segundo_apellido: string | null;
   area: string | null;
+  /**
+   * Nombre corto del area, resuelto en el backend contra
+   * sicre_tbl_unidad_administrativa. El nombre largo llega a 91 caracteres y
+   * desborda la credencial; este es el que se imprime.
+   */
+  area_compactada?: string | null;
   cargo: string | null;
   fecha_expedicion: string | null;
   firma_drh: string | null;
@@ -64,6 +83,7 @@ export class PlantillaCredencialService {
 
   private readonly apiPlantillas = '/api-sicre/plantillas-credencial/';
   private readonly apiEnrolamiento = '/api-sicre/enrolamiento-credencial/';
+  private readonly apiUnidades = '/api-sicre/unidades-administrativas/';
 
   constructor(private http: HttpClient) { }
 
@@ -116,6 +136,33 @@ export class PlantillaCredencialService {
   empleadosSigTodos(): Observable<{ status: string; total: number; registros: EmpleadoSig[] }> {
     return this.http.get<{ status: string; total: number; registros: EmpleadoSig[] }>(
       '/api-sicre/empleados-sig/todos/'
+    );
+  }
+
+  // ---- Catalogo de unidades administrativas ----------------------------
+
+  unidadesListar(): Observable<{ status: string; total: number; registros: UnidadAdministrativa[] }> {
+    return this.http.get<{ status: string; total: number; registros: UnidadAdministrativa[] }>(
+      this.apiUnidades
+    );
+  }
+
+  unidadCrear(datos: UnidadAdministrativa): Observable<UnidadAdministrativa> {
+    return this.http.post<UnidadAdministrativa>(this.apiUnidades, datos);
+  }
+
+  unidadActualizar(id: number, datos: Partial<UnidadAdministrativa>): Observable<UnidadAdministrativa> {
+    return this.http.patch<UnidadAdministrativa>(`${this.apiUnidades}${id}/`, datos);
+  }
+
+  unidadEliminar(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUnidades}${id}/`);
+  }
+
+  /** Areas del roster que aun no existen en el catalogo. */
+  unidadesSinCatalogo(): Observable<{ status: string; total: number; registros: any[] }> {
+    return this.http.get<{ status: string; total: number; registros: any[] }>(
+      `${this.apiUnidades}areas-sin-catalogo/`
     );
   }
 
@@ -220,6 +267,36 @@ export class PlantillaCredencialService {
     );
   }
 
+  /**
+   * Fotos/firmas ya nombradas por num_empleado, cruzadas con el roster.
+   * Paginado y con busqueda EN SERVIDOR: son ~13 300 archivos y mandarlos
+   * todos obligaria al navegador a montar 13 300 <img> de golpe.
+   */
+  mediosEmpleado(busqueda = '', pagina = 1, tamPagina = 60, fecha = ''): Observable<any> {
+    const q = new URLSearchParams();
+    if (busqueda) q.set('busqueda', busqueda);
+    if (fecha) q.set('fecha', fecha);
+    q.set('pagina', String(pagina));
+    q.set('tam_pagina', String(tamPagina));
+    return this.http.get(`${this.apiEnrolamiento}medios-empleado/?${q.toString()}`);
+  }
+
+  /**
+   * Cambia el nombre con el que estan guardadas una foto y una firma.
+   * Corrige un RFC mal tecleado sin volver a capturar. Falla si el destino
+   * ya tiene archivos, para no pisar los de otra persona.
+   */
+  renombrarMedios(actual: string, nuevo: string): Observable<any> {
+    return this.http.post(`${this.apiEnrolamiento}renombrar-medios/`, {
+      identificador_actual: actual, identificador_nuevo: nuevo,
+    });
+  }
+
+  /** Elimina foto y firma guardadas por num_empleado. */
+  borrarMediosEmpleado(numEmpleado: string): Observable<any> {
+    return this.http.post(`${this.apiEnrolamiento}borrar-medios-previo/`, { rfc: numEmpleado });
+  }
+
   /** Elimina foto y firma guardadas por RFC (p.ej. un RFC mal capturado). */
   borrarMediosPrevio(rfc: string): Observable<any> {
     return this.http.post(`${this.apiEnrolamiento}borrar-medios-previo/`, { rfc });
@@ -233,6 +310,24 @@ export class PlantillaCredencialService {
   mediosLote(rfcs: string[]): Observable<{ status: string; registros: any[] }> {
     return this.http.post<{ status: string; registros: any[] }>(
       `${this.apiEnrolamiento}medios-lote/`, { rfcs }
+    );
+  }
+
+  // ---- Historial de impresiones ----------------------------------------
+
+  /** Deja constancia de una credencial impresa. Una fila por impresion. */
+  registrarImpresion(datos: {
+    num_empleado: string; rfc?: string; folio?: string;
+    fecha_expedicion?: string; inicio_vig?: string; fin_vig?: string;
+    plantilla_credencial?: string; canvas_frente?: any; canvas_reverso?: any;
+  }): Observable<any> {
+    return this.http.post(`${this.apiEnrolamiento}registrar-impresion/`, datos);
+  }
+
+  /** Ultima credencial impresa de un empleado, para reproducir su plantilla. */
+  ultimaImpresion(numEmpleado: string): Observable<any> {
+    return this.http.get(
+      `${this.apiEnrolamiento}ultima-impresion/?num_empleado=${encodeURIComponent(numEmpleado)}`
     );
   }
 

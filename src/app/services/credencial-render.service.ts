@@ -361,6 +361,17 @@ export class CredencialRenderService {
       const data: any = (objeto as any).data;
       if (!data?.binding) continue;
 
+      // Una imagen/QR ya resuelto NO se vuelve a resolver.
+      //
+      // Pasa al reimprimir desde un lienzo guardado en el historial: ahi los
+      // marcadores ya fueron sustituidos por la imagen real. Volver a
+      // encajarlos tomaria como caja la imagen ya escalada y la recortaria o
+      // desplazaria en cada pasada. Los textos SI se refrescan, que es lo que
+      // debe cambiar (folio y fecha nuevos).
+      if (objeto instanceof fabric.FabricImage && data.tipo !== 'texto' && data.tipo !== 'fecha') {
+        continue;
+      }
+
       switch (data.tipo) {
         case 'texto':
         case 'fecha':

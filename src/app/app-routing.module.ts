@@ -24,6 +24,7 @@ import { PlantillaListaComponent } from './content/plantilla-editor/plantilla-li
 import { ImprimirCredencialesComponent } from './content/imprimir-credenciales/imprimir-credenciales.component';
 import { EnrolamientoPrevioComponent } from './content/enrolamiento-previo/enrolamiento-previo.component';
 import { InventarioMediosComponent } from './content/inventario-medios/inventario-medios.component';
+import { CatalogoUnidadesComponent } from './content/catalogo-unidades/catalogo-unidades.component';
 
 const routes: Routes = [
   {
@@ -112,6 +113,12 @@ const routes: Routes = [
       {
         path: 'inventario-medios',
         component: InventarioMediosComponent,
+        canActivate: [AuthGuard],
+        data: { rolesPermitidos: [1, 2, 3, 4, 9999] },
+      },
+      {
+        path: 'catalogo-areas',
+        component: CatalogoUnidadesComponent,
         canActivate: [AuthGuard],
         data: { rolesPermitidos: [1, 2, 3, 4, 9999] },
       },

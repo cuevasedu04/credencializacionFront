@@ -1,5 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 
+import { CapturaMediosComponent } from '../../components/shared/captura-medios/captura-medios.component';
+
 import { TipoToast } from '../../../api/entidades/enumeraciones';
 import { UtilsService } from '../../services/utils.service';
 import { ModalManagerService } from '../../components/shared/modal-manager.service';
@@ -17,11 +19,30 @@ export interface MedioPendiente {
   rfc: string;
   foto: string | null;
   firma: string | null;
+  /** Epoch en segundos de la captura mas reciente (foto o firma). */
   fecha?: number | null;
   cruce: CruceRoster | null;
 }
 
-type FiltroInventario = 'todos' | 'cruzables' | 'sin_cruce' | 'incompletos';
+type FiltroInventario = 'todos' | 'cruzables' | 'sin_cruce' | 'incompletos' | 'recientes';
+
+/** Ventana de la pestaña "Recientes", en horas. */
+const HORAS_RECIENTE = 24;
+
+/** Seccion activa del inventario. */
+export type SeccionInventario = 'pendientes' | 'empleados';
+
+/** Foto/firma ya nombrada por num_empleado. */
+export interface MedioEmpleado {
+  num_empleado: string;
+  nombre: string;
+  curp: string;
+  area: string;
+  /** False = el archivo existe pero esa persona ya no esta en el roster. */
+  en_roster: boolean;
+  foto: string | null;
+  firma: string | null;
+}
 
 /**
  * Pantalla "Inventario de medios".
@@ -50,6 +71,35 @@ type FiltroInventario = 'todos' | 'cruzables' | 'sin_cruce' | 'incompletos';
 export class InventarioMediosComponent implements OnInit {
 
   @ViewChild('confirmDialog') confirmDialog!: TemplateRef<any>;
+  @ViewChild('captura') captura!: CapturaMediosComponent;
+  @ViewChild('modalRenombrar') modalRenombrar!: TemplateRef<any>;
+
+  // ---- Renombrado (corregir un RFC mal capturado) ----
+  renombrando: MedioPendiente | null = null;
+  nombreNuevo = '';
+
+  // ---- Seccion "Fotos y firmas" (archivos por num_empleado) ----
+  seccion: SeccionInventario = 'pendientes';
+  medios: MedioEmpleado[] = [];
+  cargandoMedios = false;
+  busquedaMedios = '';
+  /** Filtro por dia de captura (YYYY-MM-DD) en la seccion de fotos y firmas. */
+  fechaMedios = '';
+  paginaMedios = 1;
+  totalMedios = 0;
+  totalPaginasMedios = 1;
+  readonly tamPagina = 60;
+  /**
+   * Que se esta reemplazando ahora mismo.
+   *
+   * Las dos secciones comparten el mismo <app-captura-medios>, y sus eventos
+   * no dicen de donde salio la captura. Aqui se recuerda el registro y su
+   * seccion para saber con que identificador guardarlo: los pendientes van
+   * por RFC y los de la otra seccion por num_empleado. Confundirlos crearia
+   * un archivo con el nombre equivocado.
+   */
+  private enCaptura: { registro: any; seccion: SeccionInventario } | null = null;
+  private temporizadorBusqueda: any = null;
 
   registros: MedioPendiente[] = [];
   cargando = false;
@@ -67,6 +117,152 @@ export class InventarioMediosComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargar();
+  }
+
+  // ====================================================================
+  // Seccion "Fotos y firmas"
+  // ====================================================================
+
+  seleccionarSeccion(seccion: SeccionInventario): void {
+    this.seccion = seccion;
+    if (seccion === 'empleados' && !this.medios.length) this.cargarMedios();
+  }
+
+  /**
+   * Rebota la busqueda 350 ms: cada pulsacion dispara una consulta que
+   * recorre 13 300 archivos y cruza contra el roster, asi que teclear
+   * "GONZALEZ" lanzaria ocho peticiones pesadas.
+   */
+  onBusquedaMedios(): void {
+    clearTimeout(this.temporizadorBusqueda);
+    this.temporizadorBusqueda = setTimeout(() => {
+      this.paginaMedios = 1;
+      this.cargarMedios();
+    }, 350);
+  }
+
+  cargarMedios(): void {
+    this.cargandoMedios = true;
+    this.plantillaApi
+      .mediosEmpleado(this.busquedaMedios.trim(), this.paginaMedios, this.tamPagina, this.fechaMedios)
+      .subscribe({
+      next: (res) => {
+        this.medios = res?.registros || [];
+        this.totalMedios = res?.total || 0;
+        this.totalPaginasMedios = res?.total_paginas || 1;
+        this.cargandoMedios = false;
+        this.cdRef.detectChanges();
+      },
+      error: (err) => {
+        this.cargandoMedios = false;
+        this.utils.MuestraErrorInterno(err);
+      },
+    });
+  }
+
+  /** Cambiar el dia reinicia a la primera pagina: el total cambia. */
+  onFechaMedios(): void {
+    this.paginaMedios = 1;
+    this.cargarMedios();
+  }
+
+  limpiarFiltrosMedios(): void {
+    this.busquedaMedios = '';
+    this.fechaMedios = '';
+    this.paginaMedios = 1;
+    this.cargarMedios();
+  }
+
+  irAPagina(pagina: number): void {
+    if (pagina < 1 || pagina > this.totalPaginasMedios || pagina === this.paginaMedios) return;
+    this.paginaMedios = pagina;
+    this.cargarMedios();
+  }
+
+  // ---- Reemplazo de foto / firma ----
+
+  reemplazarFoto(registro: MedioEmpleado): void {
+    this.enCaptura = { registro, seccion: 'empleados' };
+    this.captura.abrirFoto(`Fotografía — ${registro.num_empleado}`);
+  }
+
+  reemplazarFirma(registro: MedioEmpleado): void {
+    this.enCaptura = { registro, seccion: 'empleados' };
+    this.captura.abrirFirma(`Firma — ${registro.num_empleado}`);
+  }
+
+  /** Reemplazo sobre un pendiente de cruce: se guarda por RFC. */
+  reemplazarFotoPrevio(registro: MedioPendiente): void {
+    this.enCaptura = { registro, seccion: 'pendientes' };
+    this.captura.abrirFoto(`Fotografía — ${registro.rfc}`);
+  }
+
+  reemplazarFirmaPrevio(registro: MedioPendiente): void {
+    this.enCaptura = { registro, seccion: 'pendientes' };
+    this.captura.abrirFirma(`Firma — ${registro.rfc}`);
+  }
+
+  onFotoCapturada(dataUrl: string): void {
+    this.guardarMedio({ foto: dataUrl });
+  }
+
+  onFirmaCapturada(dataUrl: string): void {
+    this.guardarMedio({ firma: dataUrl });
+  }
+
+  private guardarMedio(datos: { foto?: string; firma?: string }): void {
+    if (!this.enCaptura) return;
+    const { registro, seccion } = this.enCaptura;
+
+    // Un pendiente de cruce se guarda con su RFC; el resto, con el numero de
+    // empleado. Es el mismo endpoint, cambia solo el identificador.
+    const peticion = seccion === 'pendientes'
+      ? this.plantillaApi.guardarMediosPorRfc(registro.rfc, datos.foto, datos.firma)
+      : this.plantillaApi.guardarMediosPorEmpleado(registro.num_empleado, datos.foto, datos.firma);
+
+    peticion.subscribe({
+      next: (res) => {
+        // El backend guarda en la MISMA ruta determinista, asi que la URL no
+        // cambia y el navegador serviria la imagen vieja desde cache. El
+        // sufijo la obliga a recargar.
+        const sufijo = `?t=${Date.now()}`;
+        if (datos.foto && res?.foto) registro.foto = `${res.foto}${sufijo}`;
+        if (datos.firma && res?.firma) registro.firma = `${res.firma}${sufijo}`;
+        this.utils.MuestrasToast(TipoToast.Success, 'Archivo reemplazado');
+        this.enCaptura = null;
+        // Un pendiente al que se le acaba de agregar lo que le faltaba deja de
+        // estar incompleto: los contadores por filtro deben reflejarlo.
+        this.registros = [...this.registros];
+        this.cdRef.detectChanges();
+      },
+      error: (err) => {
+        this.enCaptura = null;
+        this.utils.MuestraErrorInterno(err);
+      },
+    });
+  }
+
+  confirmarBorrarMedios(registro: MedioEmpleado): void {
+    this.confirmMessage =
+      `¿Eliminar la foto y la firma de ${registro.num_empleado}`
+      + `${registro.nombre ? ' (' + registro.nombre + ')' : ''}? `
+      + 'Se borran del servidor y su credencial saldría sin foto.';
+
+    this.modalManager.openModal({
+      title: 'Eliminar archivos',
+      template: this.confirmDialog,
+      onAccept: () => {
+        this.plantillaApi.borrarMediosEmpleado(registro.num_empleado).subscribe({
+          next: () => {
+            this.medios = this.medios.filter(m => m.num_empleado !== registro.num_empleado);
+            this.totalMedios = Math.max(0, this.totalMedios - 1);
+            this.utils.MuestrasToast(TipoToast.Success, 'Archivos eliminados');
+            this.cdRef.detectChanges();
+          },
+          error: (err) => this.utils.MuestraErrorInterno(err),
+        });
+      },
+    });
   }
 
   // ====================================================================
@@ -99,6 +295,35 @@ export class InventarioMediosComponent implements OnInit {
     return this.registros.filter(r => !r.foto || !r.firma).length;
   }
 
+  /**
+   * Capturas de las ultimas 24 h. Es el filtro con el que se llega a la
+   * captura recien hecha con el RFC mal escrito, que es justo el caso en el
+   * que hay que venir a esta pantalla a corregir el nombre.
+   */
+  get totalRecientes(): number {
+    return this.registros.filter(r => this.esReciente(r)).length;
+  }
+
+  /**
+   * Filtro por dia de captura en la seccion de pendientes. Aqui se resuelve
+   * en el navegador porque el listado completo ya esta cargado; en la otra
+   * seccion va en el servidor, que es la que pagina.
+   */
+  fechaPendientes = '';
+
+  /** Compara contra la fecha LOCAL del archivo, no contra UTC. */
+  private mismoDia(epochSegundos: number | null | undefined, iso: string): boolean {
+    if (!epochSegundos || !iso) return false;
+    const f = new Date(epochSegundos * 1000);
+    const [a, m, d] = iso.split('-').map(Number);
+    return f.getFullYear() === a && f.getMonth() + 1 === m && f.getDate() === d;
+  }
+
+  esReciente(registro: MedioPendiente): boolean {
+    if (!registro.fecha) return false;
+    return (Date.now() / 1000 - registro.fecha) < HORAS_RECIENTE * 3600;
+  }
+
   get registrosFiltrados(): MedioPendiente[] {
     const termino = this.busqueda.trim().toUpperCase();
 
@@ -107,7 +332,10 @@ export class InventarioMediosComponent implements OnInit {
         case 'cruzables':   if (!r.cruce) return false; break;
         case 'sin_cruce':   if (r.cruce) return false; break;
         case 'incompletos': if (r.foto && r.firma) return false; break;
+        case 'recientes':   if (!this.esReciente(r)) return false; break;
       }
+
+      if (this.fechaPendientes && !this.mismoDia(r.fecha, this.fechaPendientes)) return false;
 
       if (!termino) return true;
       return r.rfc.toUpperCase().includes(termino)
@@ -187,6 +415,49 @@ export class InventarioMediosComponent implements OnInit {
       error: (err) => {
         this.migrando = false;
         this.utils.MuestraErrorInterno(err);
+      },
+    });
+  }
+
+  // ====================================================================
+  // Renombrar (corregir un identificador mal capturado)
+  // ====================================================================
+
+  abrirRenombrar(registro: MedioPendiente): void {
+    this.renombrando = registro;
+    this.nombreNuevo = registro.rfc;
+    this.modalManager.openModal({
+      title: `Corregir nombre — ${registro.rfc}`,
+      template: this.modalRenombrar,
+      width: '540px',
+      showFooter: true,
+      onAccept: () => this.confirmarRenombrar(),
+    });
+  }
+
+  private confirmarRenombrar(): void {
+    const registro = this.renombrando;
+    const nuevo = (this.nombreNuevo || '').trim().toUpperCase();
+    if (!registro || !nuevo || nuevo === registro.rfc.toUpperCase()) {
+      this.renombrando = null;
+      return;
+    }
+
+    this.plantillaApi.renombrarMedios(registro.rfc, nuevo).subscribe({
+      next: () => {
+        this.renombrando = null;
+        this.utils.MuestrasToast(TipoToast.Success, `Renombrado a ${nuevo}`);
+        // Se recarga en vez de editar en memoria: al cambiar el nombre cambia
+        // tambien con quien cruza, y ese calculo lo hace el servidor.
+        this.cargar();
+      },
+      error: (err) => {
+        this.renombrando = null;
+        // El backend rechaza si el destino ya existe; ese mensaje es lo util
+        // que hay que mostrar, no un error generico.
+        const mensaje = err?.error?.mensaje;
+        if (mensaje) this.utils.MuestrasToast(TipoToast.Error, mensaje);
+        else this.utils.MuestraErrorInterno(err);
       },
     });
   }

@@ -53,13 +53,16 @@ export const CAMPOS_DISPONIBLES: CampoPlantilla[] = [
   { binding: 'materno',       label: 'Apellido materno',  tipo: 'texto',  campo: 'materno',           placeholder: 'MATERNO',             icono: 'fa-font' },
   { binding: 'num_empleado',  label: 'No. de empleado',   tipo: 'texto',  campo: 'num_empleado',      placeholder: '00000000',            icono: 'fa-hashtag' },
   { binding: 'puesto',        label: 'Puesto',            tipo: 'texto',  campo: 'puesto',            placeholder: 'PUESTO',              icono: 'fa-briefcase' },
-  { binding: 'adscripcion',   label: 'Adscripcion',       tipo: 'texto',  campo: 'adscripcion',       placeholder: 'ADSCRIPCION',         icono: 'fa-building' },
-  { binding: 'area',          label: 'Area',              tipo: 'texto',  campo: 'area',              placeholder: 'AREA',                icono: 'fa-sitemap' },
+  // 'adscripcion' se quito del catalogo: entregaba exactamente lo mismo que
+  // 'area' y tener dos campos identicos en la paleta solo invitaba a elegir
+  // el equivocado. Las plantillas viejas que ya lo tengan enlazado siguen
+  // funcionando: poblarDatos() resuelve por data.campo, no por esta lista.
+  { binding: 'area',          label: 'Area (corta)',      tipo: 'texto',  campo: 'area',              placeholder: 'DGTI',                icono: 'fa-sitemap' },
+  { binding: 'area_completa', label: 'Area (nombre largo)', tipo: 'texto', campo: 'area_completa',    placeholder: 'DIRECCION GENERAL DE...', icono: 'fa-sitemap' },
   { binding: 'curp',          label: 'CURP',              tipo: 'texto',  campo: 'curp',              placeholder: 'CURP000000HDFXXX00',  icono: 'fa-id-badge' },
   { binding: 'rfc',           label: 'RFC',               tipo: 'texto',  campo: 'rfc',               placeholder: 'RFC0000000A0',        icono: 'fa-id-badge' },
   { binding: 'folio',         label: 'Folio',             tipo: 'texto',  campo: 'folio',             placeholder: 'FOLIO-0001',          icono: 'fa-list-ol' },
   { binding: 'fecha_expedicion', label: 'Fecha expedicion', tipo: 'fecha', campo: 'fecha_expedicion', placeholder: '01/01/2026',          icono: 'fa-calendar-day' },
-  { binding: 'inicio_vig',    label: 'Inicio vigencia',   tipo: 'fecha',  campo: 'inicio_vig',        placeholder: '01/01/2026',          icono: 'fa-calendar-check' },
   { binding: 'fin_vig',       label: 'Fin vigencia',      tipo: 'fecha',  campo: 'fin_vig',           placeholder: '01/01/2030',          icono: 'fa-calendar-times' },
   { binding: 'foto',          label: 'Fotografia',        tipo: 'imagen', campo: 'foto',              icono: 'fa-camera', ancho: 230, alto: 300 },
   { binding: 'firma',         label: 'Firma',             tipo: 'imagen', campo: 'firma',             icono: 'fa-signature', ancho: 220, alto: 90 },

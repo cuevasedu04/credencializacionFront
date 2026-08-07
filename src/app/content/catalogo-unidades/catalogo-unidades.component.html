@@ -1,0 +1,103 @@
+<ng-template #confirmDialog>
+  <div class="modal-body text-center p-4">
+    <i class="fas fa-exclamation-triangle text-warning mb-3" style="font-size: 3rem;"></i>
+    <h5 class="mb-0">{{ confirmMessage }}</h5>
+  </div>
+</ng-template>
+
+<ng-template #modalUnidad>
+  <div class="p-2">
+    <div class="mb-3">
+      <label class="form-label fw-bold small">Nombre oficial del área *</label>
+      <textarea class="form-control" rows="2"
+                placeholder="Ej. Aduana de Acapulco con sede en Guerrero"
+                [(ngModel)]="enFormulario.nombre"></textarea>
+      <small class="text-muted">
+        Debe coincidir con el área que trae el roster. No distingue mayúsculas ni acentos.
+      </small>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label fw-bold small">Nombre corto (lo que se imprime) *</label>
+      <input type="text" class="form-control cu-corto" maxlength="100"
+             placeholder="Ej. ANAM, DGTI, Acapulco"
+             [(ngModel)]="enFormulario.nombre_compactado">
+      <small class="text-muted">
+        Este texto es el que aparece en la credencial, tal cual lo escribas.
+      </small>
+    </div>
+
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" id="cuActivo" [(ngModel)]="enFormulario.activo">
+      <label class="form-check-label small" for="cuActivo">
+        Activo — si se desmarca, esa área imprime su nombre completo
+      </label>
+    </div>
+  </div>
+</ng-template>
+
+<header class="mb-3 mt-2">
+  <div class="d-flex align-items-center gap-3 px-3">
+    <div class="cu-icono"><i class="fas fa-sitemap text-white"></i></div>
+    <div>
+      <h1 class="fw-bold text-dark mb-0 h3">Catálogo de áreas</h1>
+      <p class="text-muted mb-0">
+        Nombre corto que se imprime en la credencial para cada unidad administrativa
+      </p>
+    </div>
+  </div>
+</header>
+
+<div class="cu-contenedor mx-3">
+
+  <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+    <div class="input-group input-group-sm cu-buscador">
+      <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+      <input type="text" class="form-control" placeholder="Buscar por área o nombre corto..."
+             [(ngModel)]="busqueda" (ngModelChange)="onBusqueda()">
+      <button class="btn btn-outline-secondary" (click)="limpiarBusqueda()">
+        <i class="fas fa-eraser"></i>
+      </button>
+    </div>
+
+    <span class="badge bg-light text-dark border">{{ registros.length }} áreas</span>
+
+    <button class="btn btn-sm btn-outline-secondary ms-auto" (click)="cargar()" [disabled]="cargando">
+      <i class="fas fa-arrows-rotate"></i> Actualizar
+    </button>
+    <button class="btn btn-sm cu-btn-nuevo" (click)="nuevo()">
+      <i class="fas fa-plus"></i> Nueva área
+    </button>
+  </div>
+
+  <!-- Áreas del roster que nadie ha catalogado: imprimirían el nombre largo -->
+  <div class="alert alert-warning py-2 px-3 small" *ngIf="sinCatalogo.length">
+    <i class="fas fa-triangle-exclamation"></i>
+    <strong>{{ sinCatalogo.length }} área(s) del roster sin catalogar</strong>
+    ({{ totalEmpleadosSinCatalogo }} empleados). Su credencial saldría con el nombre completo.
+    <div class="mt-2 d-flex flex-wrap gap-2">
+      <button class="btn btn-sm btn-outline-dark" *ngFor="let a of sinCatalogo"
+              (click)="nuevo(a.area)" [title]="a.area">
+        <i class="fas fa-plus"></i> {{ a.area.length > 46 ? (a.area | slice:0:46) + '…' : a.area }}
+        <span class="badge bg-secondary ms-1">{{ a.empleados }}</span>
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="cargando" class="cu-cargando">
+    <i class="fas fa-spinner fa-spin fa-2x mb-2 d-block"></i> Cargando catálogo...
+  </div>
+
+  <ag-grid-angular
+      *ngIf="!cargando"
+      class="ag-theme-alpine cu-grid"
+      [rowData]="registros"
+      [columnDefs]="columnDefs"
+      [defaultColDef]="defaultColDef"
+      [animateRows]="false"
+      [enableBrowserTooltips]="true"
+      [suppressCellFocus]="true"
+      (gridReady)="onGridReady($event)"
+      (cellClicked)="onCellClicked($event)">
+  </ag-grid-angular>
+</div>

@@ -144,11 +144,21 @@
         <ul class="nav nav-tabs border-bottom-0 ic-tabs-nav">
           <li class="nav-item">
             <button class="nav-link"
-                    [class.active]="tabActiva === 'todos'"
-                    (click)="seleccionarTab('todos')">
+                    [class.active]="tabActiva === 'activos'"
+                    (click)="seleccionarTab('activos')">
               <i class="fas fa-users me-1"></i>
-              Todos
-              <span class="badge bg-secondary ms-1">{{ rowData.length }}</span>
+              Activos
+              <span class="badge bg-secondary ms-1">{{ activosData.length }}</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link"
+                    [class.active]="tabActiva === 'bajas'"
+                    (click)="seleccionarTab('bajas')"
+                    title="Personal con estado de nómina 'Baja'">
+              <i class="fas fa-user-slash me-1"></i>
+              Bajas
+              <span class="badge bg-danger ms-1">{{ bajasData.length }}</span>
             </button>
           </li>
           <li class="nav-item">
@@ -211,11 +221,26 @@
             <span class="badge bg-warning text-dark" *ngIf="sinFoto">
               <i class="fas fa-camera"></i> Sin foto
             </span>
-            <span class="badge bg-info text-dark" *ngIf="mediosRequierenMigracion"
-                  title="Su foto/firma se capturaron en Enrolamiento previo (guardadas con su RFC). Al imprimir se renombrarán con su número de empleado.">
-              <i class="fas fa-user-clock"></i> Enrolamiento previo
-            </span>
           </div>
+        </div>
+
+        <!-- Historial: esta persona ya tuvo credencial impresa -->
+        <div class="ic-historial" *ngIf="ultimaImpresion">
+          <i class="fas fa-clock-rotate-left"></i>
+          <span>
+            Impresa {{ ultimaImpresion.total_impresiones }}
+            {{ ultimaImpresion.total_impresiones === 1 ? 'vez' : 'veces' }}.
+            Última: folio <strong>{{ ultimaImpresion.folio_anterior || '—' }}</strong>
+            el {{ ultimaImpresion.fecha_registro | date:'dd/MM/yyyy' }}
+            <span *ngIf="ultimaImpresion.plantilla_credencial">
+              con <strong>{{ ultimaImpresion.plantilla_credencial }}</strong>
+            </span>.
+            Al reimprimir se consumirá un folio nuevo.
+            <span *ngIf="usandoAjustesGuardados">
+              Se están reproduciendo los <strong>ajustes</strong> de aquella impresión.
+              <a href="javascript:void(0)" (click)="descartarAjustesGuardados()">Usar la plantilla limpia</a>.
+            </span>
+          </span>
         </div>
 
         <!-- Toggle frente/reverso + editar -->

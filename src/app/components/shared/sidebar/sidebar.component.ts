@@ -128,6 +128,13 @@ export class SidebarComponent implements OnInit, OnDestroy {
       link: '/inventario-medios',
       rol: [1,2,3,4,9999],
     },
+    {
+      id: 'catalogo-areas',
+      label: 'Catálogo de áreas',
+      icon: 'fas fa-sitemap',
+      link: '/catalogo-areas',
+      rol: [1,2,3,4,9999],
+    },
 
 
   ];

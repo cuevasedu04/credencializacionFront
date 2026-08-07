@@ -510,7 +510,9 @@ export class EnrolamientoPrevioComponent implements OnInit, OnDestroy {
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     canvas.getContext('2d')?.drawImage(video, 0, 0, canvas.width, canvas.height);
-    this.fotoCapturada = canvas.toDataURL('image/jpeg');
+    // PNG y no JPEG: el backend guarda todo en PNG, y capturar en JPEG para
+    // luego convertir dejaria los artefactos de compresion grabados.
+    this.fotoCapturada = canvas.toDataURL('image/png');
   }
 
   repetirFoto(): void {

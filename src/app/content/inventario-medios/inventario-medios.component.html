@@ -13,13 +13,146 @@
     <div>
       <h1 class="fw-bold text-dark mb-0 h3">Inventario de medios</h1>
       <p class="text-muted mb-0">
-        Fotos y firmas guardadas con RFC, aún sin ligar a un número de empleado
+        Control de las carpetas de medios: buscar, reemplazar y eliminar fotos y firmas
       </p>
     </div>
   </div>
 </header>
 
-<div class="im-contenedor mx-3">
+<ng-template #modalRenombrar>
+  <div class="p-2">
+    <p class="small text-muted">
+      Cambia el nombre con el que están guardados los archivos. Úsalo cuando el RFC
+      se capturó mal y por eso la credencial no cruza con su foto.
+    </p>
+    <label class="form-label fw-bold small">Nombre correcto (RFC)</label>
+    <input type="text" class="form-control form-control-lg text-uppercase fw-bold"
+           maxlength="20" [(ngModel)]="nombreNuevo"
+           (ngModelChange)="nombreNuevo = nombreNuevo.toUpperCase()">
+    <small class="text-muted">
+      Si ya existe otro registro con ese nombre, no se renombra: primero hay que
+      revisar ese otro registro.
+    </small>
+  </div>
+</ng-template>
+
+<!-- Captura reutilizable de foto/firma -->
+<app-captura-medios #captura
+    (fotoLista)="onFotoCapturada($event)"
+    (firmaLista)="onFirmaCapturada($event)">
+</app-captura-medios>
+
+<div class="mx-3 mb-2">
+  <ul class="nav nav-tabs im-secciones">
+    <li class="nav-item">
+      <button class="nav-link" [class.active]="seccion === 'pendientes'"
+              (click)="seleccionarSeccion('pendientes')">
+        <i class="fas fa-hourglass-half me-1"></i> Pendientes de cruce
+        <span class="badge bg-secondary ms-1">{{ registros.length }}</span>
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" [class.active]="seccion === 'empleados'"
+              (click)="seleccionarSeccion('empleados')">
+        <i class="fas fa-images me-1"></i> Fotos y firmas
+        <span class="badge bg-secondary ms-1" *ngIf="totalMedios">{{ totalMedios | number }}</span>
+      </button>
+    </li>
+  </ul>
+</div>
+
+<!-- ===================== FOTOS Y FIRMAS (por num_empleado) ===================== -->
+<div class="im-contenedor mx-3" *ngIf="seccion === 'empleados'">
+
+  <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+    <div class="input-group input-group-sm im-buscador">
+      <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+      <input type="text" class="form-control"
+             placeholder="Buscar por nombre, número de empleado, CURP o RFC..."
+             [(ngModel)]="busquedaMedios" (ngModelChange)="onBusquedaMedios()">
+      <button class="btn btn-outline-secondary"
+              (click)="busquedaMedios = ''; onBusquedaMedios()"><i class="fas fa-eraser"></i></button>
+    </div>
+
+    <div class="input-group input-group-sm im-fecha-filtro"
+         title="Filtrar por el día en que se capturó el archivo">
+      <span class="input-group-text bg-white"><i class="fas fa-calendar-day text-muted"></i></span>
+      <input type="date" class="form-control" [(ngModel)]="fechaMedios" (ngModelChange)="onFechaMedios()">
+    </div>
+
+    <button class="btn btn-sm btn-outline-secondary" (click)="limpiarFiltrosMedios()"
+            *ngIf="busquedaMedios || fechaMedios" title="Quitar filtros">
+      <i class="fas fa-filter-circle-xmark"></i>
+    </button>
+
+    <span class="badge bg-light text-dark border">{{ totalMedios | number }} archivos</span>
+
+    <div class="ms-auto d-flex align-items-center gap-2" *ngIf="totalPaginasMedios > 1">
+      <button class="btn btn-sm btn-outline-secondary" [disabled]="paginaMedios <= 1"
+              (click)="irAPagina(paginaMedios - 1)"><i class="fas fa-chevron-left"></i></button>
+      <span class="small text-muted">Página {{ paginaMedios }} de {{ totalPaginasMedios }}</span>
+      <button class="btn btn-sm btn-outline-secondary" [disabled]="paginaMedios >= totalPaginasMedios"
+              (click)="irAPagina(paginaMedios + 1)"><i class="fas fa-chevron-right"></i></button>
+    </div>
+  </div>
+
+  <div class="im-lista shadow-sm">
+    <div *ngIf="cargandoMedios" class="text-center text-muted py-5">
+      <i class="fas fa-spinner fa-spin fa-2x mb-2 d-block"></i> Buscando archivos...
+    </div>
+
+    <div *ngIf="!cargandoMedios && !medios.length" class="text-center text-muted py-5">
+      <i class="fas fa-inbox fa-2x mb-2 d-block opacity-50"></i>
+      <div *ngIf="busquedaMedios">Ningún archivo coincide con «{{ busquedaMedios }}».</div>
+      <div *ngIf="!busquedaMedios">No hay archivos nombrados por número de empleado.</div>
+    </div>
+
+    <div class="im-tarjetas" *ngIf="!cargandoMedios">
+      <div class="im-tarjeta" *ngFor="let m of medios">
+        <div class="im-medios">
+          <div class="im-medio" title="Fotografía">
+            <img *ngIf="m.foto" [src]="m.foto" alt="Foto">
+            <div *ngIf="!m.foto" class="im-medio-vacio">
+              <i class="fas fa-camera"></i><small>Sin foto</small>
+            </div>
+          </div>
+          <div class="im-medio im-medio-firma" title="Firma">
+            <img *ngIf="m.firma" [src]="m.firma" alt="Firma">
+            <div *ngIf="!m.firma" class="im-medio-vacio">
+              <i class="fas fa-pen-nib"></i><small>Sin firma</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="im-cuerpo">
+          <div class="im-rfc">{{ m.num_empleado }}</div>
+          <div class="im-nombre text-truncate" [title]="m.nombre">{{ m.nombre || '—' }}</div>
+          <div class="im-sin-cruce" *ngIf="!m.en_roster">
+            <i class="fas fa-user-slash"></i> Ya no está en el roster
+          </div>
+        </div>
+
+        <div class="im-acciones">
+          <button class="btn btn-sm btn-outline-primary flex-grow-1" (click)="reemplazarFoto(m)"
+                  title="Tomar o subir una foto nueva">
+            <i class="fas fa-camera"></i>
+          </button>
+          <button class="btn btn-sm btn-outline-primary flex-grow-1" (click)="reemplazarFirma(m)"
+                  title="Capturar o subir una firma nueva">
+            <i class="fas fa-pen-nib"></i>
+          </button>
+          <button class="btn btn-sm btn-outline-danger" (click)="confirmarBorrarMedios(m)"
+                  title="Eliminar foto y firma del servidor">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== PENDIENTES DE CRUCE (por RFC) ===================== -->
+<div class="im-contenedor mx-3" *ngIf="seccion === 'pendientes'">
   <div class="row g-4 w-100 m-0 im-filas">
 
     <!-- ---------- IZQUIERDA ---------- -->
@@ -28,6 +161,12 @@
       <!-- Filtros -->
       <div class="d-flex align-items-center gap-2 mb-2 px-1 flex-wrap">
         <div class="btn-group btn-group-sm im-filtros">
+          <button class="btn btn-outline-secondary" [class.active]="filtro === 'recientes'"
+                  (click)="seleccionarFiltro('recientes')"
+                  title="Capturas de las últimas 24 horas">
+            <i class="fas fa-clock me-1"></i>Recientes
+            <span class="badge bg-primary ms-1">{{ totalRecientes }}</span>
+          </button>
           <button class="btn btn-outline-secondary" [class.active]="filtro === 'todos'"
                   (click)="seleccionarFiltro('todos')">
             Todos <span class="badge bg-secondary ms-1">{{ registros.length }}</span>
@@ -49,7 +188,17 @@
           </button>
         </div>
 
-        <div class="input-group input-group-sm im-buscador ms-auto">
+        <div class="input-group input-group-sm im-fecha-filtro ms-auto"
+             title="Filtrar por el día en que se capturó el archivo">
+          <span class="input-group-text bg-white"><i class="fas fa-calendar-day text-muted"></i></span>
+          <input type="date" class="form-control" [(ngModel)]="fechaPendientes">
+          <button class="btn btn-outline-secondary" (click)="fechaPendientes = ''"
+                  *ngIf="fechaPendientes" title="Quitar fecha">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+
+        <div class="input-group input-group-sm im-buscador">
           <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
           <input type="text" class="form-control"
                  placeholder="Buscar por RFC, número o nombre..."
@@ -111,21 +260,43 @@
               <div class="im-sin-cruce" *ngIf="!reg.cruce">
                 <i class="fas fa-hourglass-half"></i> Aún no está en el roster
               </div>
+
+              <div class="im-fecha" *ngIf="reg.fecha">
+                <i class="fas fa-clock"></i>
+                {{ (reg.fecha * 1000) | date:'dd/MM/yyyy HH:mm' }}
+                <span class="badge bg-primary ms-1" *ngIf="esReciente(reg)">reciente</span>
+              </div>
             </div>
 
             <div class="im-acciones">
+              <button class="btn btn-sm btn-outline-primary flex-grow-1"
+                      (click)="reemplazarFotoPrevio(reg)"
+                      title="Tomar o subir una foto nueva">
+                <i class="fas fa-camera"></i>
+              </button>
+              <button class="btn btn-sm btn-outline-primary flex-grow-1"
+                      (click)="reemplazarFirmaPrevio(reg)"
+                      title="Capturar o subir una firma nueva">
+                <i class="fas fa-pen-nib"></i>
+              </button>
+              <button class="btn btn-sm btn-outline-secondary"
+                      (click)="abrirRenombrar(reg)"
+                      title="Corregir el RFC con el que se guardó">
+                <i class="fas fa-i-cursor"></i>
+              </button>
+              <button class="btn btn-sm btn-outline-danger"
+                      (click)="confirmarBorrado(reg)"
+                      title="Eliminar esta captura del servidor">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+
+            <div class="im-acciones pt-0" *ngIf="reg.cruce">
               <button class="btn btn-sm btn-success flex-grow-1"
-                      *ngIf="reg.cruce"
                       [disabled]="migrando"
                       (click)="migrarUno(reg)"
                       title="Renombrar los archivos con su número de empleado">
                 <i class="fas fa-link"></i> Cruzar
-              </button>
-              <button class="btn btn-sm btn-outline-danger"
-                      [class.flex-grow-1]="!reg.cruce"
-                      (click)="confirmarBorrado(reg)"
-                      title="Eliminar esta captura del servidor">
-                <i class="fas fa-trash"></i>
               </button>
             </div>
 
